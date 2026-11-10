@@ -898,6 +898,11 @@ q{quotes:"«" "»"}
 /* not in WebKit, where the vowel marks vanish with calt off (tried in GitHub Actions); there the font keeps its joined words */
 html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webkit) .w-card .q,html:not(.is-webkit) .w-sheet .q{font-feature-settings:"calt" 0}
 
+.w-res td small{display:block;font-size:.8125rem;color:var(--ink-3);font-weight:400}
+.w-res td.good small,.w-res td.off small{color:inherit;font-weight:600}
+.w-res .w-st{color:var(--ink-3)}
+.w-unit{line-height:1.9;color:var(--ink-2)}
+
 </style>
 
 <div id="app" dir="rtl" lang="ar">
@@ -3021,7 +3026,7 @@ function wRead() {
       : `${r.mic ? `<button type="button" class="btn ${r.blob ? '' : 'pri lg'}" data-wr="rec">${r.blob ? 'سجّل من جديد' : 'سجّل تلاوتك'}</button>` : ''}<label class="btn">ارفع تسجيلًا<input type="file" accept="audio/*" data-wr-file style="position:absolute;opacity:0;width:1px;height:1px"></label>`}</div>
     ${r.msg ? `<p class="w-note" role="status">${r.msg}</p>` : ''}
     ${r.url && !r.mr ? `<audio controls src="${r.url}"></audio><div class="acts"><button type="button" class="btn pri lg" data-wr="check"${r.busy ? ' disabled' : ''}>${r.busy ? 'الفاحص يقيس…' : 'افحص الآية'}</button></div>` : ''}
-    ${r.res ? wResHTML(r.res) : ''}${r.err ? wErrHTML(r.err, a) : ''}
+    ${r.res ? wResHTML(r.res, a) : ''}${r.err ? wErrHTML(r.err, a) : ''}
     <div class="w-nav">${r.ai ? '<button type="button" class="btn sm" data-wr="prev">السابقة</button>' : '<span></span>'}<button type="button" class="btn sm" data-wr="next">${r.ai + 1 < p.ayahs.length ? 'قرأتُها، التالية' : 'قرأتُها، أتممتُ الصفحة'}</button></div></div>`;
 }
 function wSetBlob(b) { const r = W.r; if (r.url) URL.revokeObjectURL(r.url); r.blob = b; r.url = URL.createObjectURL(b); r.res = r.err = null; r.msg = ''; wRender(); }
@@ -3052,12 +3057,38 @@ async function wCheck() {
   } catch (e) { r.err = { blocked: e instanceof TypeError, text: '' }; }
   r.busy = false; if (W && W.r === r) wRender();
 }
-function wResHTML(res) {
-  const unit = res.unit_ms_from_2_count_madds || res.unit_ms_from_short_vowels, half = n => AR(String(Math.round(n * 2) / 2));
-  const rows = (res.madds || []).map(m => { const got = m.counts_by_madd_unit != null ? m.counts_by_madd_unit : m.counts_by_short_unit, near = got != null && Math.abs(got - m.script_counts) <= .5;
-    return `<tr><td><span class="q">${esc(m.text)}</span></td><td>${AR(m.script_counts)}${m.at_stop ? ' (عند الوقف)' : ''}</td><td class="${got == null ? '' : near ? 'good' : 'off'}">${got == null ? 'لم يُقَس' : half(got)}</td></tr>`; }).join('');
-  return `<div class="w-res" id="wRes"><h3>قراءة آلية من الفاحص</h3><p>${res.similarity < .5 ? 'لا يبدو أن التسجيل لهذه الآية. ' : ''}سمع الفاحص ${AR(Math.round(res.similarity * 100))}% مما في الآية.${unit ? ` وحركتك في هذه التلاوة نحو ${AR(unit)} جزءًا من ألف من الثانية.` : ''}</p>
-    ${rows ? `<table><thead><tr><th>الكلمة</th><th>الحركات في الرسم</th><th>ما قاسه الفاحص</th></tr></thead><tbody>${rows}</tbody></table>` : '<p>لا صوت مدّي يُقاس في هذه الآية.</p>'}${W_AI}</div>`;
+/* the checker's measure, in the book's terms. It times each long sound (صوت مدّي) of the ayah; the unit is the book's own حركة,
+   «زمن نطق حرف واحد متحرك», taken from the short vowels of this same recitation (not from the long sounds being judged, which
+   made the measure circular: with two or three long sounds one of them always came out at exactly 2). The length each one should
+   have is the book's: the rule of the letter where the site has tagged it, the stop's «2 أو 4 أو 6» on the last long sound before
+   the last letter; otherwise the checker's own reading, said so. */
+const W_STOP = (() => { const t = B.tables[33]; return t ? t.rows[0][2].raw.replace(/\s+/g, ' ').trim() : ''; })();
+function wExpect(m, a) {
+  const w = a.w[m.word - 1] || [], mad = w.filter(u => u.k === 'mad'), last = a.w.flat().filter(u => !W_SILENT.includes(u.k)).slice(-1)[0];
+  if (m.at_stop) return last && last.k === 'mad' ? { v: '2', why: (WR['35'] || {}).q || '' } : { v: '2|4|6', why: W_STOP };
+  const u = mad.find(x => x.t != null && WR[x.t] && WR[x.t].v);
+  if (u && !u.ms) return { v: WR[u.t].v, why: WR[u.t].w };
+  // the small alif (ـٰ) is the book's alif of a long sound, and with no sign above it its rule is table 31's
+  if (!mad.some(x => x.ms) && w.some(x => x.d && !x.ms) && WR['31']) return { v: WR['31'].v, why: WR['31'].w };
+  return { v: String(m.script_counts), why: '', fx: 1 };
+}
+function wVerdict(got, v) {
+  const want = v === '2|4|6' ? [2, 4, 6] : [Number(v)], near = want.reduce((b, x) => Math.abs(got - x) < Math.abs(got - b) ? x : b, want[0]);
+  return Math.abs(got - near) <= .5 ? ['good', 'مناسب'] : got < near ? ['off', 'أقصر'] : ['off', 'أطول'];
+}
+function wResHTML(res, a) {
+  const haraka = (CHI.terms.blocks.find(b => b.i === 171) || {}).t || '', num = n => AR(String(Math.round(n * 2) / 2).replace('.', '٫'));
+  if (res.similarity < .5) return `<div class="w-res" id="wRes"><h3>لا يبدو أن التسجيل لهذه الآية</h3><p>تأكد أنك قرأت الآية ${AR(a.a)} كاملة، ثم سجّل من جديد.</p>${W_AI}</div>`;
+  const byShort = res.unit_ms_from_short_vowels != null;
+  const rows = (res.madds || []).map(m => { const e = wExpect(m, a), got = byShort ? m.counts_by_short_unit : m.counts_by_madd_unit;
+    const [cls, word] = got == null ? ['', 'لم يُقَس'] : wVerdict(got, e.v);
+    return `<tr><td><span class="q">${esc(m.text)}</span>${m.at_stop ? '<small class="w-st">عند الوقف</small>' : ''}</td>
+      <td>${beads(e.v)}<small>${esc(DLAB[e.v] || AR(e.v) + ' حركات')}${e.fx ? ' (بحسب الفاحص)' : ''}</small></td>
+      <td class="${cls}">${got == null ? '' : num(got) + ' '}<small>${word}</small></td></tr>`; }).join('');
+  return `<div class="w-res" id="wRes"><h3>زمن الأصوات المدّية في تلاوتك</h3>
+    <p class="w-unit">قاس الفاحص كل صوت مدّي في الآية بالحركة. والحركة هنا من تلاوتك نفسها${haraka ? `: «${esc(haraka.replace(/\s*=\s*/, ' = ').replace(/[.\s]+$/, ''))}»` : ''}.${byShort ? '' : ' ولم يجد في هذه التلاوة حركات قصيرة تكفي، فقاس بالمدود نفسها.'}</p>
+    ${rows ? `<table><thead><tr><th>الكلمة</th><th>القاعدة</th><th>تلاوتك</th></tr></thead><tbody>${rows}</tbody></table>` : '<p>لا صوت مدّي يُقاس في هذه الآية.</p>'}
+    <p class="w-note">لا يقيس الفاحص بعدُ زمن الساكن والمشدّد والمعرّى، ولا صفة الحرف. «مناسب»: الفرق عن القاعدة نصف حركة أو أقل.</p>${W_AI}</div>`;
 }
 function wErrHTML(err, a) {
   const quota = /quota/i.test(err.text);
