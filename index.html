@@ -895,7 +895,8 @@ q{quotes:"«" "»"}
 .w-dlg p{margin:0 0 10px;line-height:1.9}
 .w-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
 /* the font draws some whole words as one shape (بِسۡمِ، ٱللَّهِ): here every letter must stand alone, to be seen and touched */
-.w-page .q,.w-ayah.q,.w-card .q,.w-sheet .q{font-feature-settings:"calt" 0}
+/* not in WebKit, where the vowel marks vanish with calt off (tried in GitHub Actions); there the font keeps its joined words */
+html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webkit) .w-card .q,html:not(.is-webkit) .w-sheet .q{font-feature-settings:"calt" 0}
 
 </style>
 
@@ -2328,12 +2329,9 @@ const litHTML = (w, fo, nx) => { const [a, b] = fo; let h = esc(w.slice(0, a)) +
 const clusterAt = (w, a) => { let b = a + 1; while (b < w.length && MKC.test(w[b])) b++; return [a, b]; };
 // a join: the first letter of the word that follows
 const nextWord = (w, b) => { const x = w.indexOf(' ', b); return x < 0 ? null : clusterAt(w, x + 1); };
-// a lit letter stays joined to its neighbours: Safari on the iPhone breaks the joining at the edge of a styled span, which left a gap
-// and loose letter forms («مُحِي طۡ»); a zero-width joiner on each side of the edge keeps both letters in their joined forms
-const ZJ_F = '\u0626\u0628\u062A-\u062E\u0633-\u063A\u0640-\u0647\u0649\u064A', ZJ_M = '\u064B-\u065F\u0670\u06D6-\u06ED';
-const ZJ_IN = new RegExp(`([${ZJ_F}][${ZJ_M}]*)(<span class="lk[^"]*">)([\u0622-\u064A\u0671])`, 'g'), ZJ_OUT = new RegExp(`([${ZJ_F}][${ZJ_M}]*)(</span>)([${ZJ_M}]*[\u0622-\u064A\u0671])`, 'g');
-const zjLit = h => typeof h === 'string' ? h.replace(ZJ_IN, '$1\u200D$2\u200D$3').replace(ZJ_OUT, '$1\u200D$2\u200D$3') : h;
-function lookHTML(c, ch) { return zjLit(lookHTML0(c, ch)); }
+// a lit letter has no padding: Safari on the iPhone breaks the joining at the edge of a padded span («مُحِي طۡ»). Nor a joiner (U+200D)
+// at the edge: in WebKit it drops the vowel marks of the word. Both were tried on WebKit in GitHub Actions (10 November 2026).
+function lookHTML(c, ch) { return lookHTML0(c, ch); }
 function lookHTML0(c, ch) {
   const m = c.t === 'reveal' && !c.exq && c.ln == null && c.u == null && cardOf(c.k, c.r, ch);
   if (m) return litHTML(m.w, m.fo, c.ctx === 'wasl' ? m.nx || (m.split >= 0 ? nextWord(m.w, m.fo[1]) : null) : null);   // what follows matters when joining, not when stopping
@@ -2842,6 +2840,10 @@ const W_F = { sh: 'حرف مشدّد', wy: 'واو أو يا متحركة دون
 const W_CHK = 'https://yamanamr-zin-checker.hf.space';
 // the checker's licence asks for this notice in both languages before first use, and a lasting place in «عن الموقع»
 const W_AI = `<p class="w-ai">هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.</p><p class="w-ai" lang="en">This Quranic Teacher is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</p>`;
+// every browser on the iPhone and the iPad is WebKit, and so is Safari on the Mac
+const W_WEBKIT = /iPhone|iPad|iPod/.test(navigator.userAgent) || /Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1
+  || /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|Android/.test(navigator.userAgent);
+document.documentElement.classList.toggle('is-webkit', W_WEBKIT);
 const WKEY = 'zin.w';
 let WS = (() => { try { return JSON.parse(localStorage.getItem(WKEY) || '{}'); } catch (e) { return {}; } })(), W = null;
 const wSave = () => { try { localStorage.setItem(WKEY, JSON.stringify(WS)); } catch (e) {} };
@@ -2850,11 +2852,8 @@ const wWords = a => a.w.slice(a.from || 0).map((w, j) => [w, j + (a.from || 0)])
 const wUnits = p => p.U || (p.U = p.ayahs.flatMap((a, ai) => wWords(a).flatMap(([w, wi]) => w.map((u, ui) => ({ u, ai, wi, ui })))));
 const wCounts = p => wUnits(p).reduce((c, x) => { const g = wG(x.u); if (WK[g]) c[g] = (c[g] || 0) + 1; return c; }, {});
 const wDone = p => Object.keys(wSt(p.id).r).length;
-// each letter is its own element, to be lit and touched; a zero-width joiner on both sides of every joined edge keeps the word's
-// letters in their joined forms where a browser (Safari on the iPhone) breaks the joining at an element's edge
-const W_FWD = /[\u0626\u0628\u062A-\u062E\u0633-\u063A\u0640-\u0647\u0649\u064A]/, W_BACK = /[\u0622-\u064A\u0671]/;
-const wJ = w => w.map((u, i) => { const pv = w[i - 1], nx = w[i + 1];
-  return (pv && W_FWD.test(pv.c[0]) && W_BACK.test(u.c[0]) ? '\u200D' : '') + esc(u.c) + (nx && W_FWD.test(u.c[0]) && W_BACK.test(nx.c[0]) ? '\u200D' : ''); });
+// each letter is its own element, to be lit and touched; the word stays joined across them (no padding, no joiner: see lookHTML)
+const wJ = w => w.map(u => esc(u.c));
 const wAyahHTML = (p, ai, tap = true) => { const a = p.ayahs[ai];
   return wWords(a).map(([w, wi]) => { const t = wJ(w); return `<span class="ww">${w.map((u, ui) => u.k === 'sym' ? `<span class="w-sym">${esc(u.c)}</span>`
     : `<i class="u"${tap ? ` data-wu="${ai}-${wi}-${ui}"` : ''} data-g="${wG(u)}" data-c="${(WK[wG(u)] || [])[1] || ''}">${t[ui]}</i>`).join('')}</span>`; }).join(' ') + `<span class="w-n">${AR(a.a)}</span>`; };
