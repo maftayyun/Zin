@@ -1447,7 +1447,9 @@ function timeHTML(k, col, cell) {
   const say = x => { DUR_RE.lastIndex = 0; const m = DUR_RE.exec(x.t); const who = /الأول/.test(x.t) ? 'الأول ' : /الثاني/.test(x.t) ? 'الثاني ' : ''; return who + (m ? m[0] : x.t); };
   return `<p class="tline nw">${no ? `<span>لا تُلفظ</span>${beads('0')}` : ''}${tm.map(x => `<span>${esc(say(x))}</span>${beads(x.d[0])}`).join('')}</p>`;
 }
-const colPos = (k, r, j) => { let pos = 0; for (let i = 0; i < j; i++) pos += T[k].rows[r][i].span || 1; return pos; };
+// the header a cell sits under: where a row has as many cells as the header, cell j is under header cell j, whatever the widths
+// (the book's table of the steady sukun widens its second column from the fifth row; counted by width, that column fell under the first)
+const colPos = (k, r, j) => { const R = T[k].rows[r], H = T[k].rows[0], by = R.length === H.length ? H : R; let pos = 0; for (let i = 0; i < j; i++) pos += by[i].span || 1; return pos; };
 function answerHTML(c) {
   const t = T[c.k], row = t.rows[c.r];
   const body = c.list ? c.cs.map(j => `<div class="lst">${spokenHTML(row[j])}${timeHTML(c.k, colPos(c.k, c.r, j), row[j])}</div>`).join('')
@@ -2115,7 +2117,7 @@ function quiz(c, hint) {
 function classify(k, r, ci) {
   const t = T[k], R = t.rows[r], H = spreadRow(t.rows[0]); if (!R || !R[ci]) return null;
   const labs = [...new Set(H.map(h => cellText(h).replace(/\s*(تُلفظ\s*)?بزمن.*$/, '').trim()).filter(Boolean))];
-  let pos = 0; for (let j = 0; j < ci; j++) pos += R[j].span || 1;
+  const pos = colPos(k, r, ci);
   const ans = cellText(H[pos]).replace(/\s*(تُلفظ\s*)?بزمن.*$/, '').trim(), cell = R[ci];
   if (!ans || labs.length < 2 || !cell.lines.flat().some(x => x.k === 'q')) return null;
   const card = CARDS.find(x => x.k === k && x.r === r && x.c === ci);
@@ -2530,17 +2532,27 @@ const CTXW = { wasl: 'وصلًا', waqf: 'وقفًا', ibtida: 'ابتداءً',
 function sortOf(k, cards) {
   const rv = cards.filter(c => c.t === 'reveal' && !c.cs && CTXW[c.ctx]);
   let items = rv.map(c => { const u = formOf(T[k].rows[c.r][c.c]); return u && { t: u.said || u.w, r: u.said ? u.sr : u.wr, lab: CTXW[c.ctx] }; }).filter(Boolean);
-  if (T[k].kind === 'cols') items = T[k].rows.slice(1).flatMap((R, ri) => R.map((_, ci) => { const q = classify(k, ri + 1, ci), u = formOf(R[ci]); return q && u && { t: u.said || u.w, r: u.said ? u.sr : u.wr, lab: q.ans }; })).filter(Boolean);
-  const labOf = {}; items.forEach(x => { (labOf[x.t] = labOf[x.t] || new Set()).add(x.lab); });
-  items = items.filter(x => labOf[x.t].size === 1 && x.t.length < 26);
-  const seen = new Set(); items = items.filter(x => !seen.has(x.t) && seen.add(x.t));
+  // a table by columns sorts by what is written on the letter, so the word is shown as the mushaf writes it, its letter in red:
+  // shown as said, every word of «فوقها سكون» and «وقفًا بالتّسكين» carries the same sukun and the question cannot be answered by looking
+  const cols = T[k].kind === 'cols';
+  const sukAt = w => { if (k !== 1 && k !== 2) return null; for (let i = 0; i < w.length; i++) { if (!/[\u0621-\u064A]/.test(w[i]) || /[قطبجد]/.test(w[i]) !== (k === 1)) continue;
+    const [a, b] = clusterAt(w, i); if (w.slice(a, b).includes('\u06E1')) return [[a, b]]; } return null; };
+  if (cols) items = T[k].rows.slice(1).flatMap((R, ri) => R.map((_, ci) => { const q = classify(k, ri + 1, ci), u = formOf(R[ci]); const r = u && (u.wr && u.wr.length ? u.wr : sukAt(u.w));
+    return q && u && r && { t: u.w, r, lab: q.ans, s: u.said && u.said !== u.w ? u.said : '', sr: u.sr }; })).filter(Boolean);
+  const key = x => x.t + JSON.stringify(x.r || []);
+  const labOf = {}; items.forEach(x => { (labOf[key(x)] = labOf[key(x)] || new Set()).add(x.lab); });
+  items = items.filter(x => labOf[key(x)].size === 1 && x.t.length < 26);
+  const seen = new Set(); items = items.filter(x => !seen.has(key(x)) && seen.add(key(x)));
   const bins = [...new Set(items.map(x => x.lab))];
   if (bins.length < 2 || bins.length > 3 || items.length < 4) return null;
+  if (cols && bins.every(b => /^لا تُلفظ/.test(b))) return null;   // bins that differ only by the letter's name ask nothing of the eye
   // the same number from each bin, alternating, so the hand cannot guess from a run
   const by = bins.map(l => shuffle(items.filter(x => x.lab === l))), n = Math.min(3, ...by.map(x => x.length)), deck = [];
   for (let i = 0; i < n; i++) by.forEach(g => deck.push(g[i]));
-  return { bins, deck: shuffle(deck) };
+  return { bins, deck: shuffle(deck), q: cols ? (SORTQ[k] || 'انظر إلى الحرف الأحمر وما عليه: في أيّ عمود من الجدول هو؟') : '' };
 }
+// the question a column table's sorting asks, in the site's words
+const SORTQ = { 1: 'من أين سكون الحرف الأحمر؟', 2: 'من أين سكون الحرف الأحمر؟', 31: 'أين الصوت المدّي الأحمر من الكلمة؟', 38: 'أين الصوت المدّي الأحمر من الكلمة؟' };
 /* pairs: a written form and how it is said, three pairs face down */
 function pairsOf(k) {
   const out = [], seen = new Set();
@@ -2647,8 +2659,8 @@ function stepHTML(s) {
     const tally = `<div class="deck-n" aria-label="${AR(i)} من ${AR(deck.length)}">${deck.map((_, j) => `<i class="${res[j] === true ? 'ok' : res[j] === false ? 'no' : ''}"></i>`).join('')}</div>`;
     if (i >= deck.length) { const ok = res.filter(Boolean).length; return `<p class="ask">${ok === deck.length ? 'صنّفتها كلها' : `صنّفت ${AR(ok)} من ${AR(deck.length)}`}</p>${tally}<div class="sum">${bins.map(b => `<div class="sm-r"><b>${esc(b)}</b> ${deck.filter(x => x.lab === b).map(x => `<span class="q">${rtext(x.t, x.r)}</span>`).join('، ')}</div>`).join('')}</div>${nextBtn()}`; }
     const x = deck[i], fb = LS.phase === 'fb';
-    return `<p class="ask">${bins.length === 2 && bins.every(b => CTXW.wasl === b || CTXW.waqf === b) ? 'صِل أم قف؟' : 'في أيّ حالة تُقرأ هكذا؟'}</p>${tally}
-      <div class="deck"><div class="sc${fb ? '' : ' pop'}" id="sc" data-sw="1">${rtext(x.t, x.r)}</div></div>
+    return `<p class="ask">${s.so.q || (bins.length === 2 && bins.every(b => CTXW.wasl === b || CTXW.waqf === b) ? 'صِل أم قف؟' : 'في أيّ حالة تُقرأ هكذا؟')}</p>${tally}
+      <div class="deck"><div class="sc${fb ? '' : ' pop'}" id="sc" data-sw="1">${rtext(x.t, x.r)}</div></div>${fb && x.s ? `<p class="look" style="justify-content:center">وقفًا تُقرأ: <span class="q" style="font-size:1.5rem">${rtext(x.s, x.sr)}</span></p>` : ''}
       <div class="bins">${bins.map((b, j) => `<button type="button" class="bin${fb && b === x.lab ? ' ok' : fb && b === LS.sel ? ' no' : ''}" data-ls="bin" data-v="${j}" ${fb ? 'disabled' : ''}>${esc(b)}</button>`).join('')}</div>
       <p class="look"><i></i>${bins.length === 2 ? 'اضغط الخانة، أو اسحب الكلمة نحوها' : 'اضغط الخانة'}</p>`;
   }
