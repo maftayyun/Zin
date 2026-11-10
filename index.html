@@ -417,7 +417,7 @@ q{quotes:"«" "»"}
 .opt.txt{display:block;font:500 .9375rem/1.9 var(--f-ui);text-align:start;min-height:0;padding:12px 16px}
 .card .big.sg{font-size:clamp(4rem,14vw,5.5rem);line-height:1.3;color:var(--c)}
 .opt.qo .q{font-size:clamp(1.5rem,4.4vw,1.9rem);line-height:1.8;font-weight:400}
-.lk{color:var(--dot);background:radial-gradient(closest-side,color-mix(in srgb,var(--dot) 16%,transparent),transparent);border-radius:50%;padding:0 .08em}
+.lk{color:var(--dot);background:radial-gradient(closest-side,color-mix(in srgb,var(--dot) 16%,transparent),transparent);border-radius:50%}
 .lk2{color:var(--c);background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 14%,transparent),transparent)}
 .ex-look .rd{background:radial-gradient(closest-side,color-mix(in srgb,var(--dot) 16%,transparent),transparent);border-radius:50%}
 .fr-c{font:500 .8125rem var(--f-ui);color:var(--ink-3);margin-inline-start:8px}
@@ -834,7 +834,6 @@ q{quotes:"«" "»"}
 .w-sheet .x{position:absolute;inset:10px auto auto 10px;width:44px;height:44px;border:0;background:none;font-size:1.5rem;color:var(--ink-3);cursor:pointer;border-radius:50%}
 .w-sheet h2{font:700 1.0625rem/1.4 var(--f-h);margin:0 0 2px;color:var(--c,var(--brand))}
 .w-sheet .q{font-size:2.4rem;line-height:1.9;text-align:center;margin:4px 0 8px}
-.w-sheet .q .u.sel{padding:0 .06em}
 .w-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .w-steps li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;border-radius:14px;background:var(--well)}
 .w-steps li.stop{background:var(--ct,var(--brand-t))}
@@ -2324,7 +2323,13 @@ const litHTML = (w, fo, nx) => { const [a, b] = fo; let h = esc(w.slice(0, a)) +
 const clusterAt = (w, a) => { let b = a + 1; while (b < w.length && MKC.test(w[b])) b++; return [a, b]; };
 // a join: the first letter of the word that follows
 const nextWord = (w, b) => { const x = w.indexOf(' ', b); return x < 0 ? null : clusterAt(w, x + 1); };
-function lookHTML(c, ch) {
+// a lit letter stays joined to its neighbours: Safari on the iPhone breaks the joining at the edge of a styled span, which left a gap
+// and loose letter forms («مُحِي طۡ»); a zero-width joiner on each side of the edge keeps both letters in their joined forms
+const ZJ_F = '\u0626\u0628\u062A-\u062E\u0633-\u063A\u0640-\u0647\u0649\u064A', ZJ_M = '\u064B-\u065F\u0670\u06D6-\u06ED';
+const ZJ_IN = new RegExp(`([${ZJ_F}][${ZJ_M}]*)(<span class="lk[^"]*">)([\u0622-\u064A\u0671])`, 'g'), ZJ_OUT = new RegExp(`([${ZJ_F}][${ZJ_M}]*)(</span>)([${ZJ_M}]*[\u0622-\u064A\u0671])`, 'g');
+const zjLit = h => typeof h === 'string' ? h.replace(ZJ_IN, '$1\u200D$2\u200D$3').replace(ZJ_OUT, '$1\u200D$2\u200D$3') : h;
+function lookHTML(c, ch) { return zjLit(lookHTML0(c, ch)); }
+function lookHTML0(c, ch) {
   const m = c.t === 'reveal' && !c.exq && c.ln == null && c.u == null && cardOf(c.k, c.r, ch);
   if (m) return litHTML(m.w, m.fo, c.ctx === 'wasl' ? m.nx || (m.split >= 0 ? nextWord(m.w, m.fo[1]) : null) : null);   // what follows matters when joining, not when stopping
   // the letter the verdict is about, wherever the word has it
@@ -2830,9 +2835,14 @@ const wWords = a => a.w.slice(a.from || 0).map((w, j) => [w, j + (a.from || 0)])
 const wUnits = p => p.U || (p.U = p.ayahs.flatMap((a, ai) => wWords(a).flatMap(([w, wi]) => w.map((u, ui) => ({ u, ai, wi, ui })))));
 const wCounts = p => wUnits(p).reduce((c, x) => { const g = wG(x.u); if (WK[g]) c[g] = (c[g] || 0) + 1; return c; }, {});
 const wDone = p => Object.keys(wSt(p.id).r).length;
+// each letter is its own element, to be lit and touched; a zero-width joiner on both sides of every joined edge keeps the word's
+// letters in their joined forms where a browser (Safari on the iPhone) breaks the joining at an element's edge
+const W_FWD = /[\u0626\u0628\u062A-\u062E\u0633-\u063A\u0640-\u0647\u0649\u064A]/, W_BACK = /[\u0622-\u064A\u0671]/;
+const wJ = w => w.map((u, i) => { const pv = w[i - 1], nx = w[i + 1];
+  return (pv && W_FWD.test(pv.c[0]) && W_BACK.test(u.c[0]) ? '\u200D' : '') + esc(u.c) + (nx && W_FWD.test(u.c[0]) && W_BACK.test(nx.c[0]) ? '\u200D' : ''); });
 const wAyahHTML = (p, ai, tap = true) => { const a = p.ayahs[ai];
-  return wWords(a).map(([w, wi]) => `<span class="ww">${w.map((u, ui) => u.k === 'sym' ? `<span class="w-sym">${esc(u.c)}</span>`
-    : `<i class="u"${tap ? ` data-wu="${ai}-${wi}-${ui}"` : ''} data-g="${wG(u)}" data-c="${(WK[wG(u)] || [])[1] || ''}">${esc(u.c)}</i>`).join('')}</span>`).join(' ') + `<span class="w-n">${AR(a.a)}</span>`; };
+  return wWords(a).map(([w, wi]) => { const t = wJ(w); return `<span class="ww">${w.map((u, ui) => u.k === 'sym' ? `<span class="w-sym">${esc(u.c)}</span>`
+    : `<i class="u"${tap ? ` data-wu="${ai}-${wi}-${ui}"` : ''} data-g="${wG(u)}" data-c="${(WK[wG(u)] || [])[1] || ''}">${t[ui]}</i>`).join('')}</span>`; }).join(' ') + `<span class="w-n">${AR(a.a)}</span>`; };
 const wChip = (g, n, on) => `<button type="button" class="w-chip" data-wk="${g}" data-c="${WK[g][1]}" aria-pressed="${!!on}"><span class="g" aria-hidden="true">${WK[g][2]}</span>${WK[g][0]}<small>${AR(n)}</small></button>`;
 const wMeter = p => { const d = wDone(p), n = p.ayahs.length; return `<span class="w-meter"><i><b style="width:${Math.round(100 * d / n)}%"></b></i>قرأتَ ${AR(d)} من ${AR(n)}</span>`; };
 
@@ -2895,7 +2905,7 @@ function wSheet(ai, wi, ui) {
   $$('.w-sheet').forEach(x => x.remove()); $$('.u.sel', V).forEach(x => x.classList.remove('sel'));
   const el = $(`[data-wu="${ai}-${wi}-${ui}"]`, V); if (el) el.classList.add('sel');
   const lastInWord = !w.slice(ui + 1).some(x => !W_SILENT.includes(x.k));
-  const word = w.map((x, i) => `<i class="u${i === ui ? ' sel' : ''}">${esc(x.c)}</i>`).join('');
+  const wt = wJ(w), word = w.map((x, i) => `<i class="u${i === ui ? ' sel' : ''}">${wt[i]}</i>`).join('');
   const rows = [`<li><b>ما على الحرف؟</b><span>${esc(W_ON(u))}</span></li>`];
   if (u.f && (g !== 'mad' || u.f === 'ws')) rows.push(`<li><b>وما بعده؟</b><span>${W_F[u.f]}</span></li>`);
   if (r) {
@@ -2970,7 +2980,7 @@ function wGlance() {
   if (!g.t0) g.t0 = performance.now();
   return lvs + `<div class="w-bar"><b style="width:${Math.round(100 * g.i / g.items.length)}%"></b></div>
     <div class="w-card">${g.ans ? '' : '<div class="w-timer" aria-hidden="true"><b></b></div>'}
-      <p class="q">${w.map((u, i) => `<i class="u${i === x.ui ? ' sel' : ''}">${esc(u.c)}</i>`).join('')}${nx ? ` <span class="nx">${esc(nx.map(u => u.c).join(''))}</span>` : ''}</p>
+      <p class="q">${wJ(w).map((t, i) => `<i class="u${i === x.ui ? ' sel' : ''}">${t}</i>`).join('')}${nx ? ` <span class="nx">${esc(nx.map(u => u.c).join(''))}</span>` : ''}</p>
       <h2>${q.title}</h2>
       <div class="w-opts">${q.opts.map(k => `<button type="button" data-wa="${k}" data-c="${q.c(k)}"${g.ans ? ' disabled' : ''} class="${g.ans ? (k === q.right ? 'ok' : k === g.ans ? 'no' : '') : ''}">${q.lab(k)}</button>`).join('')}</div>
       ${g.ans && g.ans !== q.right ? `<p class="w-why">${q.why}</p><div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn pri" data-wa-next>التالي</button></div>` : ''}</div>`;
