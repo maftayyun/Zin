@@ -1540,6 +1540,8 @@ const bookMenu = () => `${bookLinks()}<a href="#signs">إشارات المصحف
 function pracMenu() {
   const n = dueAll();
   return `<a href="#p/all">${n ? `مراجعة اليوم<span class="due">${AR(n)}</span>` : 'جلسة تمرين'}<small>${n ? 'بطاقات حان موعدها، من كل الأبواب' : 'بطاقات من كل الأبواب'}</small></a>
+    <a href="#w/fatiha/read">اقرأ وافحص<small>تقرأ آية من الفاتحة، ويقيس الفاحص زمن أصواتها</small></a>
+    <a href="#w">الوجهات<small>الفاتحة ومقاطع التطبيق: تصفّح، وجِد، ونظرة</small></a>
     <a href="#sada">صدى<small>اسمع المثال، ثم ردّده وسجّل قراءتك</small></a><hr><a href="#progress">تقدّمي<small>وفيه اختيار باب للتمرين</small></a>`;
 }
 let dd = null;
@@ -1572,6 +1574,7 @@ function drawerHTML() {
     <button type="button" class="srch" data-search>${IC.search}ابحث في الكتاب</button>
     ${last ? `<a class="acc" data-c="${last.id}" href="#c/${last.id}">متابعة: ${esc(split(last.title)[0])}${IC.go}</a>` : ''}
     <h3>الأبواب</h3>${CH.map(c => miHTML(c, false)).join('')}
+    <h3>الوجهات</h3><a class="acc" href="#w/fatiha">الفاتحة${IC.go}</a><a class="acc" href="#w/fatiha/read">اقرأ وافحص${IC.go}</a><a class="acc" href="#w">كل الوجهات${IC.go}</a>
     <h3>التمرين</h3><a class="acc" href="#p/all">${n ? 'مراجعة اليوم' : 'جلسة تمرين'}${n ? `<span class="due">${AR(n)}</span>` : ''}${IC.go}</a><a class="acc" href="#sada">صدى: اسمع وردّد${IC.go}</a><a class="acc" href="#progress">تقدّمي${IC.go}</a>
     <h3>الكتاب</h3><div class="bkl">${bookLinks()}</div>
     <h3>المزيد</h3><a class="acc" href="#tables">كل الجداول${IC.go}</a><a class="acc" href="#signs">إشارات المصحف${IC.go}</a><a class="acc" href="#notes">الحواشي${IC.go}</a><a class="acc" href="#about">عن الموقع${IC.go}</a>
@@ -2867,6 +2870,7 @@ function wHome() {
       <div><p class="w-eyebrow">${esc(p.sub)}</p><h3>${esc(p.title)}</h3><p>تقرؤها في كل ركعة. هنا ترى ما على كل حرف فيها، وتجده بنظرة، ثم تقرؤها ويقيس الفاحص زمنها.</p>
       <p>${AR(wUnits(p).filter(x => WK[wG(x.u)]).length)} حرفًا: ${Object.keys(WK).filter(g => c[g]).map(g => `${AR(c[g])} ${WK[g][0]}`).join('، ')}.</p>
       <div class="row"><span class="btn pri lg">افتح الفاتحة</span>${wMeter(p)}</div></div></a>
+    <div class="row" style="margin-top:12px"><a class="btn lg" href="#w/${p.id}/read">اقرأ وافحص تلاوتك</a><a class="lnk" href="#w">كل الوجهات${IC.go}</a></div>
     <ul class="w-rest">${WP.slice(1).map(x => `<li><a href="#w/${x.id}"><b>${esc(x.title)}</b><small>${esc(x.sub)}، ${AR(x.ayahs.length)} آيات</small></a></li>`).join('')}</ul>
   </div></section>`;
 }
