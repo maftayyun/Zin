@@ -1,0 +1,246 @@
+<!doctype html><html lang="ar" dir="rtl" data-v="1"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>زِنِ الحَرْفَ · تلقّي (نسخة تجريبية)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="look.css">
+<style>
+@font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);font-family:Alexandria,system-ui,sans-serif;color:var(--ink);direction:rtl;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.q{font-family:ZinQ;font-weight:400;letter-spacing:0}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+:focus-visible{outline:3px solid var(--ind);outline-offset:2px;border-radius:12px}
+/* the list */
+.lh{padding:22px 20px 6px}
+.lh h1{margin:0;font-size:30px;font-weight:700;line-height:1.3}
+.lh p{margin:2px 0 0;font-size:13px;color:var(--ink2);line-height:1.8}
+.cont{margin:10px 16px 14px;padding:16px;border-radius:22px;background:var(--ind);color:#fff;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;box-shadow:0 14px 26px -16px rgba(58,47,181,.9)}
+.cont small{font-size:12px;color:#CFCBF7}
+.cont b{font-size:16px;font-weight:600;line-height:1.6}
+.cont .w{font-family:ZinQ;font-size:27px;line-height:1.6}
+.cont .go{grid-row:1/4;grid-column:2;width:54px;height:54px;border-radius:50%;background:var(--cor);display:grid;place-items:center}
+.ls{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.lr{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 1px 2px rgba(26,23,64,.05);min-height:68px}
+.lr .gl{width:48px;height:48px;border-radius:50%;background:var(--ind-s);color:var(--ind);font-family:ZinQ;font-size:24px;line-height:1;display:grid;place-items:center;padding-bottom:5px;overflow:hidden}
+.lr b{display:block;font-size:14px;font-weight:600;line-height:1.6}
+.lr span{font-size:11.500px;color:var(--ink2);line-height:1.6;display:block}
+.lr .st{font-size:12px;font-weight:600;color:var(--ink3);white-space:nowrap}
+.lr.done .gl{background:var(--ok-s);color:var(--ok)}.lr.done .st{color:var(--ok)}
+.foot{padding:18px 20px 30px;font-size:11.500px;line-height:1.9;color:var(--ink3)}
+.foot a{text-decoration:underline;display:inline-flex;align-items:center;min-height:44px;font-weight:600}
+/* a lesson */
+.ab{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px}
+.ab .tt b{line-height:1.5}
+.th{overflow:visible;padding-bottom:12px}
+.bub{margin-inline-end:18px}
+.bub.me{margin-inline-start:46px;margin-inline-end:0}
+.rule p{margin:0}
+.rule p+p{margin-top:4px}
+.vm .top{align-items:flex-start}
+.vm .w{font-size:clamp(28px,8.600vw,36px);line-height:1.8}
+.vm .w.long{font-size:clamp(22px,6.400vw,27px)}
+.vm .w em.gh{color:var(--ink3);opacity:.55}
+.cnt{min-width:74px;padding-top:6px}
+.cnt b{line-height:1.5}
+.dts{display:flex;gap:4px;justify-content:flex-start;margin-top:6px;direction:ltr;align-items:center}
+.dts i{width:9px;height:9px;border-radius:50%;background:var(--cor)}
+.dts i.h{width:4.500px;border-radius:9px 0 0 9px}
+.dts i.z{background:transparent;box-shadow:inset 0 0 0 1.500px var(--ink3);position:relative}
+.dts i.z::after{content:"";position:absolute;inset:50% -2px auto;height:1.500px;background:var(--ink3);transform:rotate(-45deg)}
+.dts b{width:6px}
+.ctx{display:inline-block;font-size:11px;font-weight:600;padding:1px 10px;border-radius:99px;background:var(--ind-s);color:var(--ind)}
+.ctx.waqf{background:var(--am-s);color:var(--am)}
+.ctx.v{background:var(--cor-s);color:var(--cor)}
+.eq{display:flex;align-items:center;gap:10px;font-family:ZinQ;font-size:24px;line-height:1.5;color:var(--ink2);margin-top:-4px}
+.eq i{font:400 14px Alexandria;color:var(--ink3);font-style:normal}
+.said{display:flex;align-items:center;gap:8px;font-size:11.500px;color:var(--ink2)}
+.said .q{font-size:22px;color:var(--ink);line-height:1.6}
+.pl .pb{border:0}
+.pl .wv{display:flex;justify-content:flex-end;min-width:0}
+.wsvg{max-width:100%;height:34px}
+.nor{margin-top:8px;padding:8px 12px;border-radius:12px;background:#F1EFF8;color:var(--ink2);font-size:12px;line-height:1.7}
+.me .nor{background:rgba(255,255,255,.14);color:#fff}
+.hint{align-self:center;text-align:center}
+.dock{position:sticky;bottom:0;padding:12px 16px calc(18px + env(safe-area-inset-bottom));margin-top:auto}
+.cta{width:100%}
+.steps{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.steps span{min-height:40px;white-space:nowrap}
+.steps span u{text-decoration:none;font:600 13px Alexandria,sans-serif}
+.ab .tt b .q,.lr b .q,.cont b .q{font-size:1.15em}
+.recng{align-self:center;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cor)}
+.recng i{width:10px;height:10px;border-radius:50%;background:var(--cor);animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.25}}
+.hr{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;line-height:1.7}
+.hr.ok{color:var(--ok)}.hr.no{color:var(--am)}
+.tm{font-size:13px;line-height:1.8;margin-top:4px}
+.tm small{color:var(--ink3)}
+.mrow{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.mrow:first-of-type{border-top:0}
+.mrow .w{font-family:ZinQ;font-size:23px;line-height:1.5;grid-row:1/3}
+.mrow .ln{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:11.500px;color:var(--ink2)}
+.mrow .ln b{min-width:54px;text-align:left;font-weight:600;color:var(--ink)}
+.cells i{width:22px;height:11px;border-radius:4px}
+.cells i.hf{width:11px}
+.cells.good i{background:var(--ok)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.two button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border-radius:14px;font-size:13.500px;font-weight:600;background:#EFEDF7}
+.two .y{background:var(--ok-s);color:var(--ok)}
+.ear p{margin:0;font-size:13.500px;line-height:1.85}
+.nochk{font-size:11px;color:var(--ink3);line-height:1.7;margin-top:8px}
+.dock2{position:sticky;bottom:0;margin-top:auto;background:linear-gradient(to bottom,transparent,var(--bg) 22%);padding:14px 20px calc(18px + env(safe-area-inset-bottom))}
+.sec[disabled]{opacity:.35}
+.mic span{transition:transform .15s}
+.mic.on span{animation:pu 1.200s infinite}
+@keyframes pu{50%{box-shadow:0 0 0 16px rgba(255,90,54,.10),0 14px 26px -12px var(--cor)}}
+.end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;gap:8px}
+.end .ok{width:86px;height:86px;border-radius:50%;background:var(--ok-s);display:grid;place-items:center}
+.end h1{margin:10px 0 0;font-size:26px}
+.end p{margin:0;color:var(--ink2);font-size:14px;line-height:1.9}
+.end .cta{margin-top:18px}
+.end a.back{margin-top:10px;font-size:14px;font-weight:600;color:var(--ind);min-height:44px;display:flex;align-items:center}
+@media (prefers-reduced-motion:reduce){.mic.on span,.recng i{animation:none}}
+</style></head><body>
+<div class="app" id="app"></div>
+<script src="../assets/data.js"></script><script src="../assets/core.js"></script>
+<script>
+(() => {
+const { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, glyph, dots, parts } = Z, app = $('#app');
+const IDS = ['L0', 'L1', 'L6', 'L18', 'L20', 'L38'];
+const I = {
+  back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
+  mic: (s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.200" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`,
+  stop: '<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.500" fill="#fff"/></svg>',
+  play: c => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${c}" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`,
+  bars: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.200" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg>',
+  ok: c => `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>`,
+  both: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5v14l8-7zM18 5v14"/></svg>',
+  nxt: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>',
+  pulse: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round" aria-hidden="true"><path d="M3 12h3l2-6 4 12 3-9 2 3h4"/></svg>',
+  ear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a5 5 0 1 1 9 3c-1 1-1.500 2-1.500 3.500a3 3 0 0 1-5.500 1"/></svg>',
+};
+const PK = {};   // the reader's recordings, drawn once
+function readerPk(code) { if (!(code in PK)) { PK[code] = null; Z.peaks(D.audio[code], 44).then(p => { PK[code] = p; if (!T || !T.on) render(); }); } return PK[code]; }
+const who = t => `<div class="who"><span class="av">${I.bars}</span><b>القارئ</b><span>${t}</span></div>`;
+const ruleLines = L => { const seen = new Set(), out = []; L.cases.forEach(c => c.items.slice(0, 1).forEach(x => { const t = x.kind === 'verdict' ? `${x.src} ${x.cond}`.trim() : x.src; if (t && !seen.has(t)) { seen.add(t); out.push(t); } })); return out; };
+const mark = s => qt(s).replace(/(بزمن\s*=\s*)(\(?\s*\d[^)]*\)\s*حرك\S*|حركة(?: واحدة)?\s*\+\s*بعض حركة|حركة واحدة|حركتان|\d+\s*حركات|حركة)/g, '$1<mark>$2</mark>').replace(/(لا تُلفظ|تُفخّم ?\(ر\)|ترقق ?\(ر\))/g, '<mark>$1</mark>');
+// the reader's message for one example: the word, the lit letter, its time, and the recording where there is one
+function voice(x, o = {}) {
+  const has = x.au && D.audio[x.au], zero = x.v === '0', two = x.v && x.v.includes('+'), p = two ? parts(glyph(x)) : null;
+  const val = x.kind === 'verdict' ? `<b>${esc(x.ans)}</b>` : x.kind === 'ayah' ? '' : `<b>${esc(x.v.includes('+') ? 'حرفان' : vName(x.v))}</b>${dots(x.v)}`;
+  return `<div class="bub vm"><div class="top"><div>${x.ctx ? `<span class="ctx ${x.ctx}">${CTX[x.ctx]}</span>` : x.kind === 'verdict' ? `<span class="ctx v">${esc(x.src)}</span>` : ''}
+      <div class="w q${x.w.length > 16 ? ' long' : ''}" lang="ar">${x.kind === 'ayah' ? esc(x.w) : lit(x.w, x.f, zero ? 'gh' : '')}</div></div>${val ? `<div class="cnt">${val}</div>` : ''}</div>
+    ${p ? `<div class="eq" aria-label="الحرف المشدّد حرفان"><span>${esc(glyph(x))}</span><i>=</i><span>${esc(p[0])}</span>${dots('1.5')}<i>+</i><span>${esc(p[1])}</span>${dots('1')}</div>` : ''}
+    ${x.said && x.said !== x.w ? `<div class="said"><span>تُلفظ</span><span class="q">${esc(x.said)}</span></div>` : ''}
+    ${has ? `<div class="pl"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#fff')}</button><div class="wv">${Z.wave(readerPk(x.au), { c: '#B9B4E0' })}</div></div>`
+      : `<div class="nor">${x.kind === 'ayah' ? 'لم يُسجَّل صوت القارئ لهذه الآية بعد. اقرأها أنت، والفاحص يقيس مدودها.' : 'لم يُسجَّل صوت القارئ لهذا المثال بعد.'}</div>`}</div>`;
+}
+
+/* ---------- the lessons ---------- */
+function list() {
+  const S = Z.S(), nx = IDS.find(id => !S.done[id]) || IDS[0], L = LES[nx], x0 = L.cases[0].items[0];
+  app.innerHTML = `<header class="lh"><h1>الدروس</h1><p>اتجاه «تلقّي»: تسمع القارئ، تقرأ بعده، وتسمع صوتك مع صوته.</p></header>
+    <a class="cont" href="#l/${nx}"><small>${Object.keys(S.done).length ? 'تابع' : 'ابدأ'}</small><b>${qt(L.title)}</b><span class="w">${esc(x0.w)}</span><span class="go">${I.mic(24)}</span></a>
+    <div class="ls">${IDS.map(id => { const L = LES[id], d = S.done[id];
+      return `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><span class="gl" aria-hidden="true">${esc(glyph(L.cases[0].items[0]))}</span><div><b>${qt(L.title)}</b><span>الباب ${AR(L.no)} · ${esc(L.chapter)}</span></div><span class="st">${d ? 'أتممته' : ''}</span></a>`; }).join('')}</div>
+    <p class="foot">نسخة تجريبية: ${AR(IDS.length)} دروس من ${AR(D.total)}. نصوص القواعد والأمثلة من كتاب «${esc(D.title.join(' '))}». الموجود اليوم من تسجيلات القارئ أربعة، وكلها في الدرس الأول.<br><a href="../">الاتجاهات الثلاثة</a></p>`;
+}
+function lesson(id) {
+  const L = LES[id]; if (!L) return location.hash = '';
+  const lines = ruleLines(L);
+  app.innerHTML = `<div class="ab"><a class="bk" href="#" aria-label="رجوع إلى الدروس">${I.back}</a><div class="tt"><b>${qt(L.title)}</b><span>الباب ${AR(L.no)} من ٩</span></div></div>
+    <div class="th">${who('القاعدة بنصّ الكتاب، ثم أمثلتها')}
+      <div class="bub"><span class="tag">القاعدة من الكتاب</span><div class="rule">${lines.map(t => `<p>${mark(t)}</p>`).join('')}</div>
+        ${id === 'L0' ? `<div class="unit"><b>الحركة</b>${esc(D.unit)}</div>` : ''}</div>
+      ${L.cases.map(c => voice(c.items[0])).join('')}
+    </div>
+    <div class="dock"><a class="cta" href="#p/${id}">${I.mic()}دوري: أقرأ بعد القارئ</a></div>`;
+}
+
+/* ---------- reading after the reader ---------- */
+let T = null;
+const cells = (n, cls) => `<span class="cells ${cls || ''}">${'<i></i>'.repeat(Math.floor(n))}${n % 1 ? '<i class="hf"></i>' : ''}</span>`;
+function result(x) {
+  if (T.busy) return `<div class="bub chk"><div class="hd"><span class="bd">${I.pulse}</span><b>الفاحص</b><span>يقيس تلاوتك…</span></div></div>`;
+  if (T.res && x.kind === 'ayah') {
+    const m = Z.measured(T.res, x.ayah);
+    if (!m.is) return `<div class="bub chk"><div class="hd"><span class="bd">${I.pulse}</span><b>الفاحص</b></div><div class="hr no">لا يبدو أن التسجيل لهذه الآية.</div><div class="tm">اقرأ الآية كاملة ثم أعد.</div></div>`;
+    return `<div class="bub chk"><div class="hd"><span class="bd">${I.pulse}</span><b>الفاحص</b><span>قاس الأصوات المدّيّة في تلاوتك</span></div>
+      ${m.rows.map(r => `<div class="mrow"><span class="w">${esc(r.text)}</span>
+        <div class="ln"><span>في الكتاب</span>${r.v === '2|4|6' ? '' : cells(Number(r.v))}<b>${esc(vName(r.v))}</b></div>
+        <div class="ln"><span>تلاوتك</span>${r.got == null ? '' : cells(Math.min(8, r.got), r.st === 'good' ? 'good' : 'mine')}<b>${r.got == null ? '' : Z.num(r.got) + ' · '}${Z.stWord[r.st]}</b></div></div>`).join('')}
+      <div class="ai">${esc(Z.NOTE)}</div></div>`;
+  }
+  if (T.res) {
+    const h = Z.heard(x, T.res), g = esc(glyph(x));
+    return `<div class="bub chk"><div class="hd"><span class="bd">${I.pulse}</span><b>الفاحص</b><span>سمع تلاوتك</span></div>
+      ${!h.is ? '<div class="hr no">لا يبدو أن التسجيل لهذه الكلمة. أعد القراءة.</div>' : h.h === 'same' ? '<div class="hr ok">سُمِعت الكلمة.</div>'
+        : `<div class="hr ${h.ok ? 'ok' : 'no'}">${h.ok ? I.ok('#0C9A6B') : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</div>${h.sure ? '' : '<div class="tm"><small>الحكم غير مؤكد.</small></div>'}`}
+      ${h.is && h.ms ? `<div class="tm">زمن <span class="q" style="font-size:1.3em">${g}</span> في تلاوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small></div>` : ''}
+      <div class="ai">${esc(Z.NOTE)}</div></div>`;
+  }
+  const failed = T.err ? `<div class="nochk">${esc(Z.errText(T.err))}</div>` : '';
+  if (T.rec && (!x.chk || T.err)) return `<div class="bub ear"><div class="hd chk" style="margin:0"><div class="hd"><span class="bd" style="background:var(--ind-s);color:var(--ind)">${I.ear}</span><b>قارن بأذنك</b></div></div>
+      <p>${T.reader() ? 'اسمع صوت القارئ ثم صوتك. هل طابقتَه؟' : 'اسمع صوتك، وقابله بالقاعدة. هل أصبتَ؟'}</p>
+      <div class="two"><button type="button" class="y" data-ear="1">${I.ok('#0C9A6B')}${T.reader() ? 'طابقتُه' : 'أصبتُ'}</button><button type="button" data-ear="0">أعيد القراءة</button></div>
+      ${failed || (x.chk ? '' : '<div class="nochk">الفاحص لا يقيس هذه القاعدة بعد، فالحكم هنا لأذنك.</div>')}</div>`;
+  return '';
+}
+function practice(id) {
+  const L = LES[id]; if (!L) return location.hash = '';
+  if (!T || T.L !== L) { const items = Z.examples(L); if (id === 'L38') items.push(Z.ayahItem(L)); T = Z.sitting(L, items, () => { if (route === 'p') draw(); }); }
+  draw();
+}
+function draw() {
+  const L = T.L, x = T.cur(), n = T.items.length;
+  if (T.end) {
+    const nx = IDS[IDS.indexOf(L.id) + 1];
+    app.innerHTML = `<div class="end"><span class="ok">${I.ok('#0C9A6B').replace(/15/g, '40')}</span><h1>أتممتَ الدرس</h1><p>${qt(L.title)}</p>
+      ${nx ? `<a class="cta" href="#l/${nx}">الدرس التالي</a>` : ''}<a class="back" href="#">إلى الدروس</a></div>`;
+    T = null; return;
+  }
+  const C = 2 * Math.PI * 18;
+  app.innerHTML = `<div class="ab"><a class="bk" href="#l/${L.id}" aria-label="رجوع إلى الشرح">${I.back}</a><div class="tt"><b>${qt(L.title)}</b><span>اقرأ بعد القارئ</span></div>
+      <div class="ring"><svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="18" fill="none" stroke="#DCD8EE" stroke-width="4"/><circle cx="21" cy="21" r="18" fill="none" stroke="#3A2FB5" stroke-width="4" stroke-linecap="round" stroke-dasharray="${C * (T.i + 1) / n} ${C}"/></svg>${AR(T.i + 1)}/${AR(n)}</div></div>
+    <div class="th"><div class="steps" aria-hidden="true">${T.items.map((it, k) => `<span class="${k < T.i ? 'd' : k === T.i ? 'c' : ''}">${k < T.i ? I.ok('#0C9A6B') : ''}${it.kind === 'ayah' ? `<u>${esc(it.ayah.sura)} ${AR(it.ayah.a)}</u>` : esc(it.w)}</span>`).join('')}</div>
+      ${who(T.reader() ? 'اسمع ثم اقرأ مثله' : 'اقرأ، ثم اسمع صوتك')}
+      ${voice(x)}
+      ${T.on ? '<div class="recng" role="status"><i></i>يُسجَّل الآن. اقرأ ثم أوقف.</div>' : ''}
+      ${T.msg ? `<div class="nor" role="alert">${esc(T.msg)}</div>` : ''}
+      ${T.rec ? `<div class="bub me vm"><div class="pl" style="margin-top:0"><button type="button" class="pb" data-mine aria-label="اسمع تلاوتك">${I.play('#3A2FB5')}</button><div class="wv">${Z.wave(T.rec.pk, { c: '#fff' })}</div></div><div class="seen" style="color:#CFCBF7">تلاوتك</div></div>` : ''}
+      ${result(x)}
+      ${!Z.canRec ? '<div class="nor">هذا المتصفح لا يسجّل الصوت. افتح الصفحة في Safari أو Chrome.</div>' : ''}
+    </div>
+    <div class="dock2"><button type="button" class="sec" data-both ${T.rec && T.reader() ? '' : 'disabled'}><span>${I.both}</span>اسمع الصوتين</button>
+      <button type="button" class="mic${T.on ? ' on' : ''}" data-mic><span>${T.on ? I.stop : I.mic(30)}</span>${T.on ? 'أوقف' : T.rec ? 'اقرأ مرة أخرى' : 'اقرأ'}</button>
+      <button type="button" class="sec" data-next><span>${I.nxt}</span>${T.i + 1 < n ? 'التالية' : 'أنهِ الدرس'}</button></div>`;
+}
+
+/* ---------- routing and taps ---------- */
+let route = '';
+function render() {
+  const [a, b] = (location.hash || '#').slice(1).split('/');
+  Z.stop(); route = a || 'list';
+  if (a !== 'p' && T) { if (T.on) T.mic(); T = null; }
+  if (a === 'l') lesson(b); else if (a === 'p') practice(b); else list();
+  if (a !== 'p' || !T || !T.rec) window.scrollTo(0, 0);
+}
+document.addEventListener('click', e => {
+  const t = e.target, p = t.closest('[data-play]');
+  if (p) return Z.play(D.audio[p.dataset.play]);
+  if (!T) return;
+  if (t.closest('[data-mic]')) return T.mic();
+  if (t.closest('[data-mine]')) return Z.play(T.rec.url);
+  if (t.closest('[data-both]')) return Z.playBoth(T.reader(), T.rec.url);
+  if (t.closest('[data-next]')) return T.next();
+  const ear = t.closest('[data-ear]'); if (ear) { if (ear.dataset.ear === '1') T.next(); else T.judge(false); }
+});
+addEventListener('hashchange', render);
+render();
+window.__t = () => T;
+})();
+</script></body></html>
