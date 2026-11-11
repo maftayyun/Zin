@@ -10,7 +10,7 @@ window.Z = (() => {
   const vName = v => AR(D.name[v] || v);
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
   // marks of the mushaf inside a line of the book are drawn in the mushaf's own font
-  const qt = t => esc(t).replace(/[^\s،,:؛()=+*]*[ٓۖ-ۭٱٰ][^\s،,:؛()=+*]*/g, m => `<span class="q">${/^[\u064B-\u0670\u06D6-\u06ED]+$/.test(m) ? 'ـ' + m : m}</span>`);
+  const qt = t => esc(t).replace(/[^\s،,:؛()=+*]*[ٓۖ-ۭٱٰ][^\s،,:؛()=+*]*/g, m => `<span class="q">${/^[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]+$/.test(m) ? 'ـ' + m : m}</span>`);
   const glyph = x => x.w.slice(x.f[0], x.f[1]).replace(/[ۖ-ۛ]/g, '');
   // a time as small dots: one for each حركة, half a dot for «بعض حركة», an empty crossed one for a letter not said
   function dots(v) {
@@ -26,15 +26,32 @@ window.Z = (() => {
   let S = (() => { try { return Object.assign({ done: {}, ai: 0 }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return { done: {}, ai: 0 }; } })();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
+  const ayahText = a => a.w.map(w => w.map(u => u.c).join('')).join(' ');
+  const ayahItem = L => ({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) });
   /* ---------- what a lesson practises ---------- */
   // its examples, each reading beside the other; then its ayah where the checker measures the rule
   function examples(L) {
     const out = [], n = Math.max(...L.cases.map(c => c.items.length));
     for (let i = 0; i < n; i++) L.cases.forEach(c => { if (c.items[i]) out.push(c.items[i]); });
+    const some = out.slice(0, 8);
+    if (L.measured) some.push(ayahItem(L));
+    return some;
+  }
+  // the book's sentences that state a lesson's rule: the headings of its examples, or its rule paragraphs where a heading says little
+  function ruleLines(L) {
+    const seen = new Set(), out = [];
+    L.cases.forEach(c => c.items.slice(0, 1).forEach(x => { const t = x.kind === 'verdict' ? `${x.src} ${x.cond}`.trim() : x.src; if (t && t.length > 8 && !seen.has(t)) { seen.add(t); out.push(t); } }));
+    return out.length ? out : L.book.slice(0, 2);
+  }
+  // how an example is said, where the book writes it: the said form, or the way the word is begun
+  const saidOf = x => x.kind === 'form' || x.kind === 'start' ? x.ans : x.said && x.said !== x.w ? x.said : '';
+  const saidLabel = x => x.kind === 'start' ? 'الابتداء' : 'تُلفظ';
+  // the lessons by the chapters of the book, in its order
+  function chapters(ids) {
+    const out = [];
+    ids.forEach(id => { const L = LES[id]; let c = out[out.length - 1]; if (!c || c.no !== L.no) out.push(c = { no: L.no, title: L.chapter, ids: [] }); c.ids.push(id); });
     return out;
   }
-  const ayahText = a => a.w.map(w => w.map(u => u.c).join('')).join(' ');
-  const ayahItem = L => ({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) });
 
   /* ---------- sound ---------- */
   let au = null, stopAt = null;
@@ -188,6 +205,6 @@ window.Z = (() => {
     loadReader();
     return T;
   }
-  return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
+  return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
     NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();

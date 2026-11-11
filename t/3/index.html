@@ -24,7 +24,10 @@ a{color:inherit;text-decoration:none}
 .cont .f span{font-size:12px;color:var(--ink2)}
 .cont .f b{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 18px;border-radius:99px;background:var(--ink);color:#fff;font-size:13.500px;font-weight:600;white-space:nowrap}
 .ls{padding:0 22px}
-.lr{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);min-height:64px}
+.lr{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);min-height:60px}
+.lr.off b{color:var(--ink3);font-weight:500}
+.chh{display:flex;align-items:baseline;gap:10px;margin:26px 22px 2px;font-size:14px;font-weight:600;line-height:1.6;color:var(--ink2)}
+.chh i{font-style:normal;flex:none;font-family:"Markazi Text",serif;font-size:28px;font-weight:700;line-height:1;color:var(--ac)}
 .lr .no{font-family:"Markazi Text",serif;font-size:30px;font-weight:700;line-height:1;color:var(--ink3)}
 .lr b{display:block;font-size:14px;font-weight:600;line-height:1.55}
 .lr b .q{font-size:1.15em}
@@ -107,7 +110,7 @@ a{color:inherit;text-decoration:none}
 <script>
 (() => {
 const { D, $, esc, AR, LES, vName, qt, dots, parts } = Z, app = $('#app');
-const IDS = ['L0', 'L1', 'L6', 'L18', 'L22', 'L38'];
+const ALL = D.lessons.map(l => l.id), IDS = ALL.filter(id => LES[id].ayah);   // a lesson needs an ayah the checker can read
 const I = {
   back: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0E0E10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
   mic: '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.200" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
@@ -132,9 +135,10 @@ function list() {
   app.innerHTML = `<header class="lh"><h1>الدروس</h1><p>اتجاه «من الآية»: كل درس آية تقرؤها، والقاعدة تُشرح على حروفها.</p></header>
     <a class="cont" href="#l/${nx}"><small>${Object.keys(S.done).length ? 'تابع' : 'ابدأ'} · ${qt(L.title)}</small><p class="a">${esc(text(L.ayah))}</p>
       <div class="f"><span>سورة ${esc(L.ayah.sura)} · الآية ${AR(L.ayah.a)}</span><b>افتح الدرس</b></div></a>
-    <div class="ls">${IDS.map(id => { const L = LES[id], d = S.done[id];
-      return `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><span class="no">${AR(L.no)}</span><div><b>${qt(L.title)}</b><span class="c">${esc(L.ayah.sura)} ${AR(L.ayah.a)}</span></div><span class="st">${d ? 'أتممته' : ''}</span></a>`; }).join('')}</div>
-    <p class="foot">نسخة تجريبية: ${AR(IDS.length)} دروس من ${AR(D.total)}. نصوص القواعد من كتاب «${esc(D.title.join(' '))}». تعليم مواضع القاعدة على حروف الآيات من الموقع، وينتظر مراجعة المؤلفة.<br><a href="../">الاتجاهات الثلاثة</a></p>`;
+    ${Z.chapters(ALL).map(c => `<h2 class="chh"><i>${AR(c.no)}</i>${esc(c.title)}</h2><div class="ls">${c.ids.map(id => { const L = LES[id], d = S.done[id];
+      return L.ayah ? `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><div><b>${qt(L.title)}</b><span class="c">${esc(L.ayah.sura)} ${AR(L.ayah.a)}</span></div><span class="st">${d ? 'أتممته' : ''}</span></a>`
+        : `<div class="lr off"><div><b>${qt(L.title)}</b><span class="c">لا آية له بعد</span></div></div>`; }).join('')}</div>`).join('')}
+    <p class="foot">نسخة تجريبية: ${AR(IDS.length)} درسًا من ${AR(D.total)} لها آية. الباقي لا آية له بعد: الفاحص يقرأ اليوم الفاتحة وسبع آيات من المزمل فقط من آيات التطبيق. نصوص القواعد من كتاب «${esc(D.title.join(' '))}». تعليم مواضع القاعدة على حروف الآيات من الموقع، وينتظر مراجعة المؤلفة.<br><a href="../">الاتجاهات الثلاثة</a></p>`;
 }
 function rows(L) {
   if (grouped(L)) { const gs = {}; L.marks.forEach(m => { (gs[m.group] = gs[m.group] || []).push(m); });
@@ -197,7 +201,7 @@ function draw() {
   if (T.end) { const nx = IDS[IDS.indexOf(L.id) + 1];
     app.innerHTML = `<div class="end"><span class="ok">${I.ok('#0B8A5E', 40)}</span><h1>أتممتَ الدرس</h1><p>${qt(L.title)}</p>${nx ? `<a class="cta" href="#l/${nx}">الدرس التالي</a>` : ''}<a class="back" href="#">إلى الدروس</a></div>`;
     T = null; return; }
-  const g = grouped(L), measuredLesson = L.id === 'L38';
+  const g = grouped(L), measuredLesson = !!L.measured;
   let body;
   if (T.rec && T.busy) body = `<p class="${ayCls(a)}" lang="ar">${esc(text(a))}</p><div class="nor" role="status">الفاحص يسمع تلاوتك…</div>`;
   else if (T.rec && T.res && measuredLesson) body = measuredView(L, x);

@@ -30,6 +30,8 @@ a{color:inherit;text-decoration:none}
 .lr span{font-size:11.500px;color:var(--ink2);line-height:1.6;display:block}
 .lr .st{font-size:12px;font-weight:600;color:var(--ink3);white-space:nowrap}
 .lr.done .gl{background:var(--ok-s);color:var(--ok)}.lr.done .st{color:var(--ok)}
+.chh{display:flex;align-items:baseline;gap:10px;margin:22px 20px 8px;font-size:14px;font-weight:600;line-height:1.6;color:var(--ink2)}
+.chh i{font-style:normal;flex:none;font-size:18px;font-weight:700;color:var(--ind)}
 .foot{padding:18px 20px 30px;font-size:11.500px;line-height:1.9;color:var(--ink3)}
 .foot a{text-decoration:underline;display:inline-flex;align-items:center;min-height:44px;font-weight:600}
 /* a lesson */
@@ -55,6 +57,7 @@ a{color:inherit;text-decoration:none}
 .ctx{display:inline-block;font-size:11px;font-weight:600;padding:1px 10px;border-radius:99px;background:var(--ind-s);color:var(--ind)}
 .ctx.waqf{background:var(--am-s);color:var(--am)}
 .ctx.v{background:var(--cor-s);color:var(--cor)}
+.ctx.ibtida{background:var(--ok-s);color:var(--ok)}
 .eq{display:flex;align-items:center;gap:10px;font-family:ZinQ;font-size:24px;line-height:1.5;color:var(--ink2);margin-top:-4px}
 .eq i{font:400 14px Alexandria;color:var(--ink3);font-style:normal}
 .said{display:flex;align-items:center;gap:8px;font-size:11.500px;color:var(--ink2)}
@@ -110,7 +113,7 @@ a{color:inherit;text-decoration:none}
 <script>
 (() => {
 const { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, glyph, dots, parts } = Z, app = $('#app');
-const IDS = ['L0', 'L1', 'L6', 'L18', 'L20', 'L38'];
+const IDS = D.lessons.map(l => l.id);
 const I = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
   mic: (s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.200" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`,
@@ -126,16 +129,15 @@ const I = {
 const PK = {};   // the reader's recordings, drawn once
 function readerPk(code) { if (!(code in PK)) { PK[code] = null; Z.peaks(D.audio[code], 44).then(p => { PK[code] = p; if (!T || !T.on) render(); }); } return PK[code]; }
 const who = t => `<div class="who"><span class="av">${I.bars}</span><b>القارئ</b><span>${t}</span></div>`;
-const ruleLines = L => { const seen = new Set(), out = []; L.cases.forEach(c => c.items.slice(0, 1).forEach(x => { const t = x.kind === 'verdict' ? `${x.src} ${x.cond}`.trim() : x.src; if (t && !seen.has(t)) { seen.add(t); out.push(t); } })); return out; };
 const mark = s => qt(s).replace(/(بزمن\s*=\s*)(\(?\s*\d[^)]*\)\s*حرك\S*|حركة(?: واحدة)?\s*\+\s*بعض حركة|حركة واحدة|حركتان|\d+\s*حركات|حركة)/g, '$1<mark>$2</mark>').replace(/(لا تُلفظ|تُفخّم ?\(ر\)|ترقق ?\(ر\))/g, '<mark>$1</mark>');
 // the reader's message for one example: the word, the lit letter, its time, and the recording where there is one
 function voice(x, o = {}) {
-  const has = x.au && D.audio[x.au], zero = x.v === '0', two = x.v && x.v.includes('+'), p = two ? parts(glyph(x)) : null;
-  const val = x.kind === 'verdict' ? `<b>${esc(x.ans)}</b>` : x.kind === 'ayah' ? '' : `<b>${esc(x.v.includes('+') ? 'حرفان' : vName(x.v))}</b>${dots(x.v)}`;
+  const has = x.au && D.audio[x.au], zero = x.v === '0', two = x.v && x.v.includes('+'), p = two ? parts(glyph(x)) : null, sd = Z.saidOf(x);
+  const val = x.kind === 'verdict' ? `<b>${esc(x.ans)}</b>` : x.kind === 'time' ? `<b>${esc(two ? 'حرفان' : vName(x.v))}</b>${dots(x.v)}` : '';
   return `<div class="bub vm"><div class="top"><div>${x.ctx ? `<span class="ctx ${x.ctx}">${CTX[x.ctx]}</span>` : x.kind === 'verdict' ? `<span class="ctx v">${esc(x.src)}</span>` : ''}
       <div class="w q${x.w.length > 16 ? ' long' : ''}" lang="ar">${x.kind === 'ayah' ? esc(x.w) : lit(x.w, x.f, zero ? 'gh' : '')}</div></div>${val ? `<div class="cnt">${val}</div>` : ''}</div>
     ${p ? `<div class="eq" aria-label="الحرف المشدّد حرفان"><span>${esc(glyph(x))}</span><i>=</i><span>${esc(p[0])}</span>${dots('1.5')}<i>+</i><span>${esc(p[1])}</span>${dots('1')}</div>` : ''}
-    ${x.said && x.said !== x.w ? `<div class="said"><span>تُلفظ</span><span class="q">${esc(x.said)}</span></div>` : ''}
+    ${sd ? `<div class="said"><span>${Z.saidLabel(x)}</span><span class="q">${esc(sd)}</span></div>` : ''}
     ${has ? `<div class="pl"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#fff')}</button><div class="wv">${Z.wave(readerPk(x.au), { c: '#B9B4E0' })}</div></div>`
       : `<div class="nor">${x.kind === 'ayah' ? 'لم يُسجَّل صوت القارئ لهذه الآية بعد. اقرأها أنت، والفاحص يقيس مدودها.' : 'لم يُسجَّل صوت القارئ لهذا المثال بعد.'}</div>`}</div>`;
 }
@@ -145,13 +147,13 @@ function list() {
   const S = Z.S(), nx = IDS.find(id => !S.done[id]) || IDS[0], L = LES[nx], x0 = L.cases[0].items[0];
   app.innerHTML = `<header class="lh"><h1>الدروس</h1><p>اتجاه «تلقّي»: تسمع القارئ، تقرأ بعده، وتسمع صوتك مع صوته.</p></header>
     <a class="cont" href="#l/${nx}"><small>${Object.keys(S.done).length ? 'تابع' : 'ابدأ'}</small><b>${qt(L.title)}</b><span class="w">${esc(x0.w)}</span><span class="go">${I.mic(24)}</span></a>
-    <div class="ls">${IDS.map(id => { const L = LES[id], d = S.done[id];
-      return `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><span class="gl" aria-hidden="true">${esc(glyph(L.cases[0].items[0]))}</span><div><b>${qt(L.title)}</b><span>الباب ${AR(L.no)} · ${esc(L.chapter)}</span></div><span class="st">${d ? 'أتممته' : ''}</span></a>`; }).join('')}</div>
-    <p class="foot">نسخة تجريبية: ${AR(IDS.length)} دروس من ${AR(D.total)}. نصوص القواعد والأمثلة من كتاب «${esc(D.title.join(' '))}». الموجود اليوم من تسجيلات القارئ أربعة، وكلها في الدرس الأول.<br><a href="../">الاتجاهات الثلاثة</a></p>`;
+    ${Z.chapters(IDS).map(c => `<h2 class="chh"><i>${AR(c.no)}</i>${esc(c.title)}</h2><div class="ls">${c.ids.map(id => { const L = LES[id], d = S.done[id];
+      return `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><span class="gl" aria-hidden="true">${esc(glyph(L.cases[0].items[0]))}</span><div><b>${qt(L.title)}</b></div><span class="st">${d ? 'أتممته' : ''}</span></a>`; }).join('')}</div>`).join('')}
+    <p class="foot">نسخة تجريبية فيها دروس الكتاب كلها: ${AR(IDS.length)} درسًا. نصوص القواعد والأمثلة من كتاب «${esc(D.title.join(' '))}». الموجود اليوم من تسجيلات القارئ أربعة، وكلها في الدرس الأول.<br><a href="../">الاتجاهات الثلاثة</a></p>`;
 }
 function lesson(id) {
   const L = LES[id]; if (!L) return location.hash = '';
-  const lines = ruleLines(L);
+  const lines = Z.ruleLines(L);
   app.innerHTML = `<div class="ab"><a class="bk" href="#" aria-label="رجوع إلى الدروس">${I.back}</a><div class="tt"><b>${qt(L.title)}</b><span>الباب ${AR(L.no)} من ٩</span></div></div>
     <div class="th">${who('القاعدة بنصّ الكتاب، ثم أمثلتها')}
       <div class="bub"><span class="tag">القاعدة من الكتاب</span><div class="rule">${lines.map(t => `<p>${mark(t)}</p>`).join('')}</div>
@@ -192,7 +194,7 @@ function result(x) {
 }
 function practice(id) {
   const L = LES[id]; if (!L) return location.hash = '';
-  if (!T || T.L !== L) { const items = Z.examples(L); if (id === 'L38') items.push(Z.ayahItem(L)); T = Z.sitting(L, items, () => { if (route === 'p') draw(); }); }
+  if (!T || T.L !== L) { const items = Z.examples(L); T = Z.sitting(L, items, () => { if (route === 'p') draw(); }); }
   draw();
 }
 function draw() {
