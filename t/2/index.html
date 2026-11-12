@@ -100,6 +100,7 @@ a{color:inherit;text-decoration:none}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .two button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border-radius:14px;font-size:13px;font-weight:600;background:var(--s2);border:1px solid var(--line)}
 .two .y{background:var(--mi-s);border-color:transparent;color:var(--mi)}
+.tmp{flex:none;font-size:10.5px;font-weight:600;color:var(--tx3);white-space:nowrap}
 .nochk{font-size:10.500px;color:var(--tx3);line-height:1.8;margin-top:8px}
 .tp button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border-radius:14px;background:var(--s2);border:1px solid var(--line);font-size:12.500px;font-weight:500}
 .tp button[disabled]{opacity:.35}
@@ -117,7 +118,7 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.recng i{animation:none}}
 </style></head><body>
 <div class="app" id="app"></div>
-<script src="../assets/data.js"></script><script src="../assets/zf-forms.js"></script><script src="../assets/zf.js"></script><script src="../assets/core.js"></script>
+<script src="../assets/data.js"></script><script src="../assets/zf-forms.js"></script><script src="../assets/husary.js"></script><script src="../assets/zf.js"></script><script src="../assets/core.js"></script>
 <script>
 (() => {
 const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, app = $('#app');
@@ -161,7 +162,7 @@ function lesson(id) {
         ${ex.map(x => `<div class="tr"><div class="hd">${wordOf(x, 'w')}${chip(x)}</div>${timeBar(x)}
           ${x.kind === 'verdict' ? `<div class="tb"><span class="lb">${esc(`${x.src} ${x.cond}`.trim())}</span></div>` : ''}
           ${Z.saidOf(x) ? `<div class="said"><span>${Z.saidLabel(x)}</span><span class="q">${esc(Z.saidOf(x))}</span></div>` : ''}
-          ${x.au && D.audio[x.au] ? `<div class="rdr"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#1A1203')}</button><div class="wv">${Z.wave(readerPk(x.au), { n: 60, h: 40, bw: 2, gap: 2, c: G1 })}</div></div>` : ''}</div>`).join('')}
+          ${x.au && D.audio[x.au] ? `<div class="rdr"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#1A1203')}</button><div class="wv">${Z.wave(readerPk(x.au), { n: 60, h: 40, bw: 2, gap: 2, c: G1 })}</div>${x.husary ? `<span class="tmp">${Z.TMP}</span>` : ''}</div>` : ''}</div>`).join('')}
         ${heardAny ? '' : '<div class="nor">لم يُسجَّل صوت القارئ لأمثلة هذا الدرس بعد. حين يُسجَّل يُرسم هنا تحت كل مثال.</div>'}
       </div>
       <div class="book"><small>من الكتاب</small>${ruleLines(L).map(t => `<p>${mark(t)}</p>`).join('')}${id === 'L0' ? `<p style="margin-top:6px">${esc(D.unit)}</p>` : ''}</div>
@@ -216,7 +217,7 @@ function draw() {
         <p class="pw${x.w.length > 16 ? ' long' : ''}" lang="ar">${x.kind === 'ayah' ? esc(x.w) : lit(x.w, x.f, x.v === '0' ? 'gh' : '')}</p>
         ${x.kind === 'verdict' ? `<div class="tb" style="justify-content:center"><span class="lb">${esc(`${x.src} ${x.cond}`.trim())}</span></div>` : `<div style="display:grid;justify-content:center">${timeBar(x)}</div>`}
         ${Z.saidOf(x) && x.kind !== 'ayah' ? `<div class="said" style="justify-content:center"><span>${Z.saidLabel(x)}</span><span class="q">${esc(Z.saidOf(x))}</span></div>` : ''}
-        ${x.kind === 'ayah' ? '' : `<div class="tk"><div class="hd"><span class="chip"><i></i>القارئ</span></div>${rd ? `<div class="wv">${Z.wave(T.readerPk(), { n: 60, h: 48, bw: 3, gap: 2, c: AM })}</div>` : '<div class="nor" style="margin:0">لم يُسجَّل صوت القارئ لهذا المثال بعد.</div>'}</div>`}
+        ${x.kind === 'ayah' ? '' : `<div class="tk"><div class="hd"><span class="chip"><i></i>${x.husary ? Z.TMP : 'القارئ'}</span></div>${rd ? `<div class="wv">${Z.wave(T.readerPk(), { n: 60, h: 48, bw: 3, gap: 2, c: AM })}</div>` : '<div class="nor" style="margin:0">لم يُسجَّل صوت القارئ لهذا المثال بعد.</div>'}</div>`}
         ${T.rec ? mineTrack(x) : ''}
         ${T.on ? '<div class="recng" role="status"><i></i>يُسجَّل الآن. اقرأ ثم أوقف.</div>' : ''}
         ${T.msg ? `<div class="nor" role="alert">${esc(T.msg)}</div>` : ''}

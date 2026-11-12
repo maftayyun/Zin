@@ -9,7 +9,11 @@ window.Z = (() => {
   const LES = Object.fromEntries(D.lessons.map(l => [l.id, l]));
   // an exercise whose two forms (joined, stopped) were built from the mushaf (zf_forms.py) is checked on the learner's device
   const FORMS = window.ZF_FORMS || {};
-  D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => { const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } })));
+  // TEMPORARY: al-Husary's teaching recitation where the reader has not recorded yet (husary.py), marked as such wherever it plays
+  const HUS = window.HUSARY || {};
+  const husary = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.husary = true; } return x; };
+  D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => { const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w); })));
+  const ayahAudio = a => { const h = HUS['ayah|' + a.s + ':' + a.a]; return h ? h.src : ''; };
   const vName = v => AR(D.name[v] || v);
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
   // marks of the mushaf inside a line of the book are drawn in the mushaf's own font
@@ -30,7 +34,8 @@ window.Z = (() => {
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
   const ayahText = a => a.w.map(w => w.map(u => u.c).join('')).join(' ');
-  const ayahItem = L => ({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) });
+  const ayahItem = L => husary({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) }, 'ayah|' + L.ayah.s + ':' + L.ayah.a);
+  const TMP = 'الحصري · مؤقت';
   /* ---------- what a lesson practises ---------- */
   // its examples, each reading beside the other; then its ayah where the checker measures the rule
   function examples(L) {
@@ -275,5 +280,5 @@ window.Z = (() => {
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();
