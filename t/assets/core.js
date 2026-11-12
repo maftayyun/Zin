@@ -174,18 +174,22 @@ window.Z = (() => {
     })().then(R => { ZP = null; if (onProgress) onProgress(); return R; }, e => { ZR = null; ZP = null; throw { model: true }; });
     return ZR;
   }
+  // a word read alone whose rule is inside it (the madd of سُوٓءٖ): its ending is not what is asked, and one word read alone
+  // ends in a stop, so joined or stopped is not judged there
+  const inside = x => x.w.indexOf(' ') < 0 && x.f && /[\u0621-\u064A\u0671]/.test(x.w.slice(x.f[1]));
+  const asked = (x, res) => { if (inside(x) && res.matches_example !== false) res.heard_as = 'same'; return res; };
   async function checkHere(x, blob, zs) {
     const R = await recogniser();
     if (zs && zs.got > 16000 * 0.3) {                      // heard while the learner read: only the tail is left
       if (!zs.s) { zs.s = R.stream(); (zs.parts || []).forEach(p => zs.s.push(p)); zs.parts = null; }
       const out = ZF.judge(await zs.s.finish(), x.zf);
       out.streamed = true;
-      return out;
+      return asked(x, out);
     }
     let pcm;
     try { pcm = await ZF.samples(blob); } catch (e) { throw { text: 'تعذّرت قراءة التسجيل.' }; }
     if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
-    return ZF.judge(await R.hear(pcm), x.zf);
+    return asked(x, ZF.judge(await R.hear(pcm), x.zf));
   }
   async function check(args, blob, x, zs) {
     if (window.__mock) return window.__mock(args);
