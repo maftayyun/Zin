@@ -7,6 +7,9 @@ window.Z = (() => {
   const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   const CTX = { wasl: 'وصلًا', waqf: 'وقفًا', ibtida: 'ابتداءً' };
   const LES = Object.fromEntries(D.lessons.map(l => [l.id, l]));
+  // an exercise whose two forms (joined, stopped) were built from the mushaf (zf_forms.py) is checked on the learner's device
+  const FORMS = window.ZF_FORMS || {};
+  D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => { const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } })));
   const vName = v => AR(D.name[v] || v);
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
   // marks of the mushaf inside a line of the book are drawn in the mushaf's own font
@@ -119,13 +122,38 @@ window.Z = (() => {
   const CHK = 'https://yamanamr-zin-checker.hf.space';
   const NOTE = 'الفاحص نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.';
   const NOTE_EN = 'This Quranic Teacher is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).';
-  function aiOK() {
-    if (S.ai) return true;
-    if (!confirm('يُرسَل تسجيلك إلى الفاحص ليقيسه، ولا يُحفظ.\n\n' + NOTE + '\n\n' + NOTE_EN)) return false;
-    S.ai = 1; save(); return true;
+  function aiOK(here) {
+    if (here ? S.zf : S.ai) return true;
+    const what = here ? 'يُفحص تسجيلك على جهازك ولا يُرسَل إلى أحد. ويُنزَّل نموذج التعرّف (73 ميغابايت) أول مرة فقط، ثم يعمل بلا إنترنت.'
+                      : 'يُرسَل تسجيلك إلى الفاحص ليقيسه، ولا يُحفظ.';
+    if (!confirm(what + '\n\n' + NOTE + '\n\n' + NOTE_EN)) return false;
+    if (here) S.zf = 1; else S.ai = 1;
+    save(); return true;
   }
-  async function check(args, blob) {
+  /* Quran Lab's phoneme recogniser (zipformer_p-arabic-v3.1, NPL-1.2) run in the browser by assets/zf.js with onnxruntime-web;
+     the model is kept in the browser's cache after the first time */
+  const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
+  const load = src => new Promise((ok, no) => { const e = document.createElement('script'); e.src = src; e.onload = ok; e.onerror = no; document.head.appendChild(e); });
+  let ZR = null;
+  function recogniser() {
+    if (!ZR) ZR = (async () => {
+      if (!window.ort) await load(ORT + 'ort.wasm.min.js');
+      ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
+      if (!window.ZF) await load('../assets/zf.js');
+      return ZF.load('../m/');
+    })().catch(e => { ZR = null; throw { model: true }; });
+    return ZR;
+  }
+  async function checkHere(x, blob) {
+    const R = await recogniser();
+    let pcm;
+    try { pcm = await ZF.samples(blob); } catch (e) { throw { text: 'تعذّرت قراءة التسجيل.' }; }
+    if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
+    return ZF.judge(await R.hear(pcm), x.zf);
+  }
+  async function check(args, blob, x) {
     if (window.__mock) return window.__mock(args);
+    if (x && x.zf) return checkHere(x, blob);
     const [fn, ...rest] = args;
     let txt;
     try {
@@ -139,7 +167,7 @@ window.Z = (() => {
     let t = ''; try { t = String(((bad && JSON.parse(bad[1])) || {}).error || ''); } catch (e) {}
     throw { text: t, quota: /quota|limit/i.test(t) };
   }
-  const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
+  const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
   function heard(x, res) {
     const h = res.heard_as, t = res.timing;
@@ -192,10 +220,10 @@ window.Z = (() => {
     };
     T.check = async () => {
       const i = T.i, r = T.rec; if (!r || T.busy) return;
-      if (!aiOK()) { T.err = { declined: true }; return redraw(); }
+      if (!aiOK(!!cur().zf)) { T.err = { declined: true }; return redraw(); }
       T.busy = true; T.err = null; redraw();
       let res = null, err = null;
-      try { res = await check(cur().chk, r.blob); } catch (e) { err = e || {}; }
+      try { res = await check(cur().chk, r.blob, cur()); } catch (e) { err = e || {}; }
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
     };
