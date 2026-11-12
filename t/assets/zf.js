@@ -333,5 +333,26 @@
              engine: 'quran-lab-zipformer (on this device)', recogniser: { heard: h.text, nearest, forms: out } };
   }
 
-  window.ZF = { fbank, load, samples, judge, resampler, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
+  /* the length of a madd as Quran Lab's recogniser writes it: its script writes a madd as its letter repeated once for each
+     count (اا two, اااا four, ۥۥۥۥۥۥ six). The madd of the asked word is found in the form nearest to what was heard, and the
+     run that stands for it in what was heard is counted. 0: the madd was not heard (read as a short vowel). Nothing is
+     measured here: the number is the model's own. */
+  const MADDL = 'اۥۦ';
+  const runs = t => { const r = []; for (const c of Array.from(t.replace(/ /g, ''))) { if (r.length && r[r.length - 1][0] === c) r[r.length - 1][1]++; else r.push([c, 1]); } return r; };
+  function maddHeard(heard, form, wordIndex) {
+    const words = form.split(' ');
+    if (wordIndex >= words.length) return null;
+    // the madd run in the asked word, as an index into the runs of the whole form
+    const before = runs(words.slice(0, wordIndex).join('')).length, mine = runs(words[wordIndex]);
+    const k = mine.findIndex(([c, n]) => MADDL.includes(c) && n >= 2);
+    if (k < 0) return null;
+    const said = runs(form), got = runs(heard), at = before + k;
+    // runs set against runs by their letter alone, whatever their length
+    const steps = diff(said.map(r => r[0]), got.map(r => r[0]));
+    const st = steps.find(x => x.i === at);
+    if (!st || st.op === 'del' || st.op === 'sub') return { counts: 0, said: said[at][1] };
+    return { counts: got[st.j][1], said: said[at][1] };
+  }
+
+  window.ZF = { fbank, load, samples, judge, resampler, maddHeard, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
 })();

@@ -184,15 +184,18 @@ window.Z = (() => {
       if (!zs.s) { zs.s = R.stream(); (zs.parts || []).forEach(p => zs.s.push(p)); zs.parts = null; }
       const out = ZF.judge(await zs.s.finish(), x.zf);
       out.streamed = true;
+      out.madd = maddFrom(x, out);
       return asked(x, out);
     }
     let pcm;
     try { pcm = await ZF.samples(blob); } catch (e) { throw { text: 'تعذّرت قراءة التسجيل.' }; }
     if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
-    return asked(x, ZF.judge(await R.hear(pcm), x.zf));
+    const out = ZF.judge(await R.hear(pcm), x.zf);
+    out.madd = maddFrom(x, out);
+    return asked(x, out);
   }
   async function check(args, blob, x, zs) {
-    if (window.__mock) return window.__mock(args);
+    if (window.__mock) { const r = await window.__mock(args, x); if (r && x && x.zf && args[0] === 'zf') r.madd = maddFrom(x, r); return r; }
     if (x && x.zf) return checkHere(x, blob, zs);
     const [fn, ...rest] = args;
     let txt;
@@ -207,49 +210,25 @@ window.Z = (() => {
     let t = ''; try { t = String(((bad && JSON.parse(bad[1])) || {}).error || ''); } catch (e) {}
     throw { text: t, quota: /quota|limit/i.test(t) };
   }
-  /* EXPERIMENT: the time of an exercise's focus letter, measured in the Space on Quran Lab's aligner and counted by the
-     learner's own reading: the unit is the median letter with its vowel (unit_ms_from_letters), which the book counts as one
-     حركة. Two kinds: a madd (its vowel and its letter together, times 1.15, because on al-Husary's whole ayat the letter unit
-     gave 0.87 of the count by the two-count madds), and a letter that ends its word (from its start to the next word, or to
-     where the voice stops). Tried: the reader's joined letters 1.14 and 1.02 (the book: حركة); his stopped letter 0.78 and
-     1.05 (the book: حركة + بعض حركة), so the stop is given wide room; al-Husary's two-count madds mostly 1 to 3. Approximate. */
-  const TOL = { '1': [0.6, 1.5], '1.5': [0.9, 2.6], '2': [1.2, 3.2], '4': [3, 6.5], '6': [4.5, 9.5], '2|4|6': [1.2, 9.5] };
-  const MRULE = { '2': ['NormalMaddRule'], '4': ['MottaselMaddRule', 'MonfaselMaddRule'], '6': ['LazemMaddRule'], '2|4|6': ['AaredMaddRule', 'LeenMaddRule'] };
-  const MARKS = /^[\u064B-\u065F\u0670\u06D6-\u06ED]*$/;
-  function timeOf(x) {
-    if (!x || x.kind !== 'time' || !x.zf || !x.zf.at || !x.f || !TOL[x.v]) return null;
-    const g = x.w.slice(x.f[0], x.f[1]), before = x.w.slice(0, x.f[0]), after = x.w.slice(x.f[1]).split(' ')[0];
-    const idx = before.split(' ').length - 1, [w1, w2] = [x.zf.at[2], x.zf.at[3]];
-    if (MRULE[x.v] && /[اويىٰٓۥۦ]/.test(g)) return { kind: 'madd', word: w1 + idx, g };
-    // a letter that ends its word: the last of a word read alone, or of the first of two joined words
-    if (MARKS.test(after) && (w1 === w2 || idx === 0)) return { kind: 'letter', word: w1 + idx, g };
-    return null;
+  /* the madd of an exercise, as Quran Lab's recogniser writes it (ZF.maddHeard): its own count, set against the counts the book
+     allows. Nothing else is measured: a time that is not a madd (حركة، حركة + بعض حركة) is not in the model's script, and is
+     left to the ear. */
+  const ALLOW = { '2': [2], '4': [4, 5], '6': [6], '2|4|6': [2, 4, 6] };
+  const maddOf = x => !!(x && x.kind === 'time' && x.zf && x.f && ALLOW[x.v] && /[اويىٰٓۥۦ]/.test(x.w.slice(x.f[0], x.f[1])));
+  function maddFrom(x, res) {
+    if (!maddOf(x) || !res.recogniser) return null;
+    const form = x.zf[res.recogniser.nearest] || x.zf.wasl, word = x.w.slice(0, x.f[0]).split(' ').length - 1;
+    const m = ZF.maddHeard(res.recogniser.heard, form, word);
+    if (!m) return null;
+    const ok = ALLOW[x.v];
+    return { counts: m.counts, st: ok.includes(m.counts) ? 'good' : m.counts < ok[0] ? 'short' : 'long' };
   }
-  async function measureTime(x, blob, T) {
-    const t = timeOf(x), [s, a, w1, w2] = x.zf.at;
-    const res = await check(x.ctx === 'wasl' && w2 === w1 + 1 ? ['junction', s, a, w1] : ['compare', s, a, w1, w2], blob);
-    const unit = res.unit_ms_from_letters || T.unit;
-    if (res.unit_ms_from_letters) T.unit = res.unit_ms_from_letters;   // kept for the next exercise of this sitting
-    let ms = null, k = 1;
-    if (t.kind === 'madd') {
-      const ms_ = (res.madds || []).filter(m => m.word === t.word);
-      const m = ms_.find(m => MRULE[x.v].includes(m.rule)) || ms_[0];
-      if (m) { ms = m.ms; k = 1.15; }
-    } else if (res.timing) ms = res.timing.ms;
-    if (ms == null || !unit) return { none: true };
-    const got = Math.round(ms / unit * k * 2) / 2, [lo, hi] = TOL[x.v];
-    return { got, st: got < lo ? 'short' : got > hi ? 'long' : 'good', ms, g: t.g, kind: t.kind };
-  }
-  // the time's line under the device's verdict, for the pages (plain text, with its state for the colour)
+  // the madd's line under the verdict, for the pages (plain text, with its state for the colour)
   function maddLine(T, x) {
-    const t = timeOf(x), m = T.madd;
-    if (!t || !m || m.declined) return null;
-    const what = t.kind === 'madd' ? 'زمن المدّ' : `زمن «${t.g.replace(/[ۖ-ۛ]/g, '')}»`;
-    if (m.busy) return { text: `يُقاس ${what} في الفاحص…`, st: 'wait' };
-    if (m.err) return { text: `لم يُقَس ${what}: ` + errText(m.err), st: 'none' };
-    if (m.none) return { text: `لم يُقَس ${what} في هذه التلاوة.`, st: 'none' };
-    const n = m.got <= 1 ? 'حركة' : m.got === 2 ? 'حركتين' : 'حركات';
-    return { text: `${what} في تلاوتك نحو ${num(m.got)} ${n}، وفي الكتاب ${vName(x.v)}: ${stWord[m.st]} (قياس تجريبي تقريبي)`, st: m.st };
+    const m = T.res && T.res.madd;
+    if (!m) return null;
+    const n = m.counts === 0 ? 'لم يُسمع المدّ' : `${num(m.counts)} ${m.counts === 1 ? 'حركة' : m.counts === 2 ? 'حركتان' : 'حركات'}`;
+    return { text: `المدّ كما سمعه نموذج Quran Lab: ${n}، وفي الكتاب ${vName(x.v)}${m.st === 'good' ? '' : '، فهو ' + stWord[m.st]}`, st: m.st };
   }
   const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
@@ -294,7 +273,7 @@ window.Z = (() => {
       if (T.on) {
         const r = await recStop(); T.on = false; if (!r) return redraw();
         r.zs = T.zs; T.zs = null;
-        T.rec = r; T.res = T.err = T.madd = null; T.ear = null; redraw();
+        T.rec = r; T.res = T.err = null; T.ear = null; redraw();
         const i = T.i; r.pk = await peaks(r.blob, T.n || 44); if (!same(i, r)) return; redraw();
         if (cur().chk) T.check();
       } else {
@@ -320,16 +299,8 @@ window.Z = (() => {
       T.msg = '';
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
-      if (res && !err && timeOf(cur())) {
-        if (!aiOK(false)) { T.madd = { declined: true }; return redraw(); }
-        T.madd = { busy: true }; redraw();
-        let m;
-        try { m = await measureTime(cur(), r.blob, T); } catch (e) { m = { err: e || {} }; }
-        if (!same(i, r)) return;
-        T.madd = m; redraw();
-      }
     };
-    T.go = n => { stop(); T.i = n; T.rec = T.res = T.err = T.madd = null; T.ear = null; T.busy = false; T.on = false; T.msg = ''; loadReader(); redraw(); };
+    T.go = n => { stop(); T.i = n; T.rec = T.res = T.err = null; T.ear = null; T.busy = false; T.on = false; T.msg = ''; loadReader(); redraw(); };
     T.next = () => { if (T.i + 1 < T.items.length) T.go(T.i + 1); else { S.done[L.id] = 1; save(); T.end = true; stop(); redraw(); } };
     T.judge = ok => { T.ear = ok ? 'ok' : 'redo'; if (!ok) { T.rec = null; T.res = T.err = null; } redraw(); };
     loadReader();
@@ -338,5 +309,5 @@ window.Z = (() => {
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, maddLine, timeOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();
