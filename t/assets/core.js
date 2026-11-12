@@ -95,7 +95,9 @@ window.Z = (() => {
   }
   async function recStart(sink) {
     stop();
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // the voice as it is: the browser's gain control and noise suppression reshape a held sound (tried: the same madd came out
+    // 220 ms with them and 640 ms without, al-Husary's own being 650), and the madd's length is what is measured
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     mr = new MediaRecorder(stream); bits = [];
     mr.ondataavailable = e => { if (e.data && e.data.size) bits.push(e.data); };
     tap = null;
