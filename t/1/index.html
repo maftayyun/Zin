@@ -94,6 +94,7 @@ a{color:inherit;text-decoration:none}
 .two button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border-radius:14px;font-size:13.500px;font-weight:600;background:#EFEDF7}
 .two .y{background:var(--ok-s);color:var(--ok)}
 .ear p{margin:0;font-size:13.500px;line-height:1.85}
+.md{font-weight:600}.md-good{color:var(--ok)}.md-short,.md-long{color:var(--cor)}.md-wait,.md-none{color:var(--ink3);font-weight:500}
 .tmp{flex:none;font-size:10.5px;font-weight:600;color:var(--ink3);white-space:nowrap}
 .nochk{font-size:11px;color:var(--ink3);line-height:1.7;margin-top:8px}
 .dock2{position:sticky;bottom:0;margin-top:auto;background:linear-gradient(to bottom,transparent,var(--bg) 22%);padding:14px 20px calc(18px + env(safe-area-inset-bottom))}
@@ -184,6 +185,7 @@ function result(x) {
       ${!h.is ? '<div class="hr no">لا يبدو أن التسجيل لهذه الكلمة. أعد القراءة.</div>' : h.h === 'same' ? '<div class="hr ok">سُمِعت الكلمة.</div>'
         : `<div class="hr ${h.ok ? 'ok' : 'no'}">${h.ok ? I.ok('#0C9A6B') : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</div>${h.sure ? '' : '<div class="tm"><small>الحكم غير مؤكد.</small></div>'}`}
       ${h.is && h.ms ? `<div class="tm">زمن <span class="q" style="font-size:1.3em">${g}</span> في تلاوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small></div>` : ''}
+      ${(md => md ? `<div class="tm md md-${md.st}">${esc(md.text)}</div>` : '')(Z.maddLine(T, x))}
       ${h.is && h.ms == null && x.kind === 'time' ? `<div class="tm">الفاحص على جهازك يسمع الوصل والوقف، ولا يقيس الزمن. ${T.reader() ? `اسمع القارئ ثم صوتك: هل طابقتَه في زمن <span class="q" style="font-size:1.3em">${g}</span>؟` : `قابل زمن <span class="q" style="font-size:1.3em">${g}</span> في صوتك بالقاعدة: هل أصبتَ؟`}</div>
       <div class="two"><button type="button" class="y" data-ear="1">${I.ok('#0C9A6B')}${T.reader() ? 'طابقتُه' : 'أصبتُ'}</button><button type="button" data-ear="0">أعيد القراءة</button></div>` : ''}
       <div class="ai">${esc(Z.NOTE)}</div></div>`;

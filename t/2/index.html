@@ -100,6 +100,7 @@ a{color:inherit;text-decoration:none}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .two button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;border-radius:14px;font-size:13px;font-weight:600;background:var(--s2);border:1px solid var(--line)}
 .two .y{background:var(--mi-s);border-color:transparent;color:var(--mi)}
+.md{font-weight:600}.md-good{color:var(--mi)}.md-short,.md-long{color:var(--am)}.md-wait,.md-none{color:var(--tx3);font-weight:500}
 .tmp{flex:none;font-size:10.5px;font-weight:600;color:var(--tx3);white-space:nowrap}
 .nochk{font-size:10.500px;color:var(--tx3);line-height:1.8;margin-top:8px}
 .tp button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border-radius:14px;background:var(--s2);border:1px solid var(--line);font-size:12.500px;font-weight:500}
@@ -192,6 +193,7 @@ function verdict(x) {
     return `<div class="card vd">${!h.is ? '<p class="h no">لا يبدو أن التسجيل لهذه الكلمة.</p>' : h.h === 'same' ? '<p class="h ok">سُمِعت الكلمة.</p>'
         : `<p class="h ${h.ok ? 'ok' : 'no'}">${h.ok ? I.ok(MI) : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</p>${h.sure ? '' : '<p><small>الحكم غير مؤكد.</small></p>'}`}
       ${h.is && h.ms ? `<p>زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span> في صوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small>، وهو المضيء في الرسم.</p>` : ''}
+      ${(md => md ? `<p class="md md-${md.st}">${esc(md.text)}</p>` : '')(Z.maddLine(T, x))}
       ${h.is && h.ms == null && x.kind === 'time' ? `<p>الفاحص على جهازك يسمع الوصل والوقف، ولا يقيس الزمن. ${T.reader() ? `اسمع القارئ ثم صوتك، وانظر الرسمين: هل طابقتَه في زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span>؟` : `قابل زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span> في صوتك بالقاعدة: هل أصبتَ؟`}</p>
       <div class="two"><button type="button" class="y" data-ear="1">${I.ok(MI)}${T.reader() ? 'طابقتُه' : 'أصبتُ'}</button><button type="button" data-ear="0">أعيد التسجيل</button></div>` : ''}
       <p class="nochk">${esc(Z.NOTE)}</p></div>`; }
