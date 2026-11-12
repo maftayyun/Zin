@@ -186,7 +186,7 @@ function result(x) {
         : `<div class="hr ${h.ok ? 'ok' : 'no'}">${h.ok ? I.ok('#0C9A6B') : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</div>${h.sure ? '' : '<div class="tm"><small>الحكم غير مؤكد.</small></div>'}`}
       ${h.is && h.ms ? `<div class="tm">زمن <span class="q" style="font-size:1.3em">${g}</span> في تلاوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small></div>` : ''}
       ${(md => md ? `<div class="tm md md-${md.st}">${esc(md.text)}</div>` : '')(Z.maddLine(T, x))}
-      ${h.is && h.ms == null && x.kind === 'time' ? `<div class="tm">الفاحص على جهازك يسمع الوصل والوقف، ولا يقيس الزمن. ${T.reader() ? `اسمع القارئ ثم صوتك: هل طابقتَه في زمن <span class="q" style="font-size:1.3em">${g}</span>؟` : `قابل زمن <span class="q" style="font-size:1.3em">${g}</span> في صوتك بالقاعدة: هل أصبتَ؟`}</div>
+      ${h.is && h.ms == null && x.kind === 'time' ? `<div class="tm">${Z.timeOf(x) ? '' : 'الفاحص على جهازك يسمع الوصل والوقف، ولا يقيس الزمن. '}${T.reader() ? `اسمع القارئ ثم صوتك: هل طابقتَه في زمن <span class="q" style="font-size:1.3em">${g}</span>؟` : `قابل زمن <span class="q" style="font-size:1.3em">${g}</span> في صوتك بالقاعدة: هل أصبتَ؟`}</div>
       <div class="two"><button type="button" class="y" data-ear="1">${I.ok('#0C9A6B')}${T.reader() ? 'طابقتُه' : 'أصبتُ'}</button><button type="button" data-ear="0">أعيد القراءة</button></div>` : ''}
       <div class="ai">${esc(Z.NOTE)}</div></div>`;
   }

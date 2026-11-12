@@ -203,31 +203,49 @@ window.Z = (() => {
     let t = ''; try { t = String(((bad && JSON.parse(bad[1])) || {}).error || ''); } catch (e) {}
     throw { text: t, quota: /quota|limit/i.test(t) };
   }
-  /* EXPERIMENT: the length of the madd in an exercise, measured in the Space on Quran Lab's aligner and counted from the
-     learner's own reading: the unit is the median letter with its vowel (unit_ms_from_letters), times 1.15, because on
-     al-Husary's whole ayat that unit gave 0.87 of the count by the two-count madds. On al-Husary's short cuts it told a
-     two-count madd from a long one in most cases, and failed in about one in twelve; so it is shown as approximate. */
-  const MADD = { '2': [1.2, 3.2], '4': [3, 6.5], '6': [4.5, 9.5], '2|4|6': [1.2, 9.5] };
+  /* EXPERIMENT: the time of an exercise's focus letter, measured in the Space on Quran Lab's aligner and counted by the
+     learner's own reading: the unit is the median letter with its vowel (unit_ms_from_letters), which the book counts as one
+     حركة. Two kinds: a madd (its vowel and its letter together, times 1.15, because on al-Husary's whole ayat the letter unit
+     gave 0.87 of the count by the two-count madds), and a letter that ends its word (from its start to the next word, or to
+     where the voice stops). Tried: the reader's joined letters 1.14 and 1.02 (the book: حركة); his stopped letter 0.78 and
+     1.05 (the book: حركة + بعض حركة), so the stop is given wide room; al-Husary's two-count madds mostly 1 to 3. Approximate. */
+  const TOL = { '1': [0.6, 1.5], '1.5': [0.9, 2.6], '2': [1.2, 3.2], '4': [3, 6.5], '6': [4.5, 9.5], '2|4|6': [1.2, 9.5] };
   const MRULE = { '2': ['NormalMaddRule'], '4': ['MottaselMaddRule', 'MonfaselMaddRule'], '6': ['LazemMaddRule'], '2|4|6': ['AaredMaddRule', 'LeenMaddRule'] };
-  const maddOf = x => x && x.zf && x.zf.at && MADD[x.v] ? x.v : null;
-  async function measureMadd(x, blob) {
-    const [s, a, w1, w2] = x.zf.at;
-    const res = await check(x.ctx === 'wasl' && w2 === w1 + 1 ? ['junction', s, a, w1] : ['compare', s, a, w1, w2], blob);
-    const word = w1 + (x.f ? x.w.slice(0, x.f[0]).split(' ').length - 1 : 0);
-    const ms = (res.madds || []).filter(m => m.word === word);
-    const m = ms.find(m => MRULE[x.v].includes(m.rule)) || ms[0];
-    if (!m || !res.unit_ms_from_letters) return { none: true };
-    const got = Math.round(m.ms / res.unit_ms_from_letters * 1.15 * 2) / 2, [lo, hi] = MADD[x.v];
-    return { got, st: got < lo ? 'short' : got > hi ? 'long' : 'good', ms: m.ms };
+  const MARKS = /^[\u064B-\u065F\u0670\u06D6-\u06ED]*$/;
+  function timeOf(x) {
+    if (!x || x.kind !== 'time' || !x.zf || !x.zf.at || !x.f || !TOL[x.v]) return null;
+    const g = x.w.slice(x.f[0], x.f[1]), before = x.w.slice(0, x.f[0]), after = x.w.slice(x.f[1]).split(' ')[0];
+    const idx = before.split(' ').length - 1, [w1, w2] = [x.zf.at[2], x.zf.at[3]];
+    if (MRULE[x.v] && /[اويىٰٓۥۦ]/.test(g)) return { kind: 'madd', word: w1 + idx, g };
+    // a letter that ends its word: the last of a word read alone, or of the first of two joined words
+    if (MARKS.test(after) && (w1 === w2 || idx === 0)) return { kind: 'letter', word: w1 + idx, g };
+    return null;
   }
-  // the madd's line under the device's verdict, for the pages (plain text, with its state for the colour)
+  async function measureTime(x, blob, T) {
+    const t = timeOf(x), [s, a, w1, w2] = x.zf.at;
+    const res = await check(x.ctx === 'wasl' && w2 === w1 + 1 ? ['junction', s, a, w1] : ['compare', s, a, w1, w2], blob);
+    const unit = res.unit_ms_from_letters || T.unit;
+    if (res.unit_ms_from_letters) T.unit = res.unit_ms_from_letters;   // kept for the next exercise of this sitting
+    let ms = null, k = 1;
+    if (t.kind === 'madd') {
+      const ms_ = (res.madds || []).filter(m => m.word === t.word);
+      const m = ms_.find(m => MRULE[x.v].includes(m.rule)) || ms_[0];
+      if (m) { ms = m.ms; k = 1.15; }
+    } else if (res.timing) ms = res.timing.ms;
+    if (ms == null || !unit) return { none: true };
+    const got = Math.round(ms / unit * k * 2) / 2, [lo, hi] = TOL[x.v];
+    return { got, st: got < lo ? 'short' : got > hi ? 'long' : 'good', ms, g: t.g, kind: t.kind };
+  }
+  // the time's line under the device's verdict, for the pages (plain text, with its state for the colour)
   function maddLine(T, x) {
-    const v = maddOf(x), m = T.madd;
-    if (!v || !m || m.declined) return null;
-    if (m.busy) return { text: 'يُقاس زمن المدّ في الفاحص…', st: 'wait' };
-    if (m.err) return { text: 'لم يُقَس زمن المدّ: ' + errText(m.err), st: 'none' };
-    if (m.none) return { text: 'لم يُعثر على المدّ في تلاوتك فيُقاس.', st: 'none' };
-    return { text: `زمن المدّ في تلاوتك نحو ${num(m.got)} ${m.got === 1 ? 'حركة' : m.got === 2 ? 'حركتين' : 'حركات'}، وفي الكتاب ${vName(v)}: ${stWord[m.st]} (قياس تجريبي تقريبي)`, st: m.st };
+    const t = timeOf(x), m = T.madd;
+    if (!t || !m || m.declined) return null;
+    const what = t.kind === 'madd' ? 'زمن المدّ' : `زمن «${t.g.replace(/[ۖ-ۛ]/g, '')}»`;
+    if (m.busy) return { text: `يُقاس ${what} في الفاحص…`, st: 'wait' };
+    if (m.err) return { text: `لم يُقَس ${what}: ` + errText(m.err), st: 'none' };
+    if (m.none) return { text: `لم يُقَس ${what} في هذه التلاوة.`, st: 'none' };
+    const n = m.got <= 1 ? 'حركة' : m.got === 2 ? 'حركتين' : 'حركات';
+    return { text: `${what} في تلاوتك نحو ${num(m.got)} ${n}، وفي الكتاب ${vName(x.v)}: ${stWord[m.st]} (قياس تجريبي تقريبي)`, st: m.st };
   }
   const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
@@ -298,11 +316,11 @@ window.Z = (() => {
       T.msg = '';
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
-      if (res && !err && maddOf(cur())) {
+      if (res && !err && timeOf(cur())) {
         if (!aiOK(false)) { T.madd = { declined: true }; return redraw(); }
         T.madd = { busy: true }; redraw();
         let m;
-        try { m = await measureMadd(cur(), r.blob); } catch (e) { m = { err: e || {} }; }
+        try { m = await measureTime(cur(), r.blob, T); } catch (e) { m = { err: e || {} }; }
         if (!same(i, r)) return;
         T.madd = m; redraw();
       }
@@ -316,5 +334,5 @@ window.Z = (() => {
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, maddLine, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, maddLine, timeOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();
