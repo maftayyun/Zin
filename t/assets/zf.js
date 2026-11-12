@@ -54,37 +54,69 @@
 
   /* kaldi fbank as kaldi-native-fbank computes it for sherpa-onnx: snip_edges false (edges reflected), no dither, DC removed,
      pre-emphasis 0.97, povey window, 512-point power spectrum, 80 mel bins from 20 Hz to 7600 Hz, natural log */
+  const W = { w: new Float64Array(FL), re: new Float64Array(NFFT), im: new Float64Array(NFFT), p: new Float64Array(NFFT / 2) };
+  /* frame f of the samples x[0..n), written to out at o. A frame whose window passes the end is reflected there, as kaldi does */
+  function frame(x, n, f, out, o) {
+    const { w, re, im, p } = W, s0 = f * FS - (FL - FS) / 2;
+    let mean = 0;
+    for (let i = 0; i < FL; i++) {
+      let s = s0 + i;
+      while (s < 0 || s >= n) s = s < 0 ? -s - 1 : 2 * n - 1 - s;
+      w[i] = x[s]; mean += w[i];
+    }
+    mean /= FL;
+    for (let i = 0; i < FL; i++) w[i] -= mean;
+    for (let i = FL - 1; i > 0; i--) w[i] -= 0.97 * w[i - 1];
+    w[0] -= 0.97 * w[0];
+    re.fill(0); im.fill(0);
+    for (let i = 0; i < FL; i++) re[i] = w[i] * WIN[i];
+    fft(re, im);
+    for (let k = 0; k < NFFT / 2; k++) p[k] = re[k] * re[k] + im[k] * im[k];
+    for (let b = 0; b < NB; b++) {
+      const { k0, w: ws } = MEL[b];
+      let e = 0;
+      for (let j = 0; j < ws.length; j++) e += ws[j] * p[k0 + j];
+      out[o + b] = Math.log(Math.max(e, EPS));
+    }
+  }
+
+  /* kaldi fbank as kaldi-native-fbank computes it for sherpa-onnx: snip_edges false (edges reflected), no dither, DC removed,
+     pre-emphasis 0.97, povey window, 512-point power spectrum, 80 mel bins from 20 Hz to 7600 Hz, natural log */
   function fbank(x) {
     setup();
     const n = x.length, nf = Math.floor((n + FS / 2) / FS), out = new Float32Array(nf * NB);
-    const w = new Float64Array(FL), re = new Float64Array(NFFT), im = new Float64Array(NFFT), p = new Float64Array(NFFT / 2);
-    for (let f = 0; f < nf; f++) {
-      const s0 = f * FS - (FL - FS) / 2;
-      let mean = 0;
-      for (let i = 0; i < FL; i++) {
-        let s = s0 + i;
-        while (s < 0 || s >= n) s = s < 0 ? -s - 1 : 2 * n - 1 - s;
-        w[i] = x[s]; mean += w[i];
-      }
-      mean /= FL;
-      for (let i = 0; i < FL; i++) w[i] -= mean;
-      for (let i = FL - 1; i > 0; i--) w[i] -= 0.97 * w[i - 1];
-      w[0] -= 0.97 * w[0];
-      re.fill(0); im.fill(0);
-      for (let i = 0; i < FL; i++) re[i] = w[i] * WIN[i];
-      fft(re, im);
-      for (let k = 0; k < NFFT / 2; k++) p[k] = re[k] * re[k] + im[k] * im[k];
-      for (let b = 0; b < NB; b++) {
-        const { k0, w: ws } = MEL[b];
-        let e = 0;
-        for (let j = 0; j < ws.length; j++) e += ws[j] * p[k0 + j];
-        out[f * NB + b] = Math.log(Math.max(e, EPS));
-      }
-    }
+    for (let f = 0; f < nf; f++) frame(x, n, f, out, f * NB);
     return { data: out, frames: nf };
   }
 
-  async function cached(url) {
+  /* from the microphone's rate to 16 kHz, piece by piece: a windowed sinc low-passed at 7.6 kHz (the top of the fbank) */
+  function resampler(rate) {
+    if (rate === SR) return { push: x => Float32Array.from(x), flush: () => new Float32Array(0) };
+    const H = 24, step = rate / SR, fc = 7600 / rate;
+    let buf = new Float32Array(0), base = 0, j = 0;   // buf[0] is input sample number `base`; j is the next output sample
+    const tap = t => { if (t === 0) return 2 * fc; const a = Math.PI * t; const w = 0.42 + 0.5 * Math.cos(a / H) + 0.08 * Math.cos(2 * a / H);
+      return Math.sin(2 * Math.PI * fc * t) / a * w; };
+    function run(final) {
+      const out = [];
+      for (;;) {
+        const pos = j * step, c = Math.floor(pos);
+        if (!final && c + H >= base + buf.length) break;
+        if (final && c >= base + buf.length) break;
+        let y = 0;
+        for (let k = c - H + 1; k <= c + H; k++) { const i = k - base; if (i >= 0 && i < buf.length) y += buf[i] * tap(pos - k); }
+        out.push(y); j++;
+      }
+      const keep = Math.max(0, Math.floor(j * step) - H - base);   // samples no later output can reach
+      if (keep > 0) { buf = buf.slice(keep); base += keep; }
+      return Float32Array.from(out);
+    }
+    return {
+      push(x) { const b = new Float32Array(buf.length + x.length); b.set(buf); b.set(x, buf.length); buf = b; return run(false); },
+      flush() { return run(true); },
+    };
+  }
+
+  async function cached(url, onProgress) {
     /* the model is kept in the browser's cache after the first visit, so later visits need no connection */
     let c = null;
     try {
@@ -94,8 +126,16 @@
     } catch (e) { c = null; }
     const r = await fetch(url);
     if (!r.ok) throw new Error(url + ' ' + r.status);
-    if (c) try { await c.put(url, r.clone()); } catch (e) { /* a full or blocked cache only costs the next download */ }
-    return new Uint8Array(await r.arrayBuffer());
+    const total = +r.headers.get('content-length') || 0;
+    let bytes;
+    if (r.body && r.body.getReader && onProgress) {
+      const rd = r.body.getReader(), parts = [];
+      let got = 0;
+      for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onProgress(got, total); }
+      bytes = new Uint8Array(got); let o = 0; for (const q of parts) { bytes.set(q, o); o += q.length; }
+    } else bytes = new Uint8Array(await r.arrayBuffer());
+    if (c) try { await c.put(url, new Response(bytes, { headers: { 'content-type': 'application/octet-stream' } })); } catch (e) { /* a full or blocked cache only costs the next download */ }
+    return bytes;
   }
 
   async function load(base, opts) {
@@ -109,7 +149,7 @@
       const t = line.trim(), sp = t.lastIndexOf(' ');
       if (sp < 0) tok[+t] = ' '; else tok[+t.slice(sp + 1)] = line.slice(0, line.lastIndexOf(' '));
     }
-    const bytes = await cached(base + man.model);
+    const bytes = await cached(base + man.model, opts.progress);
     const s = await ort.InferenceSession.create(bytes, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
     return new Recogniser(ort, s, man, tok);
   }
@@ -171,6 +211,49 @@
         delete s.peak;
       }
       return out;
+    }
+
+    /* the recogniser fed while the learner reads: push 16 kHz samples as they come; finish() decodes the rest. Frames whose window
+       lies wholly in what has come are the batch's own frames, and each chunk runs as soon as its frames are there, so after the
+       last word only the tail is left to do. The answer is the same as hear() on the whole recording. */
+    stream() {
+      setup();
+      const ort = this.ort, m = this.m, me = this;
+      let x = new Float32Array(SR * 8), n = 0, feats = new Float32Array(NB * 800), nf = 0, st = 0, chain = Promise.resolve(), per = 0, V = 0, failed = null;
+      let state = {};
+      for (const i of m.inputs) if (i.name !== 'x') state[i.name] = zeros(ort, i);
+      const rows = [];
+      const grow = (a, need) => { if (need <= a.length) return a; const b = new Float32Array(Math.max(need, a.length * 2)); b.set(a); return b; };
+      const chunk = s0 => async () => {
+        if (failed) return;
+        try {
+          const feeds = Object.assign({ x: new ort.Tensor('float32', feats.slice(s0 * NB, (s0 + m.T) * NB), [1, m.T, NB]) }, state);
+          const out = await me.s.run(feeds);
+          per = out.log_probs.dims[1]; V = out.log_probs.dims[2];
+          rows.push(out.log_probs.data.slice());
+          const next = {};
+          for (const k in state) next[k] = out['new_' + k];
+          state = next;
+        } catch (e) { failed = e; }
+      };
+      const pump = last => {
+        const upto = last ? Math.floor((n + FS / 2) / FS) : Math.max(0, Math.floor((n - FL + (FL - FS) / 2) / FS) + 1);
+        feats = grow(feats, upto * NB);
+        for (; nf < upto; nf++) frame(x, n, nf, feats, nf * NB);
+        for (; st + m.T <= nf; st += m.step) chain = chain.then(chunk(st));
+      };
+      return {
+        push(a) { if (!a || !a.length) return; x = grow(x, n + a.length); x.set(a, n); n += a.length; pump(false); },
+        async finish() {
+          const tail = Math.round(TAIL * SR); x = grow(x, n + tail); x.fill(0, n, n + tail); n += tail; pump(true);
+          await chain;
+          if (failed) throw failed;
+          const all = new Float32Array(rows.length * per * V);
+          rows.forEach((r, i) => all.set(r, i * per * V));
+          const heard = me.greedy({ lp: all, frames: rows.length * per, V, frame: per ? m.step * 0.01 / per : 0.04 });
+          return { heard, text: heard.map(s => s.p).join(''), samples: n - tail };
+        },
+      };
     }
 
     async hear(x) {
@@ -250,5 +333,5 @@
              engine: 'quran-lab-zipformer (on this device)', recogniser: { heard: h.text, nearest, forms: out } };
   }
 
-  window.ZF = { fbank, load, samples, judge, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
+  window.ZF = { fbank, load, samples, judge, resampler, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
 })();

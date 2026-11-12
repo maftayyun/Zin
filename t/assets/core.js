@@ -71,14 +71,35 @@ window.Z = (() => {
   const playBoth = (u1, u2, end) => play(u1, { end: () => setTimeout(() => play(u2, { end }), 250) });
   const canRec = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
   let mr = null, stream = null, bits = [];
-  async function recStart() {
+  /* the recogniser listens while the learner reads: an AudioWorklet copies the microphone's samples out (its messages wait in a
+     queue, so none is lost while the page is busy), they are brought to 16 kHz and handed to `sink` */
+  const TAP = "registerProcessor('zin-tap', class extends AudioWorkletProcessor { constructor() { super(); this.b = []; this.n = 0; this.end = false; this.port.onmessage = () => { this.end = true; }; }" +
+    " process(i) { const c = i[0] && i[0][0]; if (c) { this.b.push(c.slice(0)); this.n += c.length; } if (this.n >= 2048 || this.end) { const o = new Float32Array(this.n); let k = 0; for (const q of this.b) { o.set(q, k); k += q.length; } this.port.postMessage(o); this.b = []; this.n = 0; }" +
+    " if (this.end) { this.port.postMessage('end'); return false; } return true; } });";
+  let tap = null;
+  async function tapStart(sink) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([TAP], { type: 'application/javascript' })));
+    const src = ctx.createMediaStreamSource(stream), node = new AudioWorkletNode(ctx, 'zin-tap'), mute = ctx.createGain(), rs = ZF.resampler(ctx.sampleRate);
+    mute.gain.value = 0;
+    let ended; const done = new Promise(ok => { ended = ok; });
+    node.port.onmessage = e => { if (e.data === 'end') ended(); else sink(rs.push(e.data)); };
+    src.connect(node); node.connect(mute); mute.connect(ctx.destination);
+    return { ctx, src, node, done, end: async () => { node.port.postMessage('end'); await Promise.race([done, new Promise(ok => setTimeout(ok, 600))]); sink(rs.flush()); src.disconnect(); node.disconnect(); ctx.close(); } };
+  }
+  async function recStart(sink) {
     stop();
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mr = new MediaRecorder(stream); bits = [];
     mr.ondataavailable = e => { if (e.data && e.data.size) bits.push(e.data); };
+    tap = null;
+    if (sink && window.ZF && window.AudioWorkletNode) try { tap = await tapStart(sink); } catch (e) { tap = null; }
     mr.start();
+    return !!tap;
   }
-  function recStop() {
+  async function recStop() {
+    if (tap) { const t = tap; tap = null; try { await t.end(); } catch (e) {} }
     return new Promise(res => {
       if (!mr) return res(null);
       const m = mr;
@@ -134,26 +155,34 @@ window.Z = (() => {
      the model is kept in the browser's cache after the first time */
   const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
   const load = src => new Promise((ok, no) => { const e = document.createElement('script'); e.src = src; e.onload = ok; e.onerror = no; document.head.appendChild(e); });
-  let ZR = null;
-  function recogniser() {
+  let ZR = null, ZP = null;
+  const zwait = () => ZP && ZP.total ? 'يُنزَّل نموذج الفاحص أول مرة، ثم يعمل بلا إنترنت: ' + AR(Math.floor(100 * ZP.got / ZP.total)) + '٪' : '';
+  function recogniser(onProgress) {
     if (!ZR) ZR = (async () => {
       if (!window.ort) await load(ORT + 'ort.wasm.min.js');
       ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
       if (!window.ZF) await load('../assets/zf.js');
-      return ZF.load('../m/');
-    })().catch(e => { ZR = null; throw { model: true }; });
+      let last = 0;
+      return ZF.load('../m/', { progress: (got, total) => { ZP = { got, total }; const now = Date.now(); if (onProgress && now - last > 250) { last = now; onProgress(); } } });
+    })().then(R => { ZP = null; if (onProgress) onProgress(); return R; }, e => { ZR = null; ZP = null; throw { model: true }; });
     return ZR;
   }
-  async function checkHere(x, blob) {
+  async function checkHere(x, blob, zs) {
     const R = await recogniser();
+    if (zs && zs.got > 16000 * 0.3) {                      // heard while the learner read: only the tail is left
+      if (!zs.s) { zs.s = R.stream(); (zs.parts || []).forEach(p => zs.s.push(p)); zs.parts = null; }
+      const out = ZF.judge(await zs.s.finish(), x.zf);
+      out.streamed = true;
+      return out;
+    }
     let pcm;
     try { pcm = await ZF.samples(blob); } catch (e) { throw { text: 'تعذّرت قراءة التسجيل.' }; }
     if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
     return ZF.judge(await R.hear(pcm), x.zf);
   }
-  async function check(args, blob, x) {
+  async function check(args, blob, x, zs) {
     if (window.__mock) return window.__mock(args);
-    if (x && x.zf) return checkHere(x, blob);
+    if (x && x.zf) return checkHere(x, blob, zs);
     const [fn, ...rest] = args;
     let txt;
     try {
@@ -209,12 +238,21 @@ window.Z = (() => {
     T.mic = async () => {
       if (T.on) {
         const r = await recStop(); T.on = false; if (!r) return redraw();
+        r.zs = T.zs; T.zs = null;
         T.rec = r; T.res = T.err = null; T.ear = null; redraw();
         const i = T.i; r.pk = await peaks(r.blob, T.n || 44); if (!same(i, r)) return; redraw();
         if (cur().chk) T.check();
       } else {
         T.msg = '';
-        try { await recStart(); T.on = true; T.rec = null; T.res = T.err = null; T.ear = null; } catch (e) { T.msg = 'تعذّر الوصول إلى الميكروفون. اسمح به من إعدادات المتصفح ثم أعد المحاولة.'; }
+        // an exercise checked on the device: ask once, then get the model ready and listen while the learner reads
+        let sink = null; T.zs = null;
+        if (cur().zf && !window.__mock && (S.zf || aiOK(true))) {
+          const z = T.zs = { parts: [], s: null, got: 0 };
+          const tick = () => { if (T.zs === z || (T.rec && T.rec.zs === z)) { T.msg = zwait(); redraw(); } };
+          recogniser(tick).then(R => { if (z.parts) { z.s = R.stream(); z.parts.forEach(p => z.s.push(p)); z.parts = null; } }, () => {});
+          sink = a => { z.got += a.length; if (z.s) z.s.push(a); else if (z.parts) z.parts.push(a); };
+        }
+        try { await recStart(sink); T.on = true; T.rec = null; T.res = T.err = null; T.ear = null; } catch (e) { T.msg = 'تعذّر الوصول إلى الميكروفون. اسمح به من إعدادات المتصفح ثم أعد المحاولة.'; T.zs = null; }
         redraw();
       }
     };
@@ -223,7 +261,8 @@ window.Z = (() => {
       if (!aiOK(!!cur().zf)) { T.err = { declined: true }; return redraw(); }
       T.busy = true; T.err = null; redraw();
       let res = null, err = null;
-      try { res = await check(cur().chk, r.blob, cur()); } catch (e) { err = e || {}; }
+      try { res = await check(cur().chk, r.blob, cur(), r.zs); } catch (e) { err = e || {}; }
+      T.msg = '';
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
     };
@@ -231,6 +270,8 @@ window.Z = (() => {
     T.next = () => { if (T.i + 1 < T.items.length) T.go(T.i + 1); else { S.done[L.id] = 1; save(); T.end = true; stop(); redraw(); } };
     T.judge = ok => { T.ear = ok ? 'ok' : 'redo'; if (!ok) { T.rec = null; T.res = T.err = null; } redraw(); };
     loadReader();
+    // a learner who has allowed the check before: get the model ready as the page opens, not when they finish reading
+    if (S.zf && !window.__mock && items.some(x => x.zf)) setTimeout(() => recogniser().catch(() => {}), 400);
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
