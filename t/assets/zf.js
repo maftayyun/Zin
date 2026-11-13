@@ -439,9 +439,12 @@
   /* the same measure from Quran Muaalem's answer (the Space's /hear: its symbols, one letter or mark each, with their times in
      the recording): the asked madd is found by its letters, as in maddHeard; its span runs from the onset of the letter before its
      short vowel to the onset of the next sound (at a stop, to the end of its last symbol); the unit is the reader's short
-     syllable there (a letter, its short vowel, then a letter: onset to onset). */
+     syllable there (a letter, its short vowel, then a letter: onset to onset).
+     `same`: the haraka Quran Lab's model measured on this very reading (seconds). The haraka is the reader's, not the model's:
+     measured by each model apart, the two came out some 15% apart while the madd's time agreed (1320 and 1360 ms), and the
+     counts with them. Given, it is used, so the two models differ only where they hear the madd's time differently. */
   const VOW = 'َُِ';
-  function maddSymbols(syms, form, wordIndex, unit) {
+  function maddSymbols(syms, form, wordIndex, unit, same) {
     const words = form.split(' ');
     if (wordIndex >= words.length || !syms || !syms.length || syms.some(s => s.start == null)) return null;
     const before = runs(words.slice(0, wordIndex).join('')).length, mine = runs(words[wordIndex]);
@@ -455,13 +458,13 @@
     const steps = diff(said.map(r => r[0]), hr.map(r => r.c)), to = i => { const st = steps.find(x => x.i === i); return st && st.j != null ? hr[st.j] : null; };
     const syl = [];
     for (let j = 0; j + 2 < hr.length; j++) if (hr[j].n === 1 && hr[j + 2].n === 1 && !VOW.includes(hr[j].c) && !MADDL.includes(hr[j].c) && VOW.includes(hr[j + 1].c) && !VOW.includes(hr[j + 2].c) && !MADDL.includes(hr[j + 2].c)) syl.push(hr[j + 2].start - hr[j].start);
-    const own = syl.length >= 2 ? median(syl) : syl.length && !unit ? syl[0] : null, u = own || unit || null;
+    const own = same ? null : syl.length >= 2 ? median(syl) : syl.length && !unit ? syl[0] : null, u = same || own || unit || null;
     const c0 = to(at - 2), m = to(at), nx = at + 1 < said.length ? to(at + 1) : null;
     let span = null;
     if (c0 && nx) span = nx.start - c0.start;
     else if (c0 && at + 1 >= said.length && m && MADDL.includes(m.c)) span = m.end - c0.start;
     const n = span != null && u ? span / u : null, good = n != null && n > 0 && n <= TOP;
-    return { count: good ? Math.round(n * 10) / 10 : null, ms: span == null ? null : Math.round(span * 1000), unit: u ? Math.round(u * 1000) : null, own: !!own,
+    return { count: good ? Math.round(n * 10) / 10 : null, ms: span == null ? null : Math.round(span * 1000), unit: u ? Math.round(u * 1000) : null, own: !!(own || same),
              why: good ? null : span == null ? 'unsure' : !u ? 'unit' : 'range' };
   }
 

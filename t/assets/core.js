@@ -211,9 +211,9 @@ window.Z = (() => {
     throw { text: t, quota: /quota|limit/i.test(t) };
   }
   /* the madd of an exercise measured as Quran Lab advise: from timing, by forced alignment with their model on this device
-     (R.maddTime), and from Quran Muaalem's symbol times (ZF.maddSymbols); counted in the learner's own haraka (the time of a
-     letter with its vowel in the same reading, or in their earlier readings) and set against the counts the book allows. A time
-     that is not a madd (حركة، حركة + بعض حركة) is left to the ear. */
+     (R.maddTime), and from Quran Muaalem's symbol times (ZF.maddSymbols); both counted in the learner's own haraka as the device
+     measured it (the time of a letter with its vowel in the same reading, or in their earlier readings) and set against the
+     counts the book allows. A time that is not a madd (حركة، حركة + بعض حركة) is left to the ear. */
   const ALLOW = { '2': [2], '4': [4, 5], '6': [6], '2|4|6': [2, 4, 6] };
   const maddOf = x => !!(x && x.kind === 'time' && x.zf && x.f && ALLOW[x.v] && /[اويىٰٓۥۦ]/.test(x.w.slice(x.f[0], x.f[1])));
   // the learner's haraka from their earlier readings (seconds), for a word too short to give its own; kept on this device only
@@ -235,10 +235,12 @@ window.Z = (() => {
     if (m && m.own && m.syl >= 2) keepUnit(m.unit);
     return judged(x, m);
   }
-  // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser, and its madd from its times
-  function fromMuaalem(x, r) {
-    const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf);
-    out.madd = maddOf(x) ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[out.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore())) : null;
+  // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser, and its madd from its times, in
+  // the haraka the device measured on the same reading (first: the device's answer), so the two differ only in the madd's time
+  function fromMuaalem(x, r, first) {
+    const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf), d = first && first.madd;
+    out.madd = maddOf(x) ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[out.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore(),
+                                                     d && d.own && d.unit ? d.unit / 1000 : null)) : null;
     if (inside(x) && out.matches_example !== false) out.heard_as = 'same';
     return out;
   }
@@ -344,7 +346,7 @@ window.Z = (() => {
         if (!aiOK(false)) return;
         res.second = { busy: true }; redraw();
         let sec;
-        try { sec = fromMuaalem(cur(), await check(['hear'], r.blob)); } catch (e) { sec = { err: e || {} }; }
+        try { sec = fromMuaalem(cur(), await check(['hear'], r.blob), res); } catch (e) { sec = { err: e || {} }; }
         if (!same(i, r)) return;
         res.second = sec; redraw();
       }
