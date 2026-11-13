@@ -33,8 +33,9 @@ window.Z = (() => {
     const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w);
   })));
   const ayahLabel = x => {
-    const a = x.ay, how = !a.part || a.whole ? 'اقرأ الآية كاملة' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى آخر الآية'
-      : x.ctx === 'waqf' ? 'اقرأ من أول الآية، وقف على آخرها' : 'اقرأ من أول الآية';
+    const a = x.ay, from = a.from_mark ? 'علامة الوقف قبلها' : 'أول الآية', to = a.to_mark ? 'علامة الوقف بعدها' : 'آخر الآية';
+    const how = !a.part || a.whole ? 'اقرأ الآية كاملة' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى ' + to
+      : x.ctx === 'waqf' ? `اقرأ من ${from}، وقف على آخرها` : x.ctx === 'wasl' ? `اقرأ من ${from} إلى ${to}` : 'اقرأ من ' + from;
     return how + ': ' + esc(a.sura) + ' ' + AR(a.a);
   };
   // the ayah of an exercise, its words of the exercise marked
