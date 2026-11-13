@@ -14,8 +14,8 @@ window.Z = (() => {
   const husary = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.husary = true; } return x; };
   /* each exercise read in a whole ayah (ayat.py): the ayah's text, al-Husary's recitation of it (TEMPORARY) and its sounds for the
      check, which then hears the whole ayah and judges the exercise's place in it. An exercise no ayah reads its way (a stop in the
-     middle of an ayah, a short stretch al-Husary does not give) is read from its ayah's beginning to the stop or the stretch's
-     end, for the reader to record (part); a start in the middle of an ayah keeps its words alone. */
+     middle of an ayah, a start there, a short stretch al-Husary does not give) is read in its ayah, for the reader to record
+     (part): a stop from the ayah's beginning, a start to its end, a joined stretch through the whole ayah. */
   const AY = window.AYAT || {};
   function inAyah(x) {
     const a = AY[x.ctx + '|' + x.w];
@@ -32,7 +32,11 @@ window.Z = (() => {
     if (inAyah(x)) return;
     const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w);
   })));
-  const ayahLabel = x => (x.ay.part ? `اقرأ من أول الآية${x.ctx === 'waqf' ? '، وقف على آخرها' : ''}: ` : 'اقرأ الآية كاملة: ') + esc(x.ay.sura) + ' ' + AR(x.ay.a);
+  const ayahLabel = x => {
+    const a = x.ay, how = !a.part || a.whole ? 'اقرأ الآية كاملة' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى آخر الآية'
+      : x.ctx === 'waqf' ? 'اقرأ من أول الآية، وقف على آخرها' : 'اقرأ من أول الآية';
+    return how + ': ' + esc(a.sura) + ' ' + AR(a.a);
+  };
   // the ayah of an exercise, its words of the exercise marked
   const ayahLine = x => x.ay.text.split(' ').map((w, i) => i + 1 >= x.ay.w1 && i + 1 <= x.ay.w2 ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
   const ayahAudio = a => { const h = HUS['ayah|' + a.s + ':' + a.a]; return h ? h.src : ''; };
