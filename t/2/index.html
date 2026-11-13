@@ -3,7 +3,7 @@
 <title>زِنِ الحَرْفَ · صورة الصوت (نسخة تجريبية)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="look.css?v=2123d31">
+<link rel="stylesheet" href="look.css?v=958d630">
 <style>
 @font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
 *{box-sizing:border-box}
@@ -73,6 +73,10 @@ a{color:inherit;text-decoration:none}
 .pw{font-family:ZinQ;font-size:clamp(34px,10.500vw,46px);line-height:1.7;text-align:center;margin:2px 0 4px}
 .pw.long{font-size:clamp(22px,6.400vw,28px);line-height:2}
 .pw em{font-style:normal;color:var(--am);text-shadow:0 0 22px rgba(255,176,31,.5)}
+.ayl{margin:2px 0 6px;text-align:center}
+.ayl span{display:block;font-size:11px;color:var(--tx2)}
+.ayl p{margin:2px 0 0;font-size:clamp(19px,5.600vw,22px);line-height:2;color:var(--tx2)}
+.ayl mark{background:none;color:var(--tx);text-decoration:underline;text-decoration-color:var(--am);text-decoration-thickness:2px;text-underline-offset:9px}
 .pw em.gh{color:var(--tx3);opacity:.7;text-shadow:none}
 .tk{margin-top:12px}
 .tk .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;min-height:28px}
@@ -119,7 +123,7 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.recng i{animation:none}}
 </style></head><body>
 <div class="app" id="app"></div>
-<script src="../assets/data.js?v=2123d31"></script><script src="../assets/zf-forms.js?v=2123d31"></script><script src="../assets/husary.js?v=2123d31"></script><script src="../assets/zf.js?v=2123d31"></script><script src="../assets/core.js?v=2123d31"></script>
+<script src="../assets/data.js?v=958d630"></script><script src="../assets/zf-forms.js?v=958d630"></script><script src="../assets/husary.js?v=958d630"></script><script src="../assets/ayat.js?v=958d630"></script><script src="../assets/zf.js?v=958d630"></script><script src="../assets/core.js?v=958d630"></script>
 <script>
 (() => {
 const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, app = $('#app');
@@ -217,6 +221,7 @@ function draw() {
     <div class="body">
       <div class="card"><div class="row">${chip(x) || '<span></span>'}<span></span></div>
         <p class="pw${x.w.length > 16 ? ' long' : ''}" lang="ar">${x.kind === 'ayah' ? esc(x.w) : lit(x.w, x.f, x.v === '0' ? 'gh' : '')}</p>
+        ${x.ay ? `<div class="ayl"><span>اقرأ الآية كاملة: ${esc(x.ay.sura)} ${AR(x.ay.a)}</span><p class="q" lang="ar">${Z.ayahLine(x)}</p></div>` : ''}
         ${x.kind === 'verdict' ? `<div class="tb" style="justify-content:center"><span class="lb">${esc(`${x.src} ${x.cond}`.trim())}</span></div>` : `<div style="display:grid;justify-content:center">${timeBar(x)}</div>`}
         ${Z.saidOf(x) && x.kind !== 'ayah' ? `<div class="said" style="justify-content:center"><span>${Z.saidLabel(x)}</span><span class="q">${esc(Z.saidOf(x))}</span></div>` : ''}
         ${x.kind === 'ayah' ? '' : `<div class="tk"><div class="hd"><span class="chip"><i></i>${x.husary ? Z.TMP : 'القارئ'}</span></div>${rd ? `<div class="wv">${Z.wave(T.readerPk(), { n: 60, h: 48, bw: 3, gap: 2, c: AM })}</div>` : '<div class="nor" style="margin:0">لم يُسجَّل صوت القارئ لهذا المثال بعد.</div>'}</div>`}

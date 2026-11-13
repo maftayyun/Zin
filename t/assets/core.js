@@ -12,7 +12,22 @@ window.Z = (() => {
   // TEMPORARY: al-Husary's teaching recitation where the reader has not recorded yet (husary.py), marked as such wherever it plays
   const HUS = window.HUSARY || {};
   const husary = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.husary = true; } return x; };
-  D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => { const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w); })));
+  /* each exercise read in a whole ayah (ayat.py): the ayah's text, al-Husary's recitation of it (TEMPORARY) and its sounds for the
+     check, which then hears the whole ayah and judges the exercise's place in it. An exercise no ayah reads its way (a stop or a
+     start in the middle of an ayah, words not in one ayah) keeps its words alone, for the reader to record. */
+  const AY = window.AYAT || {};
+  function inAyah(x) {
+    const a = AY[x.ctx + '|' + x.w];
+    if (!a || !a.src || !a.forms || !a.at) return false;
+    x.ay = a; x.zf = a.forms; x.chk = ['zf', x.ctx]; x.au = 'a:' + a.s + ':' + a.a; D.audio[x.au] = a.src; x.husary = true;
+    return true;
+  }
+  D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => {
+    if (inAyah(x)) return;
+    const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w);
+  })));
+  // the ayah of an exercise, its words of the exercise marked
+  const ayahLine = x => x.ay.text.split(' ').map((w, i) => i + 1 >= x.ay.w1 && i + 1 <= x.ay.w2 ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
   const ayahAudio = a => { const h = HUS['ayah|' + a.s + ':' + a.a]; return h ? h.src : ''; };
   const vName = v => AR(D.name[v] || v);
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
@@ -177,7 +192,12 @@ window.Z = (() => {
   // a word read alone whose rule is inside it (the madd of سُوٓءٖ): its ending is not what is asked, and one word read alone
   // ends in a stop, so joined or stopped is not judged there
   const inside = x => x.w.indexOf(' ') < 0 && x.f && /[\u0621-\u064A\u0671]/.test(x.w.slice(x.f[1]));
-  const asked = (x, res) => { if (inside(x) && res.matches_example !== false) res.heard_as = 'same'; return res; };
+  const asked = (x, res) => {
+    // in an ayah: a start (ibtida) is heard as a stop before the word and the reading begun again
+    if (x.ay) { if (x.ctx === 'ibtida' && res.heard_as === 'waqf') res.heard_as = 'ibtida'; return res; }
+    if (inside(x) && res.matches_example !== false) res.heard_as = 'same';
+    return res;
+  };
   async function checkHere(x, blob, zs) {
     const R = await recogniser();
     if (zs && zs.got > 16000 * 0.3) {                      // heard while the learner read: only the tail is left
@@ -227,11 +247,19 @@ window.Z = (() => {
     const near = ALLOW[x.v].reduce((b, a) => Math.abs(m.count - a) < Math.abs(m.count - b) ? a : b), tol = Math.max(.75, .4 * near);
     return Object.assign(m, { st: Math.abs(m.count - near) <= tol ? 'good' : m.count < near ? 'short' : 'long' });
   }
-  const askedWord = x => x.w.slice(0, x.f[0]).split(' ').length - 1;
+  // where the asked word begins and ends in a form (the form without its spaces): in an ayah, as ayat.py found it; else by the
+  // word's number
+  const askedAt = (x, name) => {
+    if (x.ay) return x.ay.at ? x.ay.at[name] || x.ay.at.wasl : null;
+    const k = x.w.slice(0, x.f[0]).split(' ').length - 1, ws = (x.zf[name] || x.zf.wasl).split(' '), a = ws.slice(0, k).join('').length;
+    return [a, a + (ws[k] || '').length];
+  };
   function maddFrom(x, res, R, lp) {
     if (!maddOf(x) || !res.recogniser || !R || !lp) return null;
+    const name = x.zf[res.recogniser.nearest] ? res.recogniser.nearest : 'wasl', at = askedAt(x, name);
+    if (at == null) return null;
     let m = null;
-    try { m = R.maddTime(lp, x.zf[res.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore()); } catch (e) { m = null; }
+    try { m = R.maddTime(lp, x.zf[name], at[0], unitBefore(), at[1]); } catch (e) { m = null; }
     if (m && m.own && m.syl >= 2) keepUnit(m.unit);
     return judged(x, m);
   }
@@ -239,10 +267,9 @@ window.Z = (() => {
   // the haraka the device measured on the same reading (first: the device's answer), so the two differ only in the madd's time
   function fromMuaalem(x, r, first) {
     const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf), d = first && first.madd;
-    out.madd = maddOf(x) ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[out.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore(),
-                                                     d && d.own && d.unit ? d.unit / 1000 : null)) : null;
-    if (inside(x) && out.matches_example !== false) out.heard_as = 'same';
-    return out;
+    const name = x.zf[out.recogniser.nearest] ? out.recogniser.nearest : 'wasl', at = maddOf(x) ? askedAt(x, name) : null;
+    out.madd = at != null ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[name], at[0], unitBefore(), d && d.own && d.unit ? d.unit / 1000 : null, at[1])) : null;
+    return asked(x, out);
   }
   const harakat = m => m.count == null ? 'لم يُقَس' : `نحو ${num(m.count.toFixed(1))} حركة`;
   const WHY = { unsure: 'لم يتبيّن النموذج موضع المدّ وما حوله في التسجيل', unit: 'الكلمة أقصر من أن يُعرف منها مقدار حركتك؛ اقرأ تمرينًا أطول مرة ثم أعد', range: 'جاء الزمن خارج المعقول، فلعلّ التسجيل لم يحوِ الكلمات كاملة' };
@@ -360,5 +387,5 @@ window.Z = (() => {
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, ayahLine, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();

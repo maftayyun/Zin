@@ -3,7 +3,7 @@
 <title>زِنِ الحَرْفَ · تلقّي (نسخة تجريبية)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="look.css?v=2123d31">
+<link rel="stylesheet" href="look.css?v=958d630">
 <style>
 @font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
 *{box-sizing:border-box}
@@ -46,6 +46,10 @@ a{color:inherit;text-decoration:none}
 .vm .w{font-size:clamp(28px,8.600vw,36px);line-height:1.8}
 .vm .w.long{font-size:clamp(22px,6.400vw,27px)}
 .vm .w em.gh{color:var(--ink3);opacity:.55}
+.ayl{margin-top:10px;padding-top:8px;border-top:1px solid rgba(26,23,64,.08)}
+.ayl span{display:block;font-size:11.500px;color:var(--ink2)}
+.ayl p{margin:2px 0 0;font-size:clamp(19px,5.600vw,23px);line-height:2;color:var(--ink2)}
+.ayl mark{background:none;color:var(--ink);text-decoration:underline;text-decoration-color:var(--cor);text-decoration-thickness:2px;text-underline-offset:9px}
 .cnt{min-width:74px;padding-top:6px}
 .cnt b{line-height:1.5}
 .dts{display:flex;gap:4px;justify-content:flex-start;margin-top:6px;direction:ltr;align-items:center}
@@ -111,7 +115,7 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.mic.on span,.recng i{animation:none}}
 </style></head><body>
 <div class="app" id="app"></div>
-<script src="../assets/data.js?v=2123d31"></script><script src="../assets/zf-forms.js?v=2123d31"></script><script src="../assets/husary.js?v=2123d31"></script><script src="../assets/zf.js?v=2123d31"></script><script src="../assets/core.js?v=2123d31"></script>
+<script src="../assets/data.js?v=958d630"></script><script src="../assets/zf-forms.js?v=958d630"></script><script src="../assets/husary.js?v=958d630"></script><script src="../assets/ayat.js?v=958d630"></script><script src="../assets/zf.js?v=958d630"></script><script src="../assets/core.js?v=958d630"></script>
 <script>
 (() => {
 const { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, glyph, dots, parts } = Z, app = $('#app');
@@ -138,6 +142,7 @@ function voice(x, o = {}) {
   const val = x.kind === 'verdict' ? `<b>${esc(x.ans)}</b>` : x.kind === 'time' ? `<b>${esc(two ? 'حرفان' : vName(x.v))}</b>${dots(x.v)}` : '';
   return `<div class="bub vm"><div class="top"><div>${x.ctx ? `<span class="ctx ${x.ctx}">${CTX[x.ctx]}</span>` : x.kind === 'verdict' ? `<span class="ctx v">${esc(x.src)}</span>` : ''}
       <div class="w q${x.w.length > 16 ? ' long' : ''}" lang="ar">${x.kind === 'ayah' ? esc(x.w) : lit(x.w, x.f, zero ? 'gh' : '')}</div></div>${val ? `<div class="cnt">${val}</div>` : ''}</div>
+    ${x.ay ? `<div class="ayl"><span>اقرأ الآية كاملة: ${esc(x.ay.sura)} ${AR(x.ay.a)}</span><p class="q" lang="ar">${Z.ayahLine(x)}</p></div>` : ''}
     ${p ? `<div class="eq" aria-label="الحرف المشدّد حرفان"><span>${esc(glyph(x))}</span><i>=</i><span>${esc(p[0])}</span>${dots('1.5')}<i>+</i><span>${esc(p[1])}</span>${dots('1')}</div>` : ''}
     ${sd ? `<div class="said"><span>${Z.saidLabel(x)}</span><span class="q">${esc(sd)}</span></div>` : ''}
     ${has ? `<div class="pl"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#fff')}</button><div class="wv">${Z.wave(readerPk(x.au), { c: '#B9B4E0' })}</div>${x.husary ? `<span class="tmp">${Z.TMP}</span>` : ''}</div>`

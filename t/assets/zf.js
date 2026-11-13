@@ -275,18 +275,21 @@
                          is the time of a letter with its vowel. With fewer, `unit` (seconds), the reader's earlier readings, else the one there is
          the count     : span / unit, approximate
        A place the model is not sure of does not anchor a span. The madd itself need not be heard: a madd read short is measured
-       short. Returns {count, ms, unit, own, why} for the first madd of word `word` (0-based), or null if the word has none. */
-    maddTime(L, form, word, unit) {
+       short. Returns {count, ms, unit, own, why} for the first madd from `at` to before `end` (places in the form without its
+       spaces: the phonetizer writes words that merge in speech as one, so a word number would not do), or null if there is none. */
+    maddTime(L, form, at, unit, end) {
       if (!L || !L.frames) return null;
       if (!this.ids) { this.ids = {}; for (const k in this.tokens) if (+k !== this.blank && this.tokens[k] !== ' ') this.ids[this.tokens[k]] = +k; }
       const ids = this.ids, longest = Math.max(...Object.keys(ids).map(t => t.length)), enc = [];
-      form.split(' ').forEach((w, k) => {
+      let o = 0;
+      form.split(' ').forEach(w => {
         for (let i = 0; i < w.length;) {
           let n = Math.min(longest, w.length - i);
           for (; n > 0; n--) if (ids[w.slice(i, i + n)] !== undefined) break;
           if (!n) throw new Error('no symbol for ' + w[i]);
-          enc.push([k, ids[w.slice(i, i + n)]]); i += n;
+          enc.push([o + i, ids[w.slice(i, i + n)]]); i += n;
         }
+        o += w.length;
       });
       const names = enc.map(e => this.tokens[e[1]]);
       const fam = names.map(t => isMadd(t) ? Object.keys(ids).filter(u => isMadd(u) && u[0] === t[0]).map(u => ids[u]).sort((a, b) => a - b) : [ids[t]]);
@@ -302,7 +305,8 @@
       // the reading's own (two or more), else the reader's earlier readings, else the one syllable this reading has
       const own = syl.length >= 2 ? median(syl) : syl.length && !unit ? syl[0] : null, u = own || unit || null;
       for (let i = 1; i < names.length; i++) {
-        if (!isMadd(names[i]) || enc[i][0] !== word) continue;
+        if (!isMadd(names[i]) || enc[i][0] < at) continue;
+        if (end != null && enc[i][0] >= end) return null;
         let span, ok;
         if (i + 1 < names.length) { span = on[i + 1] - on[i - 1]; ok = sure[i - 1] && sure[i + 1]; }
         else { span = on[i] - on[i - 1] + END; ok = sure[i - 1] && sure[i]; }
@@ -444,13 +448,14 @@
      measured by each model apart, the two came out some 15% apart while the madd's time agreed (1320 and 1360 ms), and the
      counts with them. Given, it is used, so the two models differ only where they hear the madd's time differently. */
   const VOW = 'َُِ';
-  function maddSymbols(syms, form, wordIndex, unit, same) {
-    const words = form.split(' ');
-    if (wordIndex >= words.length || !syms || !syms.length || syms.some(s => s.start == null)) return null;
-    const before = runs(words.slice(0, wordIndex).join('')).length, mine = runs(words[wordIndex]);
-    const k = mine.findIndex(([c, n]) => MADDL.includes(c) && n >= 2);
+  function maddSymbols(syms, form, from, unit, same, until) {
+    if (!syms || !syms.length || syms.some(s => s.start == null)) return null;
+    // the first madd from `from` to before `until` (places in the form without its spaces, as for maddTime)
+    const said = runs(form), bare = form.replace(/ /g, ''), before = runs(bare.slice(0, from)).length;
+    const upto = until == null ? said.length : runs(bare.slice(0, until)).length;
+    const k = said.slice(before, upto).findIndex(([c, n]) => MADDL.includes(c) && n >= 2);
     if (k < 0) return null;
-    const at = before + k, said = runs(form);
+    const at = before + k;
     if (at < 2 || !VOW.includes(said[at - 1][0])) return null;
     // the heard symbols as runs of one letter, each with the times of its first and last symbol
     const hr = [];
