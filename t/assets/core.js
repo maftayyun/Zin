@@ -13,11 +13,17 @@ window.Z = (() => {
   const HUS = window.HUSARY || {};
   const husary = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.husary = true; } return x; };
   /* each exercise read in a whole ayah (ayat.py): the ayah's text, al-Husary's recitation of it (TEMPORARY) and its sounds for the
-     check, which then hears the whole ayah and judges the exercise's place in it. An exercise no ayah reads its way (a stop or a
-     start in the middle of an ayah, words not in one ayah) keeps its words alone, for the reader to record. */
+     check, which then hears the whole ayah and judges the exercise's place in it. An exercise no ayah reads its way (a stop in the
+     middle of an ayah, a short stretch al-Husary does not give) is read from its ayah's beginning to the stop or the stretch's
+     end, for the reader to record (part); a start in the middle of an ayah keeps its words alone. */
   const AY = window.AYAT || {};
   function inAyah(x) {
     const a = AY[x.ctx + '|' + x.w];
+    if (a && a.part) {
+      x.ay = a; x.au = ''; x.husary = false;
+      if (a.forms && a.at) { x.zf = a.forms; x.chk = ['zf', x.ctx]; }
+      return true;
+    }
     if (!a || !a.src || !a.forms || !a.at) return false;
     x.ay = a; x.zf = a.forms; x.chk = ['zf', x.ctx]; x.au = 'a:' + a.s + ':' + a.a; D.audio[x.au] = a.src; x.husary = true;
     return true;
@@ -26,6 +32,7 @@ window.Z = (() => {
     if (inAyah(x)) return;
     const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w);
   })));
+  const ayahLabel = x => (x.ay.part ? `اقرأ من أول الآية${x.ctx === 'waqf' ? '، وقف على آخرها' : ''}: ` : 'اقرأ الآية كاملة: ') + esc(x.ay.sura) + ' ' + AR(x.ay.a);
   // the ayah of an exercise, its words of the exercise marked
   const ayahLine = x => x.ay.text.split(' ').map((w, i) => i + 1 >= x.ay.w1 && i + 1 <= x.ay.w2 ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
   const ayahAudio = a => { const h = HUS['ayah|' + a.s + ':' + a.a]; return h ? h.src : ''; };
@@ -387,5 +394,5 @@ window.Z = (() => {
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, ayahLine, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, ayahLabel, ayahLine, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();
