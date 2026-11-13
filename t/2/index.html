@@ -3,7 +3,7 @@
 <title>زِنِ الحَرْفَ · صورة الصوت (نسخة تجريبية)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="look.css?v=08f876c">
+<link rel="stylesheet" href="look.css?v=9ba38ab">
 <style>
 @font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
 *{box-sizing:border-box}
@@ -119,7 +119,7 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.recng i{animation:none}}
 </style></head><body>
 <div class="app" id="app"></div>
-<script src="../assets/data.js?v=08f876c"></script><script src="../assets/zf-forms.js?v=08f876c"></script><script src="../assets/husary.js?v=08f876c"></script><script src="../assets/zf.js?v=08f876c"></script><script src="../assets/core.js?v=08f876c"></script>
+<script src="../assets/data.js?v=9ba38ab"></script><script src="../assets/zf-forms.js?v=9ba38ab"></script><script src="../assets/husary.js?v=9ba38ab"></script><script src="../assets/zf.js?v=9ba38ab"></script><script src="../assets/core.js?v=9ba38ab"></script>
 <script>
 (() => {
 const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, app = $('#app');
@@ -193,7 +193,7 @@ function verdict(x) {
     return `<div class="card vd">${!h.is ? '<p class="h no">لا يبدو أن التسجيل لهذه الكلمة.</p>' : h.h === 'same' ? '<p class="h ok">سُمِعت الكلمة.</p>'
         : `<p class="h ${h.ok ? 'ok' : 'no'}">${h.ok ? I.ok(MI) : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</p>${h.sure ? '' : '<p><small>الحكم غير مؤكد.</small></p>'}`}
       ${h.is && h.ms ? `<p>زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span> في صوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small>، وهو المضيء في الرسم.</p>` : ''}
-      ${(md => md ? `<p class="md md-${md.st}">${esc(md.text)}</p>` : '')(Z.maddLine(T, x))}
+      ${(Z.maddLine(T, x) || []).map(l => `<p class="md md-${l.st}">${esc(l.text)}</p>`).join('')}
       ${h.is && h.ms == null && x.kind === 'time' ? `<p>${Z.maddOf(x) ? '' : 'الفاحص على جهازك يسمع الوصل والوقف، ولا يقيس الزمن. '}${T.reader() ? `اسمع القارئ ثم صوتك، وانظر الرسمين: هل طابقتَه في زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span>؟` : `قابل زمن <span class="q" style="font-size:1.35em">${esc(glyph(x))}</span> في صوتك بالقاعدة: هل أصبتَ؟`}</p>
       <div class="two"><button type="button" class="y" data-ear="1">${I.ok(MI)}${T.reader() ? 'طابقتُه' : 'أصبتُ'}</button><button type="button" data-ear="0">أعيد التسجيل</button></div>` : ''}
       <p class="nochk">${esc(Z.NOTE)}</p></div>`; }

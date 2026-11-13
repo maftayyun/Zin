@@ -223,12 +223,40 @@ window.Z = (() => {
     const ok = ALLOW[x.v];
     return { counts: m.counts, st: ok.includes(m.counts) ? 'good' : m.counts < ok[0] ? 'short' : 'long' };
   }
-  // the madd's line under the verdict, for the pages (plain text, with its state for the colour)
+  // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser
+  function fromMuaalem(x, r) {
+    const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf);
+    out.madd = maddFrom(x, out);
+    if (inside(x) && out.matches_example !== false) out.heard_as = 'same';
+    return out;
+  }
+  const counted = n => n === 0 ? 'لم يُسمع المدّ' : `${num(n)} ${n === 1 ? 'حركة' : n === 2 ? 'حركتان' : 'حركات'}`;
+  const ctxName = h => h === 'same' ? 'الكلمة' : CTX[h];
+  /* the lines under the device's verdict, for the pages (plain text, with a state for the colour): the second model's word on
+     joined or stopped, and the madd's count by both. Where they differ, the count is Quran Muaalem's (the steadier in the
+     trials), and Quran Lab's is shown beside it. */
   function maddLine(T, x) {
-    const m = T.res && T.res.madd;
-    if (!m) return null;
-    const n = m.counts === 0 ? 'لم يُسمع المدّ' : `${num(m.counts)} ${m.counts === 1 ? 'حركة' : m.counts === 2 ? 'حركتان' : 'حركات'}`;
-    return { text: `المدّ كما سمعه نموذج Quran Lab: ${n}، وفي الكتاب ${vName(x.v)}${m.st === 'good' ? '' : '، فهو ' + stWord[m.st]}`, st: m.st };
+    const a = T.res, b = a && a.second;
+    if (!a) return null;
+    const lines = [];
+    if (b && b.busy) lines.push({ text: 'يستمع المعلّم القرآني إلى تلاوتك…', st: 'wait' });
+    else if (b && b.err) lines.push({ text: 'لم يُجب المعلّم القرآني: ' + errText(b.err) + ' فالحكم هنا بنموذج Quran Lab وحده.', st: 'none' });
+    else if (b && a.matches_example !== false) {
+      if (b.matches_example === false) lines.push({ text: 'أما المعلّم القرآني فلم يجد التسجيل لهذه الكلمات، فالحكم غير مؤكد.', st: 'short' });
+      else if (b.heard_as === a.heard_as) lines.push({ text: `وسمعها المعلّم القرآني ${ctxName(b.heard_as)} كذلك.`, st: 'good' });
+      else lines.push({ text: `أما المعلّم القرآني فسمعها ${ctxName(b.heard_as)}، فالحكم غير مؤكد.`, st: 'short' });
+    }
+    const m1 = a.madd, m2 = b && !b.busy && !b.err ? b.madd : null;
+    if (m1 || m2) {
+      const m = m2 || m1, verdict = m.st === 'good' ? 'في زمنه' : 'فهو ' + stWord[m.st];
+      let text;
+      if (m1 && m2 && m1.counts === m2.counts) text = `المدّ كما سمعه النموذجان: ${counted(m.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}`;
+      else if (m1 && m2) text = `المدّ عند المعلّم القرآني ${counted(m2.counts)}، وعند نموذج Quran Lab ${counted(m1.counts)}؛ وفي الكتاب ${vName(x.v)}: ${verdict} بقول المعلّم القرآني`;
+      else if (m2) text = `المدّ كما سمعه المعلّم القرآني: ${counted(m2.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}`;
+      else text = `المدّ كما سمعه نموذج Quran Lab: ${counted(m1.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}${b && b.busy ? '' : ' (بلا اتصال)'}`;
+      lines.push({ text, st: m.st });
+    }
+    return lines.length ? lines : null;
   }
   const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
@@ -299,6 +327,15 @@ window.Z = (() => {
       T.msg = '';
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
+      // the second model: Quran Muaalem in the Space hears the same recording; the page sets the two side by side
+      if (res && !err && cur().zf && !res.second) {
+        if (!aiOK(false)) return;
+        res.second = { busy: true }; redraw();
+        let sec;
+        try { sec = fromMuaalem(cur(), await check(['hear'], r.blob)); } catch (e) { sec = { err: e || {} }; }
+        if (!same(i, r)) return;
+        res.second = sec; redraw();
+      }
     };
     T.go = n => { stop(); T.i = n; T.rec = T.res = T.err = null; T.ear = null; T.busy = false; T.on = false; T.msg = ''; loadReader(); redraw(); };
     T.next = () => { if (T.i + 1 < T.items.length) T.go(T.i + 1); else { S.done[L.id] = 1; save(); T.end = true; stop(); redraw(); } };
