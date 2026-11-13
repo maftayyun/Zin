@@ -9,6 +9,8 @@
 (function () {
   'use strict';
   const SR = 16000, FL = 400, FS = 160, NFFT = 512, NB = 80, TAIL = 0.66;
+  /* silence before the reading: without it the model loses the first and last sounds of a recording that begins on the word */
+  const LEAD = 0.5;
   const EPS = 1.1920928955078125e-7;
   let WIN = null, MEL = null, COS = null, SIN = null, REV = null;
 
@@ -165,7 +167,7 @@
 
     async logProbs(x) {
       const ort = this.ort, m = this.m;
-      const xs = new Float32Array(x.length + Math.round(TAIL * SR)); xs.set(x);
+      const lead = Math.round(LEAD * SR), xs = new Float32Array(lead + x.length + Math.round(TAIL * SR)); xs.set(x, lead);
       const { data, frames } = fbank(xs);
       let state = {};
       for (const i of m.inputs) if (i.name !== 'x') state[i.name] = zeros(ort, i);
@@ -207,7 +209,7 @@
         for (let t = s.start; t < s.end; t++) c += Math.exp(lp[t * V + s.id]);
         s.conf = +(c / (s.end - s.start)).toFixed(3);
         s.margin = +(row[0] - row[1]).toFixed(3);
-        s.start = +(s.start * frame).toFixed(3); s.end = +(s.end * frame).toFixed(3);
+        s.start = +Math.max(0, s.start * frame - LEAD).toFixed(3); s.end = +Math.max(0, s.end * frame - LEAD).toFixed(3);
         delete s.peak;
       }
       return out;
@@ -219,7 +221,7 @@
     stream() {
       setup();
       const ort = this.ort, m = this.m, me = this;
-      let x = new Float32Array(SR * 8), n = 0, feats = new Float32Array(NB * 800), nf = 0, st = 0, chain = Promise.resolve(), per = 0, V = 0, failed = null;
+      let x = new Float32Array(SR * 8), n = Math.round(LEAD * SR), feats = new Float32Array(NB * 800), nf = 0, st = 0, chain = Promise.resolve(), per = 0, V = 0, failed = null;
       let state = {};
       for (const i of m.inputs) if (i.name !== 'x') state[i.name] = zeros(ort, i);
       const rows = [];
@@ -250,8 +252,8 @@
           if (failed) throw failed;
           const all = new Float32Array(rows.length * per * V);
           rows.forEach((r, i) => all.set(r, i * per * V));
-          const heard = me.greedy({ lp: all, frames: rows.length * per, V, frame: per ? m.step * 0.01 / per : 0.04 });
-          return { heard, text: heard.map(s => s.p).join(''), samples: n - tail };
+          const lp = { lp: all, frames: rows.length * per, V, frame: per ? m.step * 0.01 / per : 0.04 }, heard = me.greedy(lp);
+          return { heard, text: heard.map(s => s.p).join(''), samples: n - tail - Math.round(LEAD * SR), lp };
         },
       };
     }
@@ -259,8 +261,88 @@
     async hear(x) {
       const r = await this.logProbs(x);
       const heard = this.greedy(r);
-      return { heard, text: heard.map(s => s.p).join(''), frame: r.frame };
+      return { heard, text: heard.map(s => s.p).join(''), frame: r.frame, lp: r };
     }
+
+    /* the madd's length as Quran Lab advise: from timing, by forced alignment with the model itself, not from the symbols it
+       writes. The same as site/src/tests/madd_ref.py (checked against it in zf_web.py):
+         the path      : the best CTC path through the log-probs for the form the reading was heard as; a madd symbol of any
+                         length may stand at the madd, so the reader's own length does not pull the alignment
+         a madd's span : from the onset of the syllable that carries it (its letter with the short vowel) to the onset of the next
+                         sound; at a stop, to the madd's own symbol (written as the madd ends), and END past it
+         the unit      : the reader's own short syllable in the same reading, onset to onset (the median of two or more), a letter
+                         with its short vowel followed by a short sound (a long one is written as it ends); a haraka
+                         is the time of a letter with its vowel. With fewer, `unit` (seconds), the reader's earlier readings, else the one there is
+         the count     : span / unit, approximate
+       A place the model is not sure of does not anchor a span. The madd itself need not be heard: a madd read short is measured
+       short. Returns {count, ms, unit, own, why} for the first madd of word `word` (0-based), or null if the word has none. */
+    maddTime(L, form, word, unit) {
+      if (!L || !L.frames) return null;
+      if (!this.ids) { this.ids = {}; for (const k in this.tokens) if (+k !== this.blank && this.tokens[k] !== ' ') this.ids[this.tokens[k]] = +k; }
+      const ids = this.ids, longest = Math.max(...Object.keys(ids).map(t => t.length)), enc = [];
+      form.split(' ').forEach((w, k) => {
+        for (let i = 0; i < w.length;) {
+          let n = Math.min(longest, w.length - i);
+          for (; n > 0; n--) if (ids[w.slice(i, i + n)] !== undefined) break;
+          if (!n) throw new Error('no symbol for ' + w[i]);
+          enc.push([k, ids[w.slice(i, i + n)]]); i += n;
+        }
+      });
+      const names = enc.map(e => this.tokens[e[1]]);
+      const fam = names.map(t => isMadd(t) ? Object.keys(ids).filter(u => isMadd(u) && u[0] === t[0]).map(u => ids[u]).sort((a, b) => a - b) : [ids[t]]);
+      const first = align(L, fam, this.blank), V = L.V;
+      const ends = first.slice(1).concat([L.frames]);
+      const sure = first.map((f, i) => {
+        let best = -Infinity;
+        for (let t = f; t < Math.max(ends[i], f + 1); t++) for (const k of fam[i]) if (L.lp[t * V + k] > best) best = L.lp[t * V + k];
+        return Math.exp(best) >= ASURE;
+      });
+      const on = first.map(f => f * L.frame), syl = [];
+      for (let i = 0; i + 1 < names.length; i++) if (names[i].length === 2 && isCV(names[i]) && isShort(names[i + 1]) && sure[i] && sure[i + 1]) syl.push(on[i + 1] - on[i]);
+      // the reading's own (two or more), else the reader's earlier readings, else the one syllable this reading has
+      const own = syl.length >= 2 ? median(syl) : syl.length && !unit ? syl[0] : null, u = own || unit || null;
+      for (let i = 1; i < names.length; i++) {
+        if (!isMadd(names[i]) || enc[i][0] !== word) continue;
+        let span, ok;
+        if (i + 1 < names.length) { span = on[i + 1] - on[i - 1]; ok = sure[i - 1] && sure[i + 1]; }
+        else { span = on[i] - on[i - 1] + END; ok = sure[i - 1] && sure[i]; }
+        const n = u ? span / u : null, good = ok && n != null && n > 0 && n <= TOP;
+        return { count: good ? Math.round(n * 10) / 10 : null, ms: Math.round(span * 1000), unit: u ? Math.round(u * 1000) : null, own: !!own, syl: syl.length,
+                 why: good ? null : !ok ? 'unsure' : !u ? 'unit' : 'range' };
+      }
+      return null;
+    }
+  }
+
+  const MADD = 'اۥۦ', ASURE = 0.3, END = 0.08, TOP = 12;
+  const isMadd = t => !!t && MADD.includes(t[0]) && Array.from(t).every(c => (MADD + 'ۜ').includes(c));
+  const isCV = t => t.length >= 2 && 'َُِ'.includes(t[t.length - 1]) && !isMadd(t);
+  // one letter with its short vowel, or one letter: a sound whose symbol comes as it begins (a long one is written as it ends)
+  const isShort = t => (t.length === 2 && isCV(t)) || (t.length === 1 && !isMadd(t));
+  const median = a => { const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  /* the best CTC path through log-probs L for places whose allowed ids are fam[i]; the first frame of each place */
+  function align(L, fam, blank) {
+    const T = L.frames, V = L.V, lp = L.lp, n = fam.length, S = 2 * n + 1, NEG = -1e30;
+    const D = new Float64Array(T * S).fill(NEG), B = new Int32Array(T * S);
+    const em = (t, s) => {
+      if (!(s & 1)) return lp[t * V + blank];
+      let best = -Infinity;
+      for (const k of fam[s >> 1]) if (lp[t * V + k] > best) best = lp[t * V + k];
+      return best;
+    };
+    const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+    D[0] = em(0, 0); if (S > 1) D[1] = em(0, 1);
+    for (let t = 1; t < T; t++) for (let s = 0; s < S; s++) {
+      const p = (t - 1) * S;
+      let best = D[p + s], b = s;
+      if (s >= 1 && D[p + s - 1] > best) { best = D[p + s - 1]; b = s - 1; }
+      if ((s & 1) && s >= 3 && !same(fam[s >> 1], fam[(s >> 1) - 1]) && D[p + s - 2] > best) { best = D[p + s - 2]; b = s - 2; }
+      D[t * S + s] = best + em(t, s); B[t * S + s] = b;
+    }
+    let s = D[(T - 1) * S + S - 1] >= D[(T - 1) * S + S - 2] ? S - 1 : S - 2;
+    const first = new Array(n).fill(0);
+    for (let t = T - 1; t >= 0; t--) { if (s & 1) first[s >> 1] = t; s = B[t * S + s]; }
+    return first;
   }
 
   /* a recording (a Blob from MediaRecorder) as 16 kHz mono samples */
@@ -354,5 +436,34 @@
     return { counts: got[st.j][1], said: said[at][1] };
   }
 
-  window.ZF = { fbank, load, samples, judge, resampler, maddHeard, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
+  /* the same measure from Quran Muaalem's answer (the Space's /hear: its symbols, one letter or mark each, with their times in
+     the recording): the asked madd is found by its letters, as in maddHeard; its span runs from the onset of the letter before its
+     short vowel to the onset of the next sound (at a stop, to the end of its last symbol); the unit is the reader's short
+     syllable there (a letter, its short vowel, then a letter: onset to onset). */
+  const VOW = 'َُِ';
+  function maddSymbols(syms, form, wordIndex, unit) {
+    const words = form.split(' ');
+    if (wordIndex >= words.length || !syms || !syms.length || syms.some(s => s.start == null)) return null;
+    const before = runs(words.slice(0, wordIndex).join('')).length, mine = runs(words[wordIndex]);
+    const k = mine.findIndex(([c, n]) => MADDL.includes(c) && n >= 2);
+    if (k < 0) return null;
+    const at = before + k, said = runs(form);
+    if (at < 2 || !VOW.includes(said[at - 1][0])) return null;
+    // the heard symbols as runs of one letter, each with the times of its first and last symbol
+    const hr = [];
+    syms.forEach(s => Array.from(s.p || '').forEach(c => { const r = hr[hr.length - 1]; if (r && r.c === c) { r.n++; r.end = s.end; } else hr.push({ c, n: 1, start: s.start, end: s.end }); }));
+    const steps = diff(said.map(r => r[0]), hr.map(r => r.c)), to = i => { const st = steps.find(x => x.i === i); return st && st.j != null ? hr[st.j] : null; };
+    const syl = [];
+    for (let j = 0; j + 2 < hr.length; j++) if (hr[j].n === 1 && hr[j + 2].n === 1 && !VOW.includes(hr[j].c) && !MADDL.includes(hr[j].c) && VOW.includes(hr[j + 1].c) && !VOW.includes(hr[j + 2].c) && !MADDL.includes(hr[j + 2].c)) syl.push(hr[j + 2].start - hr[j].start);
+    const own = syl.length >= 2 ? median(syl) : syl.length && !unit ? syl[0] : null, u = own || unit || null;
+    const c0 = to(at - 2), m = to(at), nx = at + 1 < said.length ? to(at + 1) : null;
+    let span = null;
+    if (c0 && nx) span = nx.start - c0.start;
+    else if (c0 && at + 1 >= said.length && m && MADDL.includes(m.c)) span = m.end - c0.start;
+    const n = span != null && u ? span / u : null, good = n != null && n > 0 && n <= TOP;
+    return { count: good ? Math.round(n * 10) / 10 : null, ms: span == null ? null : Math.round(span * 1000), unit: u ? Math.round(u * 1000) : null, own: !!own,
+             why: good ? null : span == null ? 'unsure' : !u ? 'unit' : 'range' };
+  }
+
+  window.ZF = { fbank, load, samples, judge, resampler, maddHeard, maddSymbols, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
 })();

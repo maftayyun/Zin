@@ -182,20 +182,20 @@ window.Z = (() => {
     const R = await recogniser();
     if (zs && zs.got > 16000 * 0.3) {                      // heard while the learner read: only the tail is left
       if (!zs.s) { zs.s = R.stream(); (zs.parts || []).forEach(p => zs.s.push(p)); zs.parts = null; }
-      const out = ZF.judge(await zs.s.finish(), x.zf);
+      const h = await zs.s.finish(), out = ZF.judge(h, x.zf);
       out.streamed = true;
-      out.madd = maddFrom(x, out);
+      out.madd = maddFrom(x, out, R, h.lp);
       return asked(x, out);
     }
     let pcm;
     try { pcm = await ZF.samples(blob); } catch (e) { throw { text: 'تعذّرت قراءة التسجيل.' }; }
     if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
-    const out = ZF.judge(await R.hear(pcm), x.zf);
-    out.madd = maddFrom(x, out);
+    const h = await R.hear(pcm), out = ZF.judge(h, x.zf);
+    out.madd = maddFrom(x, out, R, h.lp);
     return asked(x, out);
   }
   async function check(args, blob, x, zs) {
-    if (window.__mock) { const r = await window.__mock(args, x); if (r && x && x.zf && args[0] === 'zf') r.madd = maddFrom(x, r); return r; }
+    if (window.__mock) { const r = await window.__mock(args, x); if (r && r.madd && x && maddOf(x)) judged(x, r.madd); return r; }
     if (x && x.zf) return checkHere(x, blob, zs);
     const [fn, ...rest] = args;
     let txt;
@@ -210,27 +210,40 @@ window.Z = (() => {
     let t = ''; try { t = String(((bad && JSON.parse(bad[1])) || {}).error || ''); } catch (e) {}
     throw { text: t, quota: /quota|limit/i.test(t) };
   }
-  /* the madd of an exercise, as Quran Lab's recogniser writes it (ZF.maddHeard): its own count, set against the counts the book
-     allows. Nothing else is measured: a time that is not a madd (حركة، حركة + بعض حركة) is not in the model's script, and is
-     left to the ear. */
+  /* the madd of an exercise measured as Quran Lab advise: from timing, by forced alignment with their model on this device
+     (R.maddTime), and from Quran Muaalem's symbol times (ZF.maddSymbols); counted in the learner's own haraka (the time of a
+     letter with its vowel in the same reading, or in their earlier readings) and set against the counts the book allows. A time
+     that is not a madd (حركة، حركة + بعض حركة) is left to the ear. */
   const ALLOW = { '2': [2], '4': [4, 5], '6': [6], '2|4|6': [2, 4, 6] };
   const maddOf = x => !!(x && x.kind === 'time' && x.zf && x.f && ALLOW[x.v] && /[اويىٰٓۥۦ]/.test(x.w.slice(x.f[0], x.f[1])));
-  function maddFrom(x, res) {
-    if (!maddOf(x) || !res.recogniser) return null;
-    const form = x.zf[res.recogniser.nearest] || x.zf.wasl, word = x.w.slice(0, x.f[0]).split(' ').length - 1;
-    const m = ZF.maddHeard(res.recogniser.heard, form, word);
+  // the learner's haraka from their earlier readings (seconds), for a word too short to give its own; kept on this device only
+  let UNITS = [];
+  try { UNITS = (JSON.parse(localStorage.getItem('zin-units') || '[]') || []).filter(u => typeof u === 'number').slice(-5); } catch (e) { UNITS = []; }
+  const unitBefore = () => { if (!UNITS.length) return null; const b = UNITS.slice().sort((p, q) => p - q), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  function keepUnit(ms) { UNITS = UNITS.concat([ms / 1000]).slice(-5); try { localStorage.setItem('zin-units', JSON.stringify(UNITS)); } catch (e) {} }
+  function judged(x, m) {
     if (!m) return null;
-    const ok = ALLOW[x.v];
-    return { counts: m.counts, st: ok.includes(m.counts) ? 'good' : m.counts < ok[0] ? 'short' : 'long' };
+    if (m.count == null) return Object.assign(m, { st: 'none' });
+    const near = ALLOW[x.v].reduce((b, a) => Math.abs(m.count - a) < Math.abs(m.count - b) ? a : b), tol = Math.max(.75, .4 * near);
+    return Object.assign(m, { st: Math.abs(m.count - near) <= tol ? 'good' : m.count < near ? 'short' : 'long' });
   }
-  // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser
+  const askedWord = x => x.w.slice(0, x.f[0]).split(' ').length - 1;
+  function maddFrom(x, res, R, lp) {
+    if (!maddOf(x) || !res.recogniser || !R || !lp) return null;
+    let m = null;
+    try { m = R.maddTime(lp, x.zf[res.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore()); } catch (e) { m = null; }
+    if (m && m.own && m.syl >= 2) keepUnit(m.unit);
+    return judged(x, m);
+  }
+  // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser, and its madd from its times
   function fromMuaalem(x, r) {
     const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf);
-    out.madd = maddFrom(x, out);
+    out.madd = maddOf(x) ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[out.recogniser.nearest] || x.zf.wasl, askedWord(x), unitBefore())) : null;
     if (inside(x) && out.matches_example !== false) out.heard_as = 'same';
     return out;
   }
-  const counted = n => n === 0 ? 'لم يُسمع المدّ' : `${num(n)} ${n === 1 ? 'حركة' : n === 2 ? 'حركتان' : 'حركات'}`;
+  const harakat = m => m.count == null ? 'لم يُقَس' : `نحو ${num(m.count.toFixed(1))} حركة`;
+  const WHY = { unsure: 'لم يتبيّن النموذج موضع المدّ وما حوله في التسجيل', unit: 'الكلمة أقصر من أن يُعرف منها مقدار حركتك؛ اقرأ تمرينًا أطول مرة ثم أعد', range: 'جاء الزمن خارج المعقول، فلعلّ التسجيل لم يحوِ الكلمات كاملة' };
   const ctxName = h => h === 'same' ? 'الكلمة' : CTX[h];
   /* the lines under the device's verdict, for the pages (plain text, with a state for the colour): the second model's word on
      joined or stopped, and the madd's count by both. Where they differ, the count is Quran Muaalem's (the steadier in the
@@ -248,12 +261,11 @@ window.Z = (() => {
     }
     const m1 = a.madd, m2 = b && !b.busy && !b.err ? b.madd : null;
     if (m1 || m2) {
-      const m = m2 || m1, verdict = m.st === 'good' ? 'في زمنه' : 'فهو ' + stWord[m.st];
-      let text;
-      if (m1 && m2 && m1.counts === m2.counts) text = `المدّ كما سمعه النموذجان: ${counted(m.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}`;
-      else if (m1 && m2) text = `المدّ عند المعلّم القرآني ${counted(m2.counts)}، وعند نموذج Quran Lab ${counted(m1.counts)}؛ وفي الكتاب ${vName(x.v)}: ${verdict} بقول المعلّم القرآني`;
-      else if (m2) text = `المدّ كما سمعه المعلّم القرآني: ${counted(m2.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}`;
-      else text = `المدّ كما سمعه نموذج Quran Lab: ${counted(m1.counts)}، وفي الكتاب ${vName(x.v)}: ${verdict}${b && b.busy ? '' : ' (بلا اتصال)'}`;
+      // the verdict is by Quran Lab's model on this device; by Quran Muaalem only where the device could not measure
+      const m = m1 && m1.count != null ? m1 : m2 && m2.count != null ? m2 : (m1 || m2);
+      let text = 'المدّ مقيسًا بزمنه' + (m1 ? `: بنموذج Quran Lab ${harakat(m1)}` : '') + (m2 ? `${m1 ? '، و' : ': '}بالمعلّم القرآني ${harakat(m2)}` : '');
+      if (m.count != null) text += `؛ وفي الكتاب ${vName(x.v)}: ${m.st === 'good' ? 'في زمنه' : 'فهو ' + stWord[m.st]}. قياس تقريبي، والحركة فيه زمن حرف بحركته في قراءتك${m.own ? '' : ' السابقة'}.`;
+      else text += `: ${WHY[m.why] || 'لم يُقَس'}.`;
       lines.push({ text, st: m.st });
     }
     return lines.length ? lines : null;
