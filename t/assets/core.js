@@ -9,28 +9,28 @@ window.Z = (() => {
   const LES = Object.fromEntries(D.lessons.map(l => [l.id, l]));
   // an exercise whose two forms (joined, stopped) were built from the mushaf (zf_forms.py) is checked on the learner's device
   const FORMS = window.ZF_FORMS || {};
-  // TEMPORARY: al-Husary's teaching recitation where the reader has not recorded yet (husary.py), marked as such wherever it plays
-  const HUS = window.HUSARY || {};
-  const husary = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.husary = true; } return x; };
-  /* each exercise read in a whole ayah (ayat.py): the ayah's text, al-Husary's recitation of it (TEMPORARY) and its sounds for the
+  // the lessons' ayat in al-Minshawi's voice (his teaching mushaf, without the children: ayat.py lessons), named wherever it plays
+  const HUS = window.RECITER || {};
+  const recited = (x, k) => { const h = HUS[k]; if (h && !(x.au && D.audio[x.au])) { x.au = 'h:' + k; D.audio[x.au] = h.src; x.recited = true; } return x; };
+  /* each exercise read in a whole ayah (ayat.py): the ayah's text, al-Minshawi's recitation of it (his teaching mushaf) and its sounds for the
      check, which then hears the whole ayah and judges the exercise's place in it. An exercise no ayah reads its way (a stop in the
-     middle of an ayah, a start there, a short stretch al-Husary does not give) is read in its ayah, for the reader to record
+     middle of an ayah, a start there, a short stretch the reciter does not give) is read in its ayah, for the reader to record
      (part): a stop from the ayah's beginning, a start to its end, a joined stretch through the whole ayah. */
   const AY = window.AYAT || {};
   function inAyah(x) {
     const a = AY[x.ctx + '|' + x.w];
     if (a && a.part) {
-      x.ay = a; x.au = ''; x.husary = false;
+      x.ay = a; x.au = ''; x.recited = false;
       if (a.forms && a.at) { x.zf = a.forms; x.chk = ['zf', x.ctx]; }
       return true;
     }
     if (!a || !a.src || !a.forms || !a.at) return false;
-    x.ay = a; x.zf = a.forms; x.chk = ['zf', x.ctx]; x.au = 'a:' + a.s + ':' + a.a; D.audio[x.au] = a.src; x.husary = true;
+    x.ay = a; x.zf = a.forms; x.chk = ['zf', x.ctx]; x.au = 'a:' + a.s + ':' + a.a; D.audio[x.au] = a.src; x.recited = true;
     return true;
   }
   D.lessons.forEach(l => l.cases.forEach(c => c.items.forEach(x => {
     if (inAyah(x)) return;
-    const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } husary(x, x.ctx + '|' + x.w);
+    const f = FORMS[x.ctx + '|' + x.w]; if (f) { x.zf = f; x.chk = ['zf', x.ctx]; } recited(x, x.ctx + '|' + x.w);
   })));
   const ayahLabel = x => {
     const a = x.ay, from = a.from_mark ? 'علامة الوقف قبلها' : 'أول الآية', to = a.to_mark ? 'علامة الوقف بعدها' : 'آخر الآية';
@@ -61,8 +61,8 @@ window.Z = (() => {
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
   const ayahText = a => a.w.map(w => w.map(u => u.c).join('')).join(' ');
-  const ayahItem = L => husary({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) }, 'ayah|' + L.ayah.s + ':' + L.ayah.a);
-  const TMP = 'الحصري · مؤقت';
+  const ayahItem = L => recited({ ayah: L.ayah, marks: L.marks, chk: ['align', L.ayah.s, L.ayah.a], kind: 'ayah', ctx: '', w: ayahText(L.ayah) }, 'ayah|' + L.ayah.s + ':' + L.ayah.a);
+  const TMP = 'المنشاوي · المصحف المعلّم';
   /* ---------- what a lesson practises ---------- */
   // its examples, each reading beside the other; then its ayah where the checker measures the rule
   function examples(L) {

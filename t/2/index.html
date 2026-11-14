@@ -3,7 +3,7 @@
 <title>زِنِ الحَرْفَ · صورة الصوت (نسخة تجريبية)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="look.css?v=2239cd7">
+<link rel="stylesheet" href="look.css?v=6d068e3">
 <style>
 @font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
 *{box-sizing:border-box}
@@ -123,7 +123,7 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.recng i{animation:none}}
 </style></head><body>
 <div class="app" id="app"></div>
-<script src="../assets/data.js?v=2239cd7"></script><script src="../assets/zf-forms.js?v=2239cd7"></script><script src="../assets/husary.js?v=2239cd7"></script><script src="../assets/ayat.js?v=2239cd7"></script><script src="../assets/zf.js?v=2239cd7"></script><script src="../assets/core.js?v=2239cd7"></script>
+<script src="../assets/data.js?v=6d068e3"></script><script src="../assets/zf-forms.js?v=6d068e3"></script><script src="../assets/reciter.js?v=6d068e3"></script><script src="../assets/ayat.js?v=6d068e3"></script><script src="../assets/zf.js?v=6d068e3"></script><script src="../assets/core.js?v=6d068e3"></script>
 <script>
 (() => {
 const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, app = $('#app');
@@ -167,7 +167,7 @@ function lesson(id) {
         ${ex.map(x => `<div class="tr"><div class="hd">${wordOf(x, 'w')}${chip(x)}</div>${timeBar(x)}
           ${x.kind === 'verdict' ? `<div class="tb"><span class="lb">${esc(`${x.src} ${x.cond}`.trim())}</span></div>` : ''}
           ${Z.saidOf(x) ? `<div class="said"><span>${Z.saidLabel(x)}</span><span class="q">${esc(Z.saidOf(x))}</span></div>` : ''}
-          ${x.au && D.audio[x.au] ? `<div class="rdr"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#1A1203')}</button><div class="wv">${Z.wave(readerPk(x.au), { n: 60, h: 40, bw: 2, gap: 2, c: G1 })}</div>${x.husary ? `<span class="tmp">${Z.TMP}</span>` : ''}</div>` : ''}</div>`).join('')}
+          ${x.au && D.audio[x.au] ? `<div class="rdr"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#1A1203')}</button><div class="wv">${Z.wave(readerPk(x.au), { n: 60, h: 40, bw: 2, gap: 2, c: G1 })}</div>${x.recited ? `<span class="tmp">${Z.TMP}</span>` : ''}</div>` : ''}</div>`).join('')}
         ${heardAny ? '' : '<div class="nor">لم يُسجَّل صوت القارئ لأمثلة هذا الدرس بعد. حين يُسجَّل يُرسم هنا تحت كل مثال.</div>'}
       </div>
       <div class="book"><small>من الكتاب</small>${ruleLines(L).map(t => `<p>${mark(t)}</p>`).join('')}${id === 'L0' ? `<p style="margin-top:6px">${esc(D.unit)}</p>` : ''}</div>
@@ -224,7 +224,7 @@ function draw() {
         ${x.ay ? `<div class="ayl"><span>${Z.ayahLabel(x)}</span><p class="q" lang="ar">${Z.ayahLine(x)}</p></div>` : ''}
         ${x.kind === 'verdict' ? `<div class="tb" style="justify-content:center"><span class="lb">${esc(`${x.src} ${x.cond}`.trim())}</span></div>` : `<div style="display:grid;justify-content:center">${timeBar(x)}</div>`}
         ${Z.saidOf(x) && x.kind !== 'ayah' ? `<div class="said" style="justify-content:center"><span>${Z.saidLabel(x)}</span><span class="q">${esc(Z.saidOf(x))}</span></div>` : ''}
-        ${x.kind === 'ayah' ? '' : `<div class="tk"><div class="hd"><span class="chip"><i></i>${x.husary ? Z.TMP : 'القارئ'}</span></div>${rd ? `<div class="wv">${Z.wave(T.readerPk(), { n: 60, h: 48, bw: 3, gap: 2, c: AM })}</div>` : '<div class="nor" style="margin:0">لم يُسجَّل صوت القارئ لهذا المثال بعد.</div>'}</div>`}
+        ${x.kind === 'ayah' ? '' : `<div class="tk"><div class="hd"><span class="chip"><i></i>${x.recited ? Z.TMP : 'القارئ'}</span></div>${rd ? `<div class="wv">${Z.wave(T.readerPk(), { n: 60, h: 48, bw: 3, gap: 2, c: AM })}</div>` : '<div class="nor" style="margin:0">لم يُسجَّل صوت القارئ لهذا المثال بعد.</div>'}</div>`}
         ${T.rec ? mineTrack(x) : ''}
         ${T.on ? '<div class="recng" role="status"><i></i>يُسجَّل الآن. اقرأ ثم أوقف.</div>' : ''}
         ${T.msg ? `<div class="nor" role="alert">${esc(T.msg)}</div>` : ''}
