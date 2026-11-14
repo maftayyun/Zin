@@ -473,5 +473,26 @@
              why: good ? null : span == null ? 'unsure' : !u ? 'unit' : 'range' };
   }
 
-  window.ZF = { fbank, load, samples, judge, resampler, maddHeard, maddSymbols, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
+  /* the qalqalah of the asked word, as Quran Muaalem heard it: each of its symbols carries `qalq`, its qalqalah head's
+     probability of «مقلقل» there (the Space's /hear). The form's first ڇ from `from` to before `until` is the qalqalah asked; the
+     heard letter before it and the heard ڇ (where there is one) are found by their letters, and the higher of their `qalq` says.
+     Quran Lab's recogniser is not asked: it writes a qalqalah wherever the mushaf has one, heard or not. */
+  const QALQ = 0.6;
+  function qalqSymbols(syms, form, from, until) {
+    if (!syms || !syms.length || syms.every(s => s.qalq == null)) return null;
+    const said = runs(form), bare = form.replace(/ /g, ''), before = runs(bare.slice(0, from)).length;
+    const upto = until == null ? said.length : runs(bare.slice(0, until)).length;
+    const k = said.slice(before, upto).findIndex(([c]) => c === 'ڇ');
+    if (k < 0 || before + k < 1) return null;
+    const at = before + k;
+    const hr = [];
+    syms.forEach(s => Array.from(s.p || '').forEach(c => { const r = hr[hr.length - 1]; const q = s.qalq || 0; if (r && r.c === c) { r.q = Math.max(r.q, q); } else hr.push({ c, q }); }));
+    const steps = diff(said.map(r => r[0]), hr.map(r => r.c)), to = i => { const st = steps.find(x => x.i === i); return st && st.j != null && st.op === 'same' ? hr[st.j] : null; };
+    const letter = to(at - 1), mark = to(at);
+    if (!letter && !mark) return { heard: null, q: null };
+    const q = Math.max(letter ? letter.q : 0, mark ? mark.q : 0);
+    return { heard: q >= QALQ, q: Math.round(q * 100) / 100 };
+  }
+
+  window.ZF = { fbank, load, samples, judge, resampler, maddHeard, maddSymbols, qalqSymbols, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };
 })();

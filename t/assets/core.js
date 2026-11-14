@@ -227,7 +227,7 @@ window.Z = (() => {
     return asked(x, out);
   }
   async function check(args, blob, x, zs) {
-    if (window.__mock) { const r = await window.__mock(args, x); if (r && r.madd && x && maddOf(x)) judged(x, r.madd); return r; }
+    if (window.__mock) { const r = await window.__mock(args, x); if (r && x) r.madd = r.madd && maddOf(x) ? judged(x, r.madd) : null; return r; }
     if (x && x.zf) return checkHere(x, blob, zs);
     const [fn, ...rest] = args;
     let txt;
@@ -281,8 +281,11 @@ window.Z = (() => {
     const out = ZF.judge({ text: r.text || '', heard: r.heard_symbols || [] }, x.zf), d = first && first.madd;
     const name = x.zf[out.recogniser.nearest] ? out.recogniser.nearest : 'wasl', at = maddOf(x) ? askedAt(x, name) : null;
     out.madd = at != null ? judged(x, ZF.maddSymbols(r.heard_symbols, x.zf[name], at[0], unitBefore(), d && d.own && d.unit ? d.unit / 1000 : null, at[1])) : null;
+    if (qalqOf(x)) { const q = askedAt(x, name); out.qalq = q ? ZF.qalqSymbols(r.heard_symbols, x.zf[name], q[0], q[1]) : null; }
     return asked(x, out);
   }
+  // an exercise whose lit letters hold a qalqalah letter: Quran Muaalem judges its qalqalah (ZF.qalqSymbols)
+  const qalqOf = x => !!(x && x.zf && x.f && /[قطبجد]/.test(x.w.slice(x.f[0], x.f[1])));
   const harakat = m => m.count == null ? 'لم يُقَس' : `نحو ${num(m.count.toFixed(1))} حركة`;
   const WHY = { unsure: 'لم يتبيّن النموذج موضع المدّ وما حوله في التسجيل', unit: 'الكلمة أقصر من أن يُعرف منها مقدار حركتك؛ اقرأ تمرينًا أطول مرة ثم أعد', range: 'جاء الزمن خارج المعقول، فلعلّ التسجيل لم يحوِ الكلمات كاملة' };
   const ctxName = h => h === 'same' ? 'الكلمة' : CTX[h];
@@ -297,8 +300,15 @@ window.Z = (() => {
     else if (b && b.err) lines.push({ text: 'لم يُجب المعلّم القرآني: ' + errText(b.err) + ' فالحكم هنا بنموذج Quran Lab وحده.', st: 'none' });
     else if (b && a.matches_example !== false) {
       if (b.matches_example === false) lines.push({ text: 'أما المعلّم القرآني فلم يجد التسجيل لهذه الكلمات، فالحكم غير مؤكد.', st: 'short' });
-      else if (b.heard_as === a.heard_as) lines.push({ text: `وسمعها المعلّم القرآني ${ctxName(b.heard_as)} كذلك.`, st: 'good' });
+      else if (b.heard_as === a.heard_as || !x.ctx) lines.push({ text: !x.ctx ? 'وسمع المعلّم القرآني الكلمة كذلك.' : `وسمعها المعلّم القرآني ${ctxName(b.heard_as)} كذلك.`, st: 'good' });
       else lines.push({ text: `أما المعلّم القرآني فسمعها ${ctxName(b.heard_as)}، فالحكم غير مؤكد.`, st: 'short' });
+    }
+    if (qalqOf(x) && b && !b.busy) {
+      const l = x.w.slice(x.f[0], x.f[1]).replace(/[^\u0621-\u064A]/g, ''), q = b.err ? null : b.qalq;   // the letter alone: the page's text font has no Quranic marks
+      if (b.err) lines.push({ text: `القلقلة في «${l}» يحكم عليها المعلّم القرآني، ولم يُجب.`, st: 'none' });
+      else if (!q || q.heard == null) lines.push({ text: `لم يتبيّن المعلّم القرآني موضع القلقلة في «${l}».`, st: 'none' });
+      else lines.push(q.heard ? { text: `القلقلة في «${l}»: سمعها المعلّم القرآني.`, st: 'good' }
+                              : { text: `لم يسمع المعلّم القرآني القلقلة في «${l}»: أظهِر اهتزاز الحرف.`, st: 'short' });
     }
     const m1 = a.madd, m2 = b && !b.busy && !b.err ? b.madd : null;
     if (m1 || m2) {
@@ -315,7 +325,8 @@ window.Z = (() => {
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
   function heard(x, res) {
     const h = res.heard_as, t = res.timing;
-    return { is: res.matches_example !== false, h, ok: res.matches_example !== false && (h === 'same' || h === x.ctx), ms: t ? t.ms : null, a: t ? t.start_s : null, b: t ? t.end_s : null, sure: Math.abs(res.margin || 0) >= 2 || h === 'same' };
+    // an exercise that asks neither joined nor stopped (no ctx) is right however its end was read
+    return { is: res.matches_example !== false, h, ok: res.matches_example !== false && (h === 'same' || h === x.ctx || !x.ctx), ms: t ? t.ms : null, a: t ? t.start_s : null, b: t ? t.end_s : null, sure: Math.abs(res.margin || 0) >= 2 || h === 'same' };
   }
   // the book's time for a long sound the checker timed in an ayah (as in the site: by the letter's sign, from the tagged ayah)
   function expect(m, a) {
