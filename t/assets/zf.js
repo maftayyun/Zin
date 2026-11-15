@@ -277,6 +277,41 @@
        A place the model is not sure of does not anchor a span. The madd itself need not be heard: a madd read short is measured
        short. Returns {count, ms, unit, own, why} for the first madd from `at` to before `end` (places in the form without its
        spaces: the phonetizer writes words that merge in speech as one, so a word number would not do), or null if there is none. */
+    /* the qalqalah of the first ڇ from `at` to before `end` (the asked word): Quran Lab's probability of the letter with ڇ at that
+       place of the forced alignment, where the letter with or without it may stand; heard at QALQ, not heard under QALQ_NOT, not
+       known between (al-Minshawi's own qalqalahs reached 0.999 in only 36 of 49 places). Not what the model writes: it
+       writes the qalqalah for most readers who leave it out (38 of 58 in qdat_bench, 159 everyday readers labelled by people),
+       while its probability tells them apart (at QALQ 92% right: 96 of 101 with it, 50 of 58 without). As madd_ref.qalqala. */
+    qalqala(L, form, at, end) {
+      if (!L || !L.frames) return null;
+      const enc = this.encodeForm(form), names = enc.map(e => this.tokens[e[1]]), ids = this.ids;
+      const i = enc.findIndex((e, k) => e[0] >= at && (end == null || e[0] < end) && names[k].includes('ڇ') && names[k] !== 'ڇ');
+      if (i < 0) return null;
+      const plain = names[i].replace('ڇ', ''), fam = enc.map(e => [e[1]]);
+      if (ids[plain] !== undefined) fam[i] = [ids[names[i]], ids[plain]].sort((a, b) => a - b);
+      const first = align(L, fam, this.blank), e = i + 1 < first.length ? first[i + 1] : L.frames, V = L.V, k = ids[names[i]];
+      let best = -Infinity;
+      for (let t = Math.max(0, first[i] - 2); t < Math.max(e, first[i] + 1); t++) if (L.lp[t * V + k] > best) best = L.lp[t * V + k];
+      const p = Math.exp(best);
+      return { heard: p >= QALQ ? true : p < QALQ_NOT ? false : null, p };
+    }
+
+    encodeForm(form) {
+      if (!this.ids) { this.ids = {}; for (const k in this.tokens) if (+k !== this.blank && this.tokens[k] !== ' ') this.ids[this.tokens[k]] = +k; }
+      const ids = this.ids, longest = Math.max(...Object.keys(ids).map(t => t.length)), enc = [];
+      let o = 0;
+      form.split(' ').forEach(w => {
+        for (let i = 0; i < w.length;) {
+          let n = Math.min(longest, w.length - i);
+          for (; n > 0; n--) if (ids[w.slice(i, i + n)] !== undefined) break;
+          if (!n) throw new Error('no symbol for ' + w[i]);
+          enc.push([o + i, ids[w.slice(i, i + n)]]); i += n;
+        }
+        o += w.length;
+      });
+      return enc;
+    }
+
     maddTime(L, form, at, unit, end) {
       if (!L || !L.frames) return null;
       if (!this.ids) { this.ids = {}; for (const k in this.tokens) if (+k !== this.blank && this.tokens[k] !== ' ') this.ids[this.tokens[k]] = +k; }
@@ -318,7 +353,7 @@
     }
   }
 
-  const MADD = 'اۥۦ', ASURE = 0.3, END = 0.08, TOP = 12;
+  const MADD = 'اۥۦ', ASURE = 0.3, END = 0.08, TOP = 12, QALQ = 0.99, QALQ_NOT = 0.9;
   const isMadd = t => !!t && MADD.includes(t[0]) && Array.from(t).every(c => (MADD + 'ۜ').includes(c));
   const isCV = t => t.length >= 2 && 'َُِ'.includes(t[t.length - 1]) && !isMadd(t);
   // one letter with its short vowel, or one letter: a sound whose symbol comes as it begins (a long one is written as it ends)
@@ -477,7 +512,7 @@
      probability of «مقلقل» there (the Space's /hear). The form's first ڇ from `from` to before `until` is the qalqalah asked; the
      heard letter before it and the heard ڇ (where there is one) are found by their letters, and the higher of their `qalq` says.
      Quran Lab's recogniser is not asked: it writes a qalqalah wherever the mushaf has one, heard or not. */
-  const QALQ = 0.6;
+  const MQALQ = 0.6;   // Quran Muaalem's qalqalah head: 92% right on qdat_bench at 0.5 to 0.6
   function qalqSymbols(syms, form, from, until) {
     if (!syms || !syms.length || syms.every(s => s.qalq == null)) return null;
     const said = runs(form), bare = form.replace(/ /g, ''), before = runs(bare.slice(0, from)).length;
@@ -491,7 +526,7 @@
     const letter = to(at - 1), mark = to(at);
     if (!letter && !mark) return { heard: null, q: null };
     const q = Math.max(letter ? letter.q : 0, mark ? mark.q : 0);
-    return { heard: q >= QALQ, q: Math.round(q * 100) / 100 };
+    return { heard: q >= MQALQ, q: Math.round(q * 100) / 100 };
   }
 
   window.ZF = { fbank, load, samples, judge, resampler, maddHeard, maddSymbols, qalqSymbols, NOTICE: 'التصحيح الآلي للتجويد قد يخطئ، ولا يغني عن معلّم متقن.' };

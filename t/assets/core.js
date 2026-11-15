@@ -217,6 +217,7 @@ window.Z = (() => {
       const h = await zs.s.finish(), out = ZF.judge(h, x.zf);
       out.streamed = true;
       out.madd = maddFrom(x, out, R, h.lp);
+      out.qalq = qalqFrom(x, out, R, h.lp);
       return asked(x, out);
     }
     let pcm;
@@ -224,6 +225,7 @@ window.Z = (() => {
     if (pcm.length < 16000 * 0.3) throw { text: 'التسجيل أقصر من أن يُقاس.' };
     const h = await R.hear(pcm), out = ZF.judge(h, x.zf);
     out.madd = maddFrom(x, out, R, h.lp);
+    out.qalq = qalqFrom(x, out, R, h.lp);
     return asked(x, out);
   }
   async function check(args, blob, x, zs) {
@@ -275,6 +277,13 @@ window.Z = (() => {
     if (m && m.own && m.syl >= 2) keepUnit(m.unit);
     return judged(x, m);
   }
+  // the qalqalah of an exercise by Quran Lab's model on this device (its probability at the place: R.qalqala)
+  function qalqFrom(x, res, R, lp) {
+    if (!qalqOf(x) || !res.recogniser || !R || !lp) return null;
+    const name = x.zf[res.recogniser.nearest] ? res.recogniser.nearest : 'wasl', at = askedAt(x, name);
+    if (!at) return null;
+    try { return R.qalqala(lp, x.zf[name], at[0], at[1]); } catch (e) { return null; }
+  }
   // what Quran Muaalem heard (the Space's /hear), read the same way as Quran Lab's recogniser, and its madd from its times, in
   // the haraka the device measured on the same reading (first: the device's answer), so the two differ only in the madd's time
   function fromMuaalem(x, r, first) {
@@ -303,12 +312,22 @@ window.Z = (() => {
       else if (b.heard_as === a.heard_as || !x.ctx) lines.push({ text: !x.ctx ? 'وسمع المعلّم القرآني الكلمة كذلك.' : `وسمعها المعلّم القرآني ${ctxName(b.heard_as)} كذلك.`, st: 'good' });
       else lines.push({ text: `أما المعلّم القرآني فسمعها ${ctxName(b.heard_as)}، فالحكم غير مؤكد.`, st: 'short' });
     }
-    if (qalqOf(x) && b && !b.busy) {
-      const l = x.w.slice(x.f[0], x.f[1]).replace(/[^\u0621-\u064A]/g, ''), q = b.err ? null : b.qalq;   // the letter alone: the page's text font has no Quranic marks
-      if (b.err) lines.push({ text: `القلقلة في «${l}» يحكم عليها المعلّم القرآني، ولم يُجب.`, st: 'none' });
-      else if (!q || q.heard == null) lines.push({ text: `لم يتبيّن المعلّم القرآني موضع القلقلة في «${l}».`, st: 'none' });
-      else lines.push(q.heard ? { text: `القلقلة في «${l}»: سمعها المعلّم القرآني.`, st: 'good' }
-                              : { text: `لم يسمع المعلّم القرآني القلقلة في «${l}»: أظهِر اهتزاز الحرف.`, st: 'short' });
+    if (qalqOf(x)) {
+      /* the qalqalah by both: Quran Lab's model on the device (its probability at the place) and Quran Muaalem's qalqalah head; a
+         verdict where they agree, «غير مؤكد» where they do not. On 159 everyday readers labelled by people (qdat_bench): 131
+         right, 3 wrong, 25 not known; on al-Minshawi's own readings they agree almost everywhere. One alone gives its own word. */
+      const l = x.w.slice(x.f[0], x.f[1]).replace(/[^\u0621-\u064A]/g, '');   // the letter alone: the page's text font has no Quranic marks
+      const q1 = a.qalq && a.qalq.heard != null ? a.qalq.heard : null, q2 = b && !b.busy && !b.err && b.qalq && b.qalq.heard != null ? b.qalq.heard : null;
+      const fix = 'أظهِر اهتزاز الحرف.';
+      if (q1 != null && q2 != null) {
+        if (q1 && q2) lines.push({ text: `القلقلة في «${l}»: سمعها النموذجان.`, st: 'good' });
+        else if (!q1 && !q2) lines.push({ text: `لم يسمع النموذجان القلقلة في «${l}»: ${fix}`, st: 'short' });
+        else lines.push({ text: `اختلف النموذجان في القلقلة في «${l}»: سمعها ${q1 ? 'نموذج Quran Lab' : 'المعلّم القرآني'} ولم يسمعها ${q1 ? 'المعلّم القرآني' : 'نموذج Quran Lab'}، فالحكم غير مؤكد.`, st: 'none' });
+      } else if (q1 != null) {
+        lines.push(q1 ? { text: `القلقلة في «${l}»: سمعها نموذج Quran Lab.`, st: 'good' } : { text: `لم يسمع نموذج Quran Lab القلقلة في «${l}»: ${fix}`, st: 'short' });
+      } else if (q2 != null) {
+        lines.push(q2 ? { text: `القلقلة في «${l}»: سمعها المعلّم القرآني.`, st: 'good' } : { text: `لم يسمع المعلّم القرآني القلقلة في «${l}»: ${fix}`, st: 'short' });
+      }
     }
     const m1 = a.madd, m2 = b && !b.busy && !b.err ? b.madd : null;
     if (m1 || m2) {
