@@ -1,0 +1,80 @@
+/* The fourth version's lessons inside the site (d4.js), in the site's own colours and type: every rule is under #d4, and every
+   colour is one of the site's tokens, so its light and dark themes hold here too. */
+@font-face{font-family:ZinQ4;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
+#d4{display:block;padding-block:clamp(14px,3vw,28px) 0}
+#d4 .wrap{max-width:760px}
+#d4 p{margin:0}
+#d4 .crumb{margin:0 0 6px}
+#d4 .d4-h{margin:0;font:700 clamp(1.6rem,6vw,2.2rem)/1.35 var(--f-h);text-wrap:balance}
+#d4 .d4-h .q{font-size:1.1em}
+#d4 .d4-l,#d4 .d4-p{display:flex;flex-direction:column;gap:14px;padding-bottom:18px}
+#d4 .d4-rule{padding:2px 14px 2px 0;border-right:3px solid var(--brand);font-size:1.0625rem;line-height:1.95}
+#d4 .d4-rule b{color:var(--brand);font-weight:700}
+#d4 .d4-rule .q{font-size:1.25em}
+#d4 .d4-rule .d4-u{color:var(--ink-2);font-size:.95rem;margin-top:4px}
+#d4 .d4-tbl{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 16px 10px;box-shadow:var(--shadow-s)}
+#d4 .d4-tbl h2{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:8px 0 2px;font:600 .875rem/1.5 var(--f-ui);color:var(--ink-2)}
+#d4 .d4-tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+#d4 .d4-tr:first-of-type{border-top:0}
+#d4 .d4-tr .d4-w{font-family:ZinQ4,ZinQ;font-size:clamp(24px,7vw,29px);line-height:1.7}
+#d4 .d4-tr .d4-w em,#d4 .d4-place em{font-style:normal;color:var(--brand)}
+#d4 .d4-tr .d4-w em.gh,#d4 .d4-place em.gh{color:var(--ink-3)}
+#d4 .d4-tr .d4-sub{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:.875rem;color:var(--ink-2)}
+#d4 .qq{font-family:ZinQ4,ZinQ;font-size:21px;color:var(--ink);line-height:1.6}
+#d4 .d4-all{display:inline-flex;align-items:center;min-height:44px;margin-top:2px;font-weight:600;color:var(--brand)}
+#d4 .d4-go{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+#d4 .d4-go small{color:var(--ink-2);font-size:.875rem}
+#d4 .d4-cx{flex:none;font-size:.78rem;font-weight:600;padding:1px 10px;border-radius:99px;background:var(--brand-t);color:var(--brand)}
+#d4 .d4-cx.d4-waqf{background:var(--no-t);color:var(--no)}
+#d4 .d4-cx.d4-ibtida{background:var(--ok-t);color:var(--ok)}
+#d4 .d4-vd{font-size:.875rem;font-weight:600;padding:1px 10px;border-radius:99px;background:var(--well)}
+/* a letter's time: one cell for each حركة */
+#d4 .d4-tb{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:.875rem;font-weight:600}
+#d4 .d4-cells{display:flex;gap:4px;direction:rtl}
+#d4 .d4-cells i{width:26px;height:12px;border-radius:4px;background:var(--brand)}
+#d4 .d4-cells i.c-hf{width:13px}
+#d4 .d4-cells i.c-op{background:transparent;box-shadow:inset 0 0 0 1.5px var(--brand);opacity:.6}
+#d4 .d4-cells i.c-z{background:transparent;border:1.5px dashed var(--ink-3)}
+#d4 .d4-tb .d4-g{font-family:ZinQ4,ZinQ;font-size:21px;line-height:1.3;font-weight:400}
+/* reading after the reader */
+#d4 .d4-top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;font-size:.9375rem}
+#d4 .d4-top span{color:var(--ink-2);font-size:.875rem}
+#d4 .d4-x{width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);background:var(--card);display:grid;place-items:center;color:var(--ink)}
+#d4 .d4-pr{grid-column:1/-1;height:4px;border-radius:2px;background:var(--well-2);overflow:hidden}
+#d4 .d4-pr i{display:block;height:100%;background:var(--brand);border-radius:2px}
+#d4 .d4-test{padding:10px 14px;border-radius:16px;background:var(--brand-t);color:var(--brand-d);font-size:.9375rem;line-height:1.8}
+#d4 .d4-how{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:.875rem;color:var(--ink-2);line-height:1.8}
+#d4 .d4-ay{font-family:ZinQ4,ZinQ;font-size:clamp(26px,8.4vw,38px);line-height:2.15;text-align:center;color:var(--ink)}
+#d4 .d4-ay.d4-long{font-size:clamp(24px,6.6vw,30px)}
+#d4 .d4-ay .ex{text-decoration:underline;text-decoration-color:var(--brand);text-decoration-thickness:2px;text-underline-offset:12px}
+#d4 .d4-ay em{font-style:normal;color:var(--brand)}
+#d4 .d4-ay em.gh{color:var(--ink-3)}
+#d4 .an{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:99px;border:1.5px solid var(--ink-3);font:600 12px/1 var(--f-ui);color:var(--ink-2);vertical-align:middle}
+#d4 .d4-place{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;padding:8px 12px;border-radius:16px;background:var(--well)}
+#d4 .d4-pl{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;border-radius:99px;background:var(--well);direction:ltr}
+#d4 .d4-pl .d4-pb{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:var(--ink);color:var(--paper);display:grid;place-items:center;cursor:pointer}
+#d4 .d4-pl .d4-who{flex:1;min-width:0;font-size:.875rem;font-weight:600;direction:rtl}
+#d4 .d4-pl .d4-who small{display:block;font-size:.8rem;font-weight:500;color:var(--ink-2)}
+#d4 .d4-nor{padding:9px 14px;border-radius:14px;background:var(--well);color:var(--ink-2);font-size:.875rem;line-height:1.8}
+#d4 .d4-recng{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.9375rem;font-weight:600;color:var(--brand)}
+#d4 .d4-recng i{width:10px;height:10px;border-radius:50%;background:var(--brand);animation:d4bl 1s infinite}
+@keyframes d4bl{50%{opacity:.25}}
+#d4 .d4-ear{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 14px;display:grid;gap:10px;box-shadow:var(--shadow-s)}
+#d4 .d4-ear p{font-size:.9375rem;line-height:1.85}
+#d4 .d4-tk{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;font-size:.8125rem;color:var(--ink-2)}
+#d4 .d4-tk b{font-weight:600;color:var(--ink);white-space:nowrap}
+#d4 .d4-tk .d4-wv{display:flex;justify-content:flex-start;min-width:0}
+#d4 .d4-tk .d4-wv .wsvg{height:34px;display:block}
+#d4 .d4-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#d4 .d4-acts .btn{min-height:48px;padding:0 12px;margin:0}
+#d4 .d4-acts .d4-y{grid-column:1/-1}
+#d4 .d4-small{font-size:.8125rem;color:var(--ink-2);line-height:1.75}
+#d4 .d4-dock{position:sticky;bottom:0;display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 0 calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--paper) 24%);z-index:5}
+#d4 .d4-dock .btn{margin:0;min-height:54px}
+#d4 .d4-dock .d4-cta.d4-on{background:var(--brand-d);border-color:var(--brand-d)}
+#d4 .d4-end{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding-block:40px}
+#d4 .d4-end .d4-ok{width:86px;height:86px;border-radius:50%;background:var(--ok-t);color:var(--ok);display:grid;place-items:center}
+#d4 .d4-end h1{margin:6px 0 0;font:700 1.8rem/1.3 var(--f-h)}
+#d4 .d4-end p{color:var(--ink-2)}
+#d4 .d4-end .lnk{display:inline-flex;align-items:center;min-height:44px;font-weight:600;color:var(--brand)}
+@media (prefers-reduced-motion:reduce){#d4 .d4-recng i{animation:none}}
