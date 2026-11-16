@@ -163,24 +163,45 @@ q{quotes:"«" "»"}
 .sec-h h2{font:800 clamp(1.75rem,3.4vw,2.6rem)/1.4 var(--f-h)}
 .sec-h p{color:var(--ink-2);font-size:1.0625rem}
 
-/* the contents, one coloured card for each part */
-.map{list-style:none;padding:0;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
-@media (min-width:620px){.map{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1020px){.map{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.map li{display:flex}
-.mc{flex:1;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto 1fr auto;gap:2px 14px;padding:20px 20px 18px;border-radius:var(--r-l);background:var(--ct);color:inherit;text-decoration:none;position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.3,1.4,.5,1),box-shadow .3s}
-.mc:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
-.mc .n{grid-row:span 4;width:54px;height:54px;border-radius:18px;background:var(--c);color:#fff;display:grid;place-items:center;font:700 1.75rem/1 var(--f-r);padding-bottom:6px}
-.mc .n.w{font:700 .8125rem/1 var(--f-h);padding-bottom:0}
-.mc b{font:700 1.1875rem/1.6 var(--f-h)}
-.mc small{font-size:.875rem;color:var(--ink-2);line-height:1.6}
-.mc .sig{display:flex;flex-wrap:wrap;gap:4px 2px;align-items:center;margin-top:10px}
-.mc .sig .bd{margin-inline:0 8px;--bw:12px;--bh:7px}
-.mc .ft{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.8125rem;color:var(--ink-2)}
+/* the contents: a tile for each part; a tile opens its lessons in a panel under its row */
+.map{list-style:none;padding:0;display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:620px){.map{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
+@media (min-width:1020px){.map{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.map>li{display:flex;min-width:0}
+.mc{flex:1;display:flex;flex-direction:column;align-items:stretch;gap:6px;min-height:150px;padding:14px 14px 12px;border:0;border-radius:22px;background:var(--ct);color:inherit;font:inherit;text-align:start;cursor:pointer;position:relative;transition:transform .3s cubic-bezier(.3,1.4,.5,1),box-shadow .3s}
+.mc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.mc .n{font:800 2rem/1.1 var(--f-h);color:var(--c)}
+.mc .n.w{font-size:1.25rem;line-height:1.75}
+.mc b{font:700 .9375rem/1.55 var(--f-h)}
+.mc .ft{margin-top:auto;display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--ink-2);padding-top:6px}
+.mc .ft .pbar{height:5px}
+.mc .ft .ic{width:18px;height:18px;flex:none;color:var(--c);transform:rotate(90deg);transition:transform .25s}
+.mc[aria-expanded="true"]{box-shadow:inset 0 0 0 2.5px var(--c)}
+.mc[aria-expanded="true"] .ft .ic{transform:rotate(-90deg)}
+.mc .here{position:absolute;inset-block-start:12px;inset-inline-end:12px;font:700 .6875rem var(--f-h);background:var(--c);color:var(--on-c);border-radius:999px;padding:2px 9px}
+.map>li.cur .mc{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c) 70%,transparent)}
+.map>li.cur .mc[aria-expanded="true"]{box-shadow:inset 0 0 0 2.5px var(--c)}
+.map>li.mp{grid-column:1/-1;display:block;position:relative}
+.mp .in{background:var(--card);border:2px solid var(--c);border-radius:22px;padding:16px 16px 14px;position:relative}
+.mp .in::before{content:"";position:absolute;top:-9px;right:var(--px,40px);width:16px;height:16px;background:var(--card);border-left:2px solid var(--c);border-top:2px solid var(--c);transform:rotate(45deg)}
+.mp .hd{display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;margin-bottom:6px}
+.mp .hd b{font:700 1.0625rem/1.5 var(--f-h)}
+.mp .hd small{font-size:.8125rem;color:var(--ink-3)}
+.mp ol{list-style:none;margin:0;padding:0}
+.mp ol a{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);color:inherit;text-decoration:none;font-size:.9375rem;line-height:1.5}
+.mp ol a:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.mp ol .m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 .75rem/1 var(--f-h);box-shadow:inset 0 0 0 1.5px var(--c);color:var(--c)}
+.mp ol .m .ic{width:14px;height:14px}
+.mp ol .ok .m{background:var(--c);color:var(--on-c);box-shadow:none}
+.mp ol .ok .t{color:var(--ink-2)}
+.mp ol .nx{font-weight:700}
+.mp ol .nx em{font:700 .75rem var(--f-h);font-style:normal;color:var(--c);white-space:nowrap}
+.mp .row{margin-top:12px;gap:8px 16px}
+@media (prefers-reduced-motion:no-preference){.mp .in{animation:mpin .22s ease-out both}@keyframes mpin{from{opacity:0;transform:translateY(-6px)}}}
 .pbar{flex:1;height:8px;border-radius:4px;background:color-mix(in srgb,var(--c) 18%,var(--card));overflow:hidden}
 .pbar i{display:block;height:100%;width:calc(var(--v,0)*100%);background:var(--c);border-radius:4px;transition:width .6s}
-:root[data-theme="dark"] .mc .n,:root[data-theme="dark"] .ch-n{color:#14151E}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mc .n,:root:not([data-theme="light"]) .ch-n{color:#14151E}}
+:root[data-theme="dark"] .ch-n{color:#14151E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ch-n{color:#14151E}}
 
 /* how it works */
 .how{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
@@ -1281,6 +1302,32 @@ function render() {
 const mark = n => { const x = $(`.nav [data-nav="${n}"]`); if (x) x.setAttribute('aria-current', 'page'); };
 function syncDue() { const n = dueAll(); $$('.dueN').forEach(el => { el.hidden = !n; el.textContent = AR(n); }); }
 
+/* the contents: a tile for each part, and the panel of its lessons */
+let MAPO = '';
+function mapTile(c) {
+  const ls = lessons(c.id), d = ls.filter(l => lesDone(c.id, l.n)).length, all = ls.length && d === ls.length, here = c.id === S.last;
+  return `<li data-c="${c.id}" class="${here ? 'cur' : ''}"><button type="button" class="mc" data-mapc="${c.id}" aria-expanded="false"><span class="n ${c.n ? '' : 'w'}">${NUM(c)}</span><b>${esc(split(c.title)[0])}</b>${here ? '<span class="here">أنت هنا</span>' : ''}<span class="ft"><span class="pbar" aria-hidden="true"><i style="--v:${ls.length ? d / ls.length : 0}"></i></span><span>${all ? 'تمّ' : `${AR(d)} من ${AR(ls.length)}`}</span>${IC.back}</span></button></li>`;
+}
+function mapPanel(id) {
+  const c = CHI[id], [t1, t2] = split(c.title), ls = lessons(id), nx = lesNext(id), st = stats(id);
+  return `<li class="mp" id="mp" data-c="${id}"><div class="in" role="region" aria-label="دروس ${esc(t1)}"><div class="hd"><b>${esc(t1)}</b><small>${t2 ? esc(t2) + '، ' : ''}${count(ls.length, LES_W)}</small></div><ol>${ls.map(l => { const ok = lesDone(id, l.n), x = nx === l; return `<li><a class="${ok ? 'ok' : x ? 'nx' : ''}" href="#l/${id}/${l.n}"><span class="m">${ok ? IC.ok : AR(l.n)}</span><span class="t">${qwrap(esc(l.title))}</span>${x ? '<em>التالي</em>' : ''}</a></li>`; }).join('')}</ol><div class="row"><a class="btn sm" href="#c/${id}">صفحة الباب</a><a class="lnk" href="#c/${id}/read">نص الباب كاملًا${IC.go}</a>${st.total ? `<a class="lnk" href="#p/${id}">بطاقات المراجعة${IC.go}</a>` : ''}</div></div></li>`;
+}
+function mapPlace() {
+  const ol = $('#map .map'); if (!ol) return;
+  const old = $('#mp'); if (old) ol.removeChild(old);
+  $$('.mc', ol).forEach(b => { b.setAttribute('aria-expanded', String(b.dataset.mapc === MAPO)); if (b.dataset.mapc === MAPO) b.setAttribute('aria-controls', 'mp'); else b.removeAttribute('aria-controls'); });
+  if (!MAPO) return;
+  const tiles = $$(':scope>li', ol), i = tiles.findIndex(li => li.dataset.c === MAPO); if (i < 0) { MAPO = ''; return; }
+  const cols = getComputedStyle(ol).gridTemplateColumns.split(' ').length, end = Math.min(tiles.length - 1, Math.floor(i / cols) * cols + cols - 1);
+  tiles[end].insertAdjacentHTML('afterend', mapPanel(MAPO));
+  const p = $('#mp'), tb = tiles[i].getBoundingClientRect(), pb = p.getBoundingClientRect();
+  p.style.setProperty('--px', `${Math.round(pb.right - (tb.left + tb.width / 2)) - 8}px`);
+}
+function mapToggle(id) {
+  MAPO = MAPO === id ? '' : id; mapPlace();
+  const p = $('#mp'); if (p && p.getBoundingClientRect().bottom > innerHeight) p.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
 /* home */
 function home() {
   const nT = BT.length, nC = CARDS.length, nEx = BT.reduce((a, t) => a + t.rows.length - 1, 0);
@@ -1303,8 +1350,8 @@ function home() {
   </div></section>
   ${wHome()}
   <section class="sec" id="map" style="padding-top:clamp(24px,4vw,48px)"><div class="wrap">
-    <div class="sec-h"><h2>الفهرس</h2><p>أبواب الكتاب بترتيبه. في كل باب قواعده بلفظه، وجداوله كاملة، وتمرين يعود إليك على أيام.</p></div>
-    <ol class="map">${CH.map(c => { const [t1, t2] = split(c.title), st = stats(c.id); return `<li data-c="${c.id}"><a class="mc" href="#c/${c.id}"><span class="n ${c.n ? '' : 'w'}">${NUM(c)}</span><b>${esc(t1)}</b><small>${t2 ? esc(t2) : bookT(c).length ? count(bookT(c).length, TABLE_W) : 'الحرف، والصوت المدّيّ، وهمزة الوصل، والحركة'}</small><span class="sig">${c.durs.map(d => beads(d)).join('')}</span><span class="ft"><span class="pbar" aria-hidden="true"><i style="--v:${progVal(st)}"></i></span><span>${st.seen ? `${AR(st.seen)} من ${AR(st.total)}` : count(st.total, CARD_W)}</span></span></a></li>`; }).join('')}</ol>
+    <div class="sec-h"><h2>الفهرس</h2><p>أبواب الكتاب بترتيبه. اضغط على باب لترى دروسه.</p></div>
+    <ol class="map">${CH.map(mapTile).join('')}</ol>
   </div></section>
   <section class="sec" id="signs-home" style="padding-top:0"><div class="wrap">
     <div class="sec-h"><h2>إشارات المصحف</h2><p>اختر إشارة لترى معناها، وأين ترد في الأمثلة.</p></div>
@@ -1332,6 +1379,7 @@ function home() {
       <div class="row"><a class="btn" href="#book">المقدمة والتمهيد</a><a class="lnk" href="#book/src">المصادر والمراجع${IC.go}</a></div></div>
   </div></section>
   <footer class="foot"><div class="wrap"><nav aria-label="روابط الموقع"><a href="#map">الأبواب</a><a href="#w">الوجهات</a><a href="#tables">كل الجداول</a><a href="#signs">إشارات المصحف</a><a href="#notes">الحواشي</a><a href="#book">الكتاب</a><a href="#p/all">تمرّن</a><a href="#sada">صدى</a><a href="#progress">تقدّمي</a><a href="#about">عن الموقع</a></nav><span class="fb1">${SYMBOL}<span>الاسم من بيت الخاقاني: <q>زن الحرف لا تخرجه عن حد وزنه</q><br>مجاني، بلا حساب ولا إعلانات. تقدّمك يبقى على جهازك، ولك أن تحفظ منه نسخة.</span></span><span>النص القرآني بخط مجمع الملك فهد لطباعة المصحف الشريف، برواية حفص عن عاصم.</span></div></footer>`;
+  if (MAPO) mapPlace();
 }
 
 /* a chapter */
@@ -2780,6 +2828,7 @@ document.addEventListener('click', e => {
   const fn = t.closest('[data-fn]'); if (fn) { e.preventDefault(); openNote(fn); return; }
   if (pop && !t.closest('.fnpop')) closeNote();
   const ddb = t.closest('[data-dd]'); if (ddb) { ddOpen(ddb); return; }
+  const mcb = t.closest('[data-mapc]'); if (mcb) { mapToggle(mcb.dataset.mapc); return; }
   if (t.closest('[data-search]')) { searchOpen(); return; }
   if (t.closest('#menuBtn')) { drawer(drawerHTML()); return; }
   const sh = t.closest('[data-sheet]'); if (sh) { drawer(sheetHTML(CHI[sh.dataset.sheet])); return; }
@@ -3130,7 +3179,7 @@ document.addEventListener('change', e => { const f = e.target.closest && e.targe
 window.__w = () => W; window.__wq = () => wQ(); window.__wr = () => wRender();
 
 addEventListener('hashchange', () => { render(); syncDue(); });
-addEventListener('resize', closeNote);
+addEventListener('resize', () => { closeNote(); if (MAPO && $('#mp')) mapPlace(); });
 try { if (localStorage.getItem('zin.size') === 'lg') { document.documentElement.dataset.size = 'lg'; $('#sizeBtn').setAttribute('aria-pressed', 'true'); } const th = localStorage.getItem('zin.theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 render(); syncDue();
 window.__zin = { timeHTML, colPos, lookHTML, plainHTML, renderCard, partOf, ruleOf, ruleHTML, eqHTML, signOpts, cardOf, CV: () => CV, BLK, NORM, findOf, sortOf, pairsOf, rtext, lensOf, exOf, diffSpans, lessons, lessonSteps, LS: () => LS, formOf, quiz, classify, SIGNS, sgExamples, tableCodes, LQ: () => LQ, B, stats, CARDS, go, P: () => P, S: () => S, SADA, find, beads, cellHTML, spokenHTML, units, weigh, DLAB, split, CHI, T, PROMPT, TYPES, durOf, NUM, DUR_RE, cellText };
