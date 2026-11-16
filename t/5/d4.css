@@ -96,10 +96,16 @@
 /* the checker's word */
 #d4 .d4-chk{display:grid;gap:4px;padding:10px 12px;border-radius:14px;background:var(--well);font-size:.9375rem;line-height:1.85}
 #d4 .d4-chk > b{font-size:.8125rem;color:var(--ink-2);font-weight:600}
-#d4 .d4-chk .qq{font-size:1.3em}
+#d4 .d4-ear .d4-chk .qq{font-size:1.6em;line-height:1.4;vertical-align:middle}
 #d4 .d4-v{display:flex;align-items:center;gap:6px;font-weight:700}
 #d4 .d4-yes,#d4 .d4-md-good{color:var(--ok)}
 #d4 .d4-no,#d4 .d4-md-short,#d4 .d4-md-long{color:var(--no)}
 #d4 .d4-md{font-weight:600}
 #d4 .d4-md-wait,#d4 .d4-md-none{color:var(--ink-2);font-weight:500}
 #d4 .d4-ai{font-size:.75rem;color:var(--ink-2);line-height:1.7;margin-top:4px}
+#d4 .d4-ear p.d4-word,#d4 p.d4-word{font-family:ZinQ4,ZinQ;font-size:clamp(30px,8.6vw,38px);line-height:1.7;text-align:center;color:var(--ink)}
+#d4 p.d4-word em{font-style:normal;color:var(--brand)}
+#d4 p.d4-word em.gh{color:var(--ink-3)}
+/* the site's lessons, here: the word in an answer («الصواب: …», a guess's answer) as large as the word asked */
+.card.ls .fb,.card.ls .guess{flex-wrap:wrap;justify-content:center;line-height:1.5}
+.card.ls .fb .q,.card.ls .guess .q{font-size:clamp(1.8rem,5.5vw,2.3rem);line-height:1.7;font-weight:400;vertical-align:middle}

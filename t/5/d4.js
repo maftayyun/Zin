@@ -76,9 +76,11 @@ window.D4 = (() => {
         : h.h === 'same' ? `<p class="d4-v d4-yes">${I.ok()}سُمِعت الكلمة.</p>`
         : `<p class="d4-v ${h.ok ? 'd4-yes' : 'd4-no'}">${h.ok ? I.ok() : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</p>${h.sure ? '' : '<p class="d4-small">الحكم غير مؤكد.</p>'}`;
       const ms = h.is && h.ms ? `<p>زمن <span class="qq">${g}</span> في تلاوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small></p>` : '';
-      const lines = (Z.maddLine(T, x) || []).map(l => `<p class="d4-md d4-md-${l.st}">${esc(l.text)}</p>`).join('');
+      // a letter or a word the line names «…» in the mushaf's font, large enough to read
+      const lines = (Z.maddLine(T, x) || []).map(l => `<p class="d4-md d4-md-${l.st}">${esc(l.text).replace(/«([^»]{1,24})»/g, '<span class="qq">$1</span>')}</p>`).join('');
       const ear = h.is && h.ms == null && x.kind === 'time' && !Z.maddOf(x) ? `<p class="d4-small">الفاحص يسمع الوصل والوقف، ولا يقيس زمن <span class="qq">${g}</span> بعد: ${T.reader() ? 'اسمع القارئ ثم صوتك' : 'قابل صوتك بالقاعدة'}.</p>` : '';
-      return `<div class="d4-chk"><b>الفاحص</b>${head}${ms}${lines}${ear}<p class="d4-ai">${esc(Z.NOTE)}</p></div>`;
+      // the word that was asked, large, its letter lit, above what the checker heard
+      return `<div class="d4-chk"><b>الفاحص</b><p class="d4-word" lang="ar">${litWord(x)}</p>${head}${ms}${lines}${ear}<p class="d4-ai">${esc(Z.NOTE)}</p></div>`;
     }
     if (T.err) return `<div class="d4-chk"><b>الفاحص</b><p>${esc(Z.errText(T.err))}</p></div>`;
     if (T.rec && !x.chk) return '<div class="d4-chk"><b>الفاحص</b><p>لا يفحص الفاحص هذا المثال بعد، فالحكم هنا لأذنك.</p></div>';
