@@ -538,6 +538,8 @@ q{quotes:"«" "»"}
 .cv-say .bd i{transform-origin:right center}
 .cv-say .ln{justify-content:center;text-align:center}
 .cv-lab{font:500 .9375rem/1.8 var(--f-ui);color:var(--ink-2)}
+.cv-say .cv-lab .ln.cv-v{gap:0 .35em}
+.cv-say .cv-lab .ln.cv-v span{font:700 clamp(1.5rem,5.4vw,1.85rem)/1.5 var(--f-h);color:var(--c)}
 .cv-acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding-top:6px}
 .cv-acts .btn.pri{min-width:min(100%,260px)}
 @media (prefers-reduced-motion:reduce){.cv *{animation:none!important;transition:none!important}}
@@ -923,9 +925,9 @@ html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webk
   <section id="d4" style="display:none"></section>
 </div>
 
-<link rel="stylesheet" href="d4.css?v=00fa1fc">
+<link rel="stylesheet" href="d4.css?v=13d8d6f">
 <script>window.D4MAP={"t": {"0": "L0", "1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L4", "6": "L6", "7": "L6", "8": "L6", "9": "L6", "10": "L6", "11": "L6", "12": "L6", "13": "L6", "14": "L14", "15": "L14", "16": "L16", "17": "L17", "18": "L18", "19": "L19", "20": "L20", "21": "L21", "22": "L22", "23": "L23", "24": "L24", "25": "L25", "26": "L25", "27": "L25", "28": "L28", "29": "L29", "30": "L29", "31": "L31", "32": "L32", "39": "L32", "33": "L33", "34": "L33", "35": "L35", "36": "L36", "37": "L37", "38": "L38", "40": "L38", "42": "L42", "48": "L48", "49": "L48", "43": "L48", "44": "L44", "50": "L50", "45": "L45", "46": "L46", "47": "L46", "52": "L52", "51": "L52"}, "ch": {"L0": "haraka", "L1": "sukun", "L2": "sukun", "L3": "tafkhim", "L4": "tafkhim", "L6": "tafkhim", "L14": "tafkhim", "L16": "tafkhim", "L17": "tafkhim", "L18": "shadda", "L19": "shadda", "L20": "muarra", "L21": "muarra", "L22": "muarra", "L23": "muarra", "L24": "muarra", "L25": "tanween", "L28": "tanween", "L29": "tanween", "L31": "madd", "L32": "madd", "L33": "madd", "L35": "madd", "L36": "madd", "L37": "madd", "L38": "madd", "L42": "waqf", "L48": "ibtida", "L44": "ibtida", "L50": "ibtida", "L45": "ibtida", "L46": "ibtida", "L52": "ibtida"}};</script>
-<script src="../assets/data.js?v=00fa1fc"></script><script src="../assets/zf-forms.js?v=00fa1fc"></script><script src="../assets/reciter.js?v=00fa1fc"></script><script src="../assets/ayat.js?v=00fa1fc"></script><script src="../assets/zf.js?v=00fa1fc"></script><script src="../assets/core.js?v=00fa1fc"></script><script src="d4.js?v=00fa1fc"></script>
+<script src="../assets/data.js?v=13d8d6f"></script><script src="../assets/zf-forms.js?v=13d8d6f"></script><script src="../assets/reciter.js?v=13d8d6f"></script><script src="../assets/ayat.js?v=13d8d6f"></script><script src="../assets/zf.js?v=13d8d6f"></script><script src="../assets/core.js?v=13d8d6f"></script><script src="d4.js?v=13d8d6f"></script>
 <script>
 (() => {
 'use strict';
@@ -2308,6 +2310,8 @@ function cardStep() {
       const r = sp.querySelector('.rd'); if (r) { const q = X.rel(r); cvPlace(sr, { cx: q.x + q.w / 2, cy: X.n.cy }, true); } else sr.classList.remove('on');
       const lab = p.lab && cellText(p.lab).trim() ? cellHTML(p.lab, true) : '';
       CV.el.querySelector('.cv-say').innerHTML = `<div><div class="cv-lab">${lab}${lab && /class="bd/.test(lab) ? '' : p.d ? beads(p.d, 'md') : ''}</div>${p.cond ? `<p>${qwrap(esc(p.cond))}</p>` : ''}</div>`;
+      // a short ruling (تُفخّم (ر)، تُرقّق، لا تُلفظ) is the step's answer: large, in the part's colour, one phrase with its letter
+      CV.el.querySelectorAll('.cv-say .cv-lab .ln').forEach(ln => { const t = ln.textContent.replace(/\s+/g, ' ').trim(); if (t && t.length <= 16 && !/بزمن|[0-9٠-٩=]/.test(t) && !ln.querySelector('.bd')) ln.classList.add('cv-v'); });
       let k = 0; el.querySelectorAll('.cv-say .bd i').forEach((bd, j) => { if (bd.classList.contains('g')) return; const kk = k++;
         if (still) return; bd.style.transform = 'scale(0)'; setTimeout(() => { bd.style.transform = ''; bd.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 220, easing: CV_POP }); if (sndOn()) { try { const c = ac(); tone(c.currentTime, .32, [587.33, 659.25, 739.99, 783.99, 880, 987.77][kk] || 988, .05); } catch (e) {} } }, 120 + 280 * j); });
       after();
@@ -2812,7 +2816,7 @@ document.addEventListener('click', e => {
   const uf = t.closest('[data-unfold]'); if (uf) { unfold(uf.dataset.unfold); return; }
   const pc = t.closest('[data-print-ch]'); if (pc) { location.hash = `#c/${pc.dataset.printCh}/read`; setTimeout(() => window.print(), 400); return; }
   const p = t.closest('[data-p]'); if (p && P) { onPractice(p); return; }
-  const th = t.closest('[data-theme]'); if (th) { const n = THEMES[(THEMES.indexOf(theme()) + 1) % THEMES.length]; if (n) document.documentElement.dataset.theme = n; else delete document.documentElement.dataset.theme; try { localStorage.setItem('zin5.theme', n); } catch (er) {} th.textContent = 'المظهر: ' + THEME_L[n]; return; }
+  const th = t.closest('button[data-theme]'); if (th) { const n = THEMES[(THEMES.indexOf(theme()) + 1) % THEMES.length]; if (n) document.documentElement.dataset.theme = n; else delete document.documentElement.dataset.theme; try { localStorage.setItem('zin5.theme', n); } catch (er) {} th.textContent = 'المظهر: ' + THEME_L[n]; return; }
   const sz = t.closest('#sizeBtn,[data-size]'); if (sz) { const on = document.documentElement.dataset.size !== 'lg'; document.documentElement.dataset.size = on ? 'lg' : ''; $$('#sizeBtn,[data-size]').forEach(x => x.setAttribute('aria-pressed', on)); try { localStorage.setItem('zin5.size', on ? 'lg' : ''); } catch (er) {} }
 });
 document.addEventListener('mouseover', e => { const m = e.target.closest('#ddCh [data-mi]'); if (m) megaFocus(m.dataset.mi); });
