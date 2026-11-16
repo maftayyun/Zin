@@ -1,6 +1,6 @@
 /* The fourth trial version's practice («الجامعة») inside the site (version 5; see build.py): after a lesson of the site drawn
-   from a table, the site calls D4.show for its practice (…/p), and D4.hide whenever it draws anything else. Nothing here judges: the checker only finds the
-   exercise's words in a reading of a whole ayah, and the ear decides. */
+   from a table, the site calls D4.show for its practice (…/p), and D4.sada for «صدى»; D4.hide whenever it draws anything else.
+   The checker is the first version's: on the device, and Quran Muaalem in the Space beside it. */
 window.D4 = (() => {
   const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, box = document.getElementById('d4');
   let T = null, cur = null, api = null, mode = '';
@@ -66,18 +66,35 @@ window.D4 = (() => {
     const len = pk ? pk.to - pk.from : 0, w = pk && max ? Math.max(12, Math.round(100 * len / max)) : 100;
     return `<div class="d4-wv"><div style="width:${w}%">${Z.wave(pk, { n: Math.max(10, Math.round(50 * w / 100)), h: 34, bw: 3, gap: 2, c, zones })}</div></div>`;
   }
+  /* the checker, as in the first version: joined or stopped heard on the device by Quran Lab's model, the madd measured by its
+     timing in the learner's own haraka, the qalqalah by its probability, and Quran Muaalem's word beside them (Z.maddLine) */
+  function checked(x) {
+    if (T.busy) return '<div class="d4-chk" role="status"><b>الفاحص</b><p>يقيس تلاوتك…</p></div>';
+    if (T.res) {
+      const h = Z.heard(x, T.res), g = esc(glyph(x));
+      const head = !h.is ? '<p class="d4-v d4-no">لا يبدو أن التسجيل لهذه الكلمة. أعد القراءة.</p>'
+        : h.h === 'same' ? `<p class="d4-v d4-yes">${I.ok()}سُمِعت الكلمة.</p>`
+        : `<p class="d4-v ${h.ok ? 'd4-yes' : 'd4-no'}">${h.ok ? I.ok() : ''}سُمِعت ${CTX[h.h]}${h.ok ? '' : `، والمطلوب ${CTX[x.ctx]}`}</p>${h.sure ? '' : '<p class="d4-small">الحكم غير مؤكد.</p>'}`;
+      const ms = h.is && h.ms ? `<p>زمن <span class="qq">${g}</span> في تلاوتك: ${AR(h.ms)} ملّي ثانية <small>(قياس تقريبي)</small></p>` : '';
+      const lines = (Z.maddLine(T, x) || []).map(l => `<p class="d4-md d4-md-${l.st}">${esc(l.text)}</p>`).join('');
+      const ear = h.is && h.ms == null && x.kind === 'time' && !Z.maddOf(x) ? `<p class="d4-small">الفاحص يسمع الوصل والوقف، ولا يقيس زمن <span class="qq">${g}</span> بعد: ${T.reader() ? 'اسمع القارئ ثم صوتك' : 'قابل صوتك بالقاعدة'}.</p>` : '';
+      return `<div class="d4-chk"><b>الفاحص</b>${head}${ms}${lines}${ear}<p class="d4-ai">${esc(Z.NOTE)}</p></div>`;
+    }
+    if (T.err) return `<div class="d4-chk"><b>الفاحص</b><p>${esc(Z.errText(T.err))}</p></div>`;
+    if (T.rec && !x.chk) return '<div class="d4-chk"><b>الفاحص</b><p>لا يفحص الفاحص هذا المثال بعد، فالحكم هنا لأذنك.</p></div>';
+    return '';
+  }
   function heard(x) {
     if (!T.rec) return '';
-    const rd = T.reader(), rpk = rd ? T.readerPk() : null, mpk = T.rec.pk, find = Z.canLocate(x);
-    const max = Math.max(rpk ? rpk.to - rpk.from : 0, mpk ? mpk.to - mpk.from : 0), ac = css('--brand'), dim = css('--line-2');
+    const rd = T.reader(), rpk = rd ? T.readerPk() : null, mpk = T.rec.pk;
+    const max = Math.max(rpk ? rpk.to - rpk.from : 0, mpk ? mpk.to - mpk.from : 0);
     return `<div class="d4-ear">
-        <div class="d4-tk">${rd ? `<b>${x.recited ? 'المنشاوي' : 'القارئ'}</b>${track(rpk, max, css('--ink-3'))}` : ''}<b>تلاوتك</b>${track(mpk, max, T.span ? dim : ac, T.span ? [{ a: T.span[0], b: T.span[1], c: ac }] : [])}</div>
+        <div class="d4-tk">${rd ? `<b>${x.recited ? 'المنشاوي' : 'القارئ'}</b>${track(rpk, max, css('--ink-3'))}` : ''}<b>تلاوتك</b>${track(mpk, max, css('--brand'))}</div>
+        ${checked(x)}
         <p>${rd ? 'اسمع القارئ ثم صوتك: هل قرأتَ مثله؟' : 'اسمع صوتك، وقابله بالقاعدة: هل أصبتَ؟'}</p>
         <div class="d4-acts">${rd ? `<button type="button" class="btn" data-d4="both">${I.both}اسمع الصوتين</button>` : ''}
-          <button type="button" class="btn" data-d4="mine"${rd ? '' : ' style="grid-column:1/-1"'}>${I.play()}${T.span ? 'الكلمة من تلاوتك' : 'تلاوتك'}</button>
-          <button type="button" class="btn pri d4-y" data-d4="ok">${I.ok()}أصبتُ</button></div>
-        ${T.finding ? '<p class="d4-small" role="status">يبحث الفاحص عن الكلمة في تلاوتك…</p>' : T.err ? `<p class="d4-small">${esc(Z.errText(T.err))} فاسمع تلاوتك كاملة.</p>` : T.looked && !T.span ? '<p class="d4-small">لم يجد الفاحص الكلمة في تلاوتك، فاسمعها كاملة.</p>' : ''}
-        ${find ? '<p class="d4-small">الفاحص هنا يجد موضع الكلمة في تلاوتك فقط، ولا يحكم عليها.</p>' : ''}</div>`;
+          <button type="button" class="btn" data-d4="mine"${rd ? '' : ' style="grid-column:1/-1"'}>${I.play()}تلاوتك</button>
+          <button type="button" class="btn pri d4-y" data-d4="ok">${I.ok()}أصبتُ</button></div></div>`;
   }
   function draw() {
     if ((mode !== 'p' && mode !== 'sada') || !T) return;
@@ -117,7 +134,7 @@ window.D4 = (() => {
      the ear judges it beside the reader's); with no recording of the reader, the last two */
   function track3(x) {
     const rd = !!T.reader(), heardIt = T.heardAt === T.i, rec = !!T.rec;
-    const st = (rd ? [['اسمع القارئ', heardIt || rec]] : []).concat([['اقرأ', rec], ['الفحص', rec && !T.finding && (T.looked || T.err || !Z.canLocate(x))]]);
+    const st = (rd ? [['اسمع القارئ', heardIt || rec]] : []).concat([['اقرأ', rec], ['الفحص', rec && !T.busy && !!(T.res || T.err || !x.chk)]]);
     const now = st.findIndex(([, done]) => !done);
     return `<ol class="d4-steps" aria-label="الخطوات">${st.map(([t, done], i) => `<li class="${done ? 'd4-done' : i === now ? 'd4-now' : ''}"${i === now ? ' aria-current="step"' : ''}><i>${done ? I.ok(11) : AR(i + 1)}</i>${t}</li>`).join('')}</ol>`;
   }
@@ -135,23 +152,23 @@ window.D4 = (() => {
     const chs = api.CH.map(c => [c, poolOf(c.id).length]).filter(([, n]) => n);
     box.innerHTML = `<div class="wrap d4-l">
       <h1 class="d4-h">صدى: اسمع، اقرأ، ثم الفحص</h1>
-      <p class="d4-lead">تسمع القارئ يقرأ الآية، ثم تقرؤها أنت ويُسجَّل صوتك، ثم الفحص: يجد الفاحص الكلمة في تلاوتك، فتسمعها مع صوت القارئ، وتحكم أذنك.</p>
+      <p class="d4-lead">تسمع القارئ يقرأ الآية، ثم تقرؤها أنت ويُسجَّل صوتك، ثم الفحص: يسمع الفاحص تلاوتك، فيحكم في الوصل والوقف، ويقيس زمن المدّ بالحركات، ويسمع القلقلة، ومعه «المعلّم القرآني».</p>
       <div class="d4-go"><a class="btn pri" href="#sada/all">${I.mic}ابدأ: سبع آيات من الأبواب كلها</a></div>
       <ol class="d4-chs">${chs.map(([c, n]) => `<li><a href="#sada/${c.id}"><b>${c.n ? 'الباب ' + AR(c.n) : 'المدخل'}</b><span>${esc(api.split(c.title)[0])}</span><small>${examples(n)}</small></a></li>`).join('')}</ol>
-      <p class="d4-small">يُرسَل تسجيلك إلى الفاحص ليجد فيه موضع الكلمة، بعد أن تأذن بذلك أول مرة. والفاحص لا يحكم على تلاوتك.</p>
+      <p class="d4-small">يُفحص تسجيلك على جهازك بنموذج Quran Lab، ويُرسَل إلى «المعلّم القرآني» ليسمعه، بعد أن تأذن بذلك أول مرة. والفاحص نموذج ذكاء اصطناعي قد يخطئ.</p>
     </div>`;
   }
   function sada(ch, a) {
     api = a; mode = 'sada'; box.style.display = ''; cur = { ch, sada: true };
     if (!ch) { T = null; sadaIntro(); window.scrollTo(0, 0); return; }
     const all = poolOf(ch), heard = shuffle(all.filter(x => x.au && D.audio[x.au] && x.ay)), rest = shuffle(all.filter(x => !(x.au && D.audio[x.au] && x.ay)));
-    T = Z.sitting({ id: 'sada-' + ch, cases: [] }, heard.concat(rest).slice(0, 7), draw, { ear: true }); T.n = 50; T.load();
+    T = Z.sitting({ id: 'sada-' + ch, cases: [] }, heard.concat(rest).slice(0, 7), draw); T.n = 50; T.load();
     draw(); window.scrollTo(0, 0);
   }
 
   function show(l, practice, a) {
     api = a; cur = l; mode = practice ? 'p' : 'l'; box.style.display = '';
-    if (practice) { if (!T || T.L !== LES[l.t4] || T.k !== l.k) { T = Z.sitting(LES[l.t4], steps(LES[l.t4], l.k), draw, { ear: true }); T.k = l.k; T.n = 50; T.load(); } draw(); }
+    if (practice) { if (!T || T.L !== LES[l.t4] || T.k !== l.k) { T = Z.sitting(LES[l.t4], steps(LES[l.t4], l.k), draw); T.k = l.k; T.n = 50; T.load(); } draw(); }
     else lesson();
     window.scrollTo(0, 0);
   }
@@ -163,7 +180,7 @@ window.D4 = (() => {
     if (!T) return;
     if (k === 'rd') { T.heardAt = T.i; draw(); return Z.play(T.reader()); }
     if (k === 'mic') return T.mic();
-    if (k === 'mine') return T.span ? Z.play(T.rec.url, { from: Math.max(0, T.span[0] - .15), to: T.span[1] + .2 }) : Z.play(T.rec.url);
+    if (k === 'mine') return Z.play(T.rec.url);
     if (k === 'both') { T.heardAt = T.i; return Z.playBoth(T.reader(), T.rec.url); }
     if (k === 'ok' || k === 'next') return T.next();
   });

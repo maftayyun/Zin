@@ -93,3 +93,13 @@
 #d4 .d4-chs a{text-decoration:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;min-height:56px;padding:8px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);color:var(--ink)}
 #d4 .d4-chs b{font-weight:600;color:var(--brand);white-space:nowrap}
 #d4 .d4-chs small{color:var(--ink-2);white-space:nowrap}
+/* the checker's word */
+#d4 .d4-chk{display:grid;gap:4px;padding:10px 12px;border-radius:14px;background:var(--well);font-size:.9375rem;line-height:1.85}
+#d4 .d4-chk > b{font-size:.8125rem;color:var(--ink-2);font-weight:600}
+#d4 .d4-chk .qq{font-size:1.3em}
+#d4 .d4-v{display:flex;align-items:center;gap:6px;font-weight:700}
+#d4 .d4-yes,#d4 .d4-md-good{color:var(--ok)}
+#d4 .d4-no,#d4 .d4-md-short,#d4 .d4-md-long{color:var(--no)}
+#d4 .d4-md{font-weight:600}
+#d4 .d4-md-wait,#d4 .d4-md-none{color:var(--ink-2);font-weight:500}
+#d4 .d4-ai{font-size:.75rem;color:var(--ink-2);line-height:1.7;margin-top:4px}

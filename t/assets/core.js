@@ -366,7 +366,7 @@ window.Z = (() => {
       // the verdict is by Quran Lab's model on this device; by Quran Muaalem only where the device could not measure
       const m = m1 && m1.count != null ? m1 : m2 && m2.count != null ? m2 : (m1 || m2);
       let text = 'المدّ مقيسًا بزمنه' + (m1 ? `: بنموذج Quran Lab ${harakat(m1)}` : '') + (m2 ? `${m1 ? '، و' : ': '}بالمعلّم القرآني ${harakat(m2)}` : '');
-      if (m.count != null) text += `؛ وفي الكتاب ${vName(x.v)}: ${m.st === 'good' ? 'في زمنه' : 'فهو ' + stWord[m.st]}. قياس تقريبي، والحركة فيه زمن حرف بحركته في قراءتك${m.own ? '' : ' السابقة'}.`;
+      if (m.count != null) text += `؛ والقاعدة ${vName(x.v)}: ${m.st === 'good' ? 'في زمنه' : 'فهو ' + stWord[m.st]}. قياس تقريبي، والحركة فيه زمن حرف بحركته في قراءتك${m.own ? '' : ' السابقة'}.`;
       else text += `: ${WHY[m.why] || 'لم يُقَس'}.`;
       lines.push({ text, st: m.st });
     }
