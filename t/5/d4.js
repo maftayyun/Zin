@@ -3,7 +3,7 @@
    The checker is the first version's: on the device, and Quran Muaalem in the Space beside it. */
 window.D4 = (() => {
   const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, box = document.getElementById('d4');
-  let T = null, cur = null, api = null, mode = '';
+  let T = null, cur = null, api = null, mode = '', inLesson = null;   // inLesson: the site's lesson this reading is a step of
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#888';
   const I = {
     mic: '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
@@ -104,6 +104,7 @@ window.D4 = (() => {
         <button type="button" class="btn pri" data-d4="more">وِرد آخر</button><a class="lnk" href="#sada">اختر بابًا</a></div>`;
       T = null; return;
     }
+    if (T.end && inLesson) { const go = inLesson.done; T = null; setTimeout(go, 0); return; }
     if (T.end) {
       api.lesMark(cur.ch, cur.n);
       const ls = api.lessons(cur.ch), nx = ls[cur.n];
@@ -113,7 +114,7 @@ window.D4 = (() => {
     }
     const bare = x.test && !T.rec, text = x.ay ? (bare ? esc(x.ay.text) : Z.ayahLit(x)) : litWord(x), len = (x.ay ? x.ay.text : x.w).length, rd = T.reader();
     box.innerHTML = `<div class="wrap d4-p">
-      <div class="d4-top">${cur.sada ? `<a class="d4-x" href="#sada" aria-label="رجوع إلى صدى">${I.back}</a><b>صدى</b>` : `<a class="d4-x" href="#c/${cur.ch}" aria-label="رجوع إلى دروس الباب">${I.back}</a><b>الدرس ${AR(cur.n)}</b>`}<span>${AR(T.i + 1)} من ${AR(n)}</span>
+      <div class="d4-top">${cur.sada ? `<a class="d4-x" href="#sada" aria-label="رجوع إلى صدى">${I.back}</a><b>صدى</b>` : `<a class="d4-x" href="#c/${cur.ch}" aria-label="رجوع إلى دروس الباب">${I.back}</a><b>الدرس ${AR(cur.n)}${inLesson ? ' · اقرأ مع القارئ' : ''}</b>`}<span>${AR(T.i + 1)} من ${AR(n)}</span>
         <div class="d4-pr" aria-hidden="true"><i style="width:${Math.round(100 * (T.i + 1) / n)}%"></i></div></div>
       ${bare ? '' : track3(x)}
       ${x.test ? `<div class="d4-test">${bare ? 'الأخيرة: اقرأ الآية وليس عليها علامة، ثم تظهر الكلمة وحرفها.' : 'هذه الكلمة وحرفها: هل قرأتَها على القاعدة؟'}</div>` : ''}
@@ -126,7 +127,7 @@ window.D4 = (() => {
       ${T.msg ? `<div class="d4-nor" role="alert">${esc(T.msg)}</div>` : ''}
       ${!Z.canRec ? '<div class="d4-nor">هذا المتصفح لا يسجّل الصوت. افتح الصفحة في Safari أو Chrome.</div>' : ''}
       ${heard(x)}
-      <div class="d4-dock"><button type="button" class="btn pri d4-cta${T.on ? ' d4-on' : ''}" data-d4="mic" data-mic>${T.on ? I.stop + 'أوقف' : I.mic + (T.rec ? 'اقرأ مرة أخرى' : 'اقرأ')}</button><button type="button" class="btn" data-d4="next" data-next>${T.i + 1 < n ? 'التالية' : 'أنهِ الدرس'}</button></div>
+      <div class="d4-dock"><button type="button" class="btn pri d4-cta${T.on ? ' d4-on' : ''}" data-d4="mic" data-mic>${T.on ? I.stop + 'أوقف' : I.mic + (T.rec ? 'اقرأ مرة أخرى' : 'اقرأ')}</button><button type="button" class="btn" data-d4="next" data-next>${T.i + 1 < n ? 'التالية' : inLesson ? 'إلى الخلاصة' : 'أنهِ الدرس'}</button></div>
     </div>`;
   }
 
@@ -159,20 +160,20 @@ window.D4 = (() => {
     </div>`;
   }
   function sada(ch, a) {
-    api = a; mode = 'sada'; box.style.display = ''; cur = { ch, sada: true };
+    api = a; mode = 'sada'; box.style.display = ''; cur = { ch, sada: true }; inLesson = null;
     if (!ch) { T = null; sadaIntro(); window.scrollTo(0, 0); return; }
     const all = poolOf(ch), heard = shuffle(all.filter(x => x.au && D.audio[x.au] && x.ay)), rest = shuffle(all.filter(x => !(x.au && D.audio[x.au] && x.ay)));
     T = Z.sitting({ id: 'sada-' + ch, cases: [] }, heard.concat(rest).slice(0, 7), draw); T.n = 50; T.load();
     draw(); window.scrollTo(0, 0);
   }
 
-  function show(l, practice, a) {
-    api = a; cur = l; mode = practice ? 'p' : 'l'; box.style.display = '';
+  function show(l, practice, a, o = {}) {
+    api = a; cur = l; mode = practice ? 'p' : 'l'; box.style.display = ''; inLesson = o.lesson ? o : null;
     if (practice) { if (!T || T.L !== LES[l.t4] || T.k !== l.k) { T = Z.sitting(LES[l.t4], steps(LES[l.t4], l.k), draw); T.k = l.k; T.n = 50; T.load(); } draw(); }
     else lesson();
     window.scrollTo(0, 0);
   }
-  function hide() { mode = ''; box.style.display = 'none'; Z.stop(); if (T && T.on) T.mic(); T = null; box.innerHTML = ''; }
+  function hide() { mode = ''; inLesson = null; box.style.display = 'none'; Z.stop(); if (T && T.on) T.mic(); T = null; box.innerHTML = ''; }
   box.addEventListener('click', e => {
     const b = e.target.closest('[data-d4]'); if (!b) return;
     const k = b.dataset.d4;

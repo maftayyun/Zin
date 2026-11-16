@@ -923,9 +923,9 @@ html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webk
   <section id="d4" style="display:none"></section>
 </div>
 
-<link rel="stylesheet" href="d4.css?v=f97ba99">
+<link rel="stylesheet" href="d4.css?v=28c042f">
 <script>window.D4MAP={"t": {"0": "L0", "1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L4", "6": "L6", "7": "L6", "8": "L6", "9": "L6", "10": "L6", "11": "L6", "12": "L6", "13": "L6", "14": "L14", "15": "L14", "16": "L16", "17": "L17", "18": "L18", "19": "L19", "20": "L20", "21": "L21", "22": "L22", "23": "L23", "24": "L24", "25": "L25", "26": "L25", "27": "L25", "28": "L28", "29": "L29", "30": "L29", "31": "L31", "32": "L32", "39": "L32", "33": "L33", "34": "L33", "35": "L35", "36": "L36", "37": "L37", "38": "L38", "40": "L38", "42": "L42", "48": "L48", "49": "L48", "43": "L48", "44": "L44", "50": "L50", "45": "L45", "46": "L46", "47": "L46", "52": "L52", "51": "L52"}, "ch": {"L0": "haraka", "L1": "sukun", "L2": "sukun", "L3": "tafkhim", "L4": "tafkhim", "L6": "tafkhim", "L14": "tafkhim", "L16": "tafkhim", "L17": "tafkhim", "L18": "shadda", "L19": "shadda", "L20": "muarra", "L21": "muarra", "L22": "muarra", "L23": "muarra", "L24": "muarra", "L25": "tanween", "L28": "tanween", "L29": "tanween", "L31": "madd", "L32": "madd", "L33": "madd", "L35": "madd", "L36": "madd", "L37": "madd", "L38": "madd", "L42": "waqf", "L48": "ibtida", "L44": "ibtida", "L50": "ibtida", "L45": "ibtida", "L46": "ibtida", "L52": "ibtida"}};</script>
-<script src="../assets/data.js?v=f97ba99"></script><script src="../assets/zf-forms.js?v=f97ba99"></script><script src="../assets/reciter.js?v=f97ba99"></script><script src="../assets/ayat.js?v=f97ba99"></script><script src="../assets/zf.js?v=f97ba99"></script><script src="../assets/core.js?v=f97ba99"></script><script src="d4.js?v=f97ba99"></script>
+<script src="../assets/data.js?v=28c042f"></script><script src="../assets/zf-forms.js?v=28c042f"></script><script src="../assets/reciter.js?v=28c042f"></script><script src="../assets/ayat.js?v=28c042f"></script><script src="../assets/zf.js?v=28c042f"></script><script src="../assets/core.js?v=28c042f"></script><script src="d4.js?v=28c042f"></script>
 <script>
 (() => {
 'use strict';
@@ -2506,7 +2506,7 @@ function lessonSteps(L) {
   });
   // one read aloud, from a row not used yet, then shown
   const self = cards.find(c => c.t === 'reveal' && !used.has(c.r) && !pool.some(q => q.card === c) && !items.slice(0, nLook + 1).some(it => it.c && it.c.r === c.r));
-  if (self) st.push({ t: 'self', c: self });
+  if (L.t4 && window.D4) st.push({ t: 'd4' }); else if (self) st.push({ t: 'self', c: self });
   st.push({ t: 'sum' });
   return st;
 }
@@ -2601,6 +2601,7 @@ function lesson(ch, n) {
 }
 function lsRender(focus) {
   const { L, steps, i } = LS, s = steps[i], ls = lessons(L.ch);
+  if (s.t === 'd4') { const at = LS; V.style.display = 'none'; D4.show(L, true, { CHI, CH, lessons, lesMark, lesDone, T, cellText, split }, { lesson: true, of: [i + 1, steps.length], done: () => { if (LS !== at) return; D4.hide(); V.style.display = ''; LS.i++; lsRender(true); } }); return; }
   const bar = steps.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'now' : ''}"></i>`).join('');
   const top = `<div class="pr-top"><a class="pr-x" href="#c/${L.ch}" aria-label="أغلق الدرس، إلى دروس الباب">${IC.x}</a><div class="ls-bar" aria-hidden="true">${bar}</div><span class="pr-n">الدرس ${AR(L.n)}</span><button type="button" class="ls-snd" data-ls="snd" aria-pressed="${sndOn()}" aria-label="أصوات التمرين">${IC.snd}</button></div>`;
   V.innerHTML = `<div class="pr-wrap" data-c="${L.ch}">${top}<section class="card ls" aria-live="polite"><span class="ls-k">${STEPI[s.rev ? 'review' : s.t]}${STEPW[s.rev ? 'review' : s.t]}</span>${stepHTML(s)}</section></div>`;
@@ -2713,7 +2714,7 @@ function stepHTML(s) {
     const rest = t ? `<div class="ls-tb">${LS.tbl ? tableHTML(L.k) : ''}</div><button type="button" class="btn" data-ls="tbl" aria-expanded="${!!LS.tbl}">${LS.tbl ? 'أخفِ الجدول' : `الجدول كاملًا: ${count(t.rows.length - 1, EX_W)}`}</button>` : '';
     const neck = `<div class="neck" id="neck" aria-label="قلادة الباب">${ls.map(l => `<i class="${l.n === L.n ? 'new' : lesDone(L.ch, l.n) ? 'on' : ''}"></i>`).join('')}</div><p class="neck-l">خرزة جديدة في قلادة الباب: ${AR(ls.filter(l => lesDone(L.ch, l.n) || l.n === L.n).length)} من ${AR(ls.length)}</p>`;
     return `<h2 class="ls-t" style="color:var(--ink)">أتممت الدرس ${AR(L.n)}: ${qwrap(esc(L.title))}</h2>${neck}${score}${rule ? `<div class="sum">${rule}</div>` : ''}${rest}
-      <div class="ls-acts">${L.t4 ? `<a class="btn pri lg" href="#l/${L.ch}/${L.n}/p">اسمع القارئ واقرأ بعده${IC.go}</a>` : ''}${nx ? `<a class="btn ${L.t4 ? '' : 'pri '}lg" href="#l/${L.ch}/${nx.n}">الدرس التالي${IC.go}</a>` : nch ? `<a class="btn pri lg" data-c="${nch.id}" href="#c/${nch.id}">الباب التالي: ${esc(split(nch.title)[0])}${IC.go}</a>` : ''}<a class="btn" href="#c/${L.ch}">دروس الباب</a></div>`;
+      <div class="ls-acts">${nx ? `<a class="btn pri lg" href="#l/${L.ch}/${nx.n}">الدرس التالي${IC.go}</a>` : nch ? `<a class="btn pri lg" data-c="${nch.id}" href="#c/${nch.id}">الباب التالي: ${esc(split(nch.title)[0])}${IC.go}</a>` : ''}<a class="btn" href="#c/${L.ch}">دروس الباب</a></div>`;
   }
   return '';
 }
