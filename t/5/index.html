@@ -923,9 +923,9 @@ html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webk
   <section id="d4" style="display:none"></section>
 </div>
 
-<link rel="stylesheet" href="d4.css?v=e42dda6">
+<link rel="stylesheet" href="d4.css?v=4aa382d">
 <script>window.D4MAP={"t": {"0": "L0", "1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L4", "6": "L6", "7": "L6", "8": "L6", "9": "L6", "10": "L6", "11": "L6", "12": "L6", "13": "L6", "14": "L14", "15": "L14", "16": "L16", "17": "L17", "18": "L18", "19": "L19", "20": "L20", "21": "L21", "22": "L22", "23": "L23", "24": "L24", "25": "L25", "26": "L25", "27": "L25", "28": "L28", "29": "L29", "30": "L29", "31": "L31", "32": "L32", "39": "L32", "33": "L33", "34": "L33", "35": "L35", "36": "L36", "37": "L37", "38": "L38", "40": "L38", "42": "L42", "48": "L48", "49": "L48", "43": "L48", "44": "L44", "50": "L50", "45": "L45", "46": "L46", "47": "L46", "52": "L52", "51": "L52"}, "ch": {"L0": "haraka", "L1": "sukun", "L2": "sukun", "L3": "tafkhim", "L4": "tafkhim", "L6": "tafkhim", "L14": "tafkhim", "L16": "tafkhim", "L17": "tafkhim", "L18": "shadda", "L19": "shadda", "L20": "muarra", "L21": "muarra", "L22": "muarra", "L23": "muarra", "L24": "muarra", "L25": "tanween", "L28": "tanween", "L29": "tanween", "L31": "madd", "L32": "madd", "L33": "madd", "L35": "madd", "L36": "madd", "L37": "madd", "L38": "madd", "L42": "waqf", "L48": "ibtida", "L44": "ibtida", "L50": "ibtida", "L45": "ibtida", "L46": "ibtida", "L52": "ibtida"}};</script>
-<script src="../assets/data.js?v=e42dda6"></script><script src="../assets/zf-forms.js?v=e42dda6"></script><script src="../assets/reciter.js?v=e42dda6"></script><script src="../assets/ayat.js?v=e42dda6"></script><script src="../assets/zf.js?v=e42dda6"></script><script src="../assets/core.js?v=e42dda6"></script><script src="d4.js?v=e42dda6"></script>
+<script src="../assets/data.js?v=4aa382d"></script><script src="../assets/zf-forms.js?v=4aa382d"></script><script src="../assets/reciter.js?v=4aa382d"></script><script src="../assets/ayat.js?v=4aa382d"></script><script src="../assets/zf.js?v=4aa382d"></script><script src="../assets/core.js?v=4aa382d"></script><script src="d4.js?v=4aa382d"></script>
 <script>
 (() => {
 'use strict';
@@ -1270,10 +1270,10 @@ function render() {
     else { chapter(b); mark('map'); if (c !== 'read') { requestAnimationFrame(() => jump(c)); return; } }
   }
   else if (a === 'l' && CHI[b]) { const l4 = lessons(b).find(l => l.n === (Number(c) || 1));
-    if (l4 && l4.t4 && window.D4) { V.style.display = 'none'; D4.show(l4, h.split('/')[3] === 'p', { CHI, lessons, lesMark, lesDone }); mark('map'); return; }
+    if (l4 && l4.t4 && window.D4 && h.split('/')[3] === 'p') { V.style.display = 'none'; D4.show(l4, true, { CHI, CH, lessons, lesMark, lesDone, T, cellText, split }); mark('map'); return; }
     lesson(b, Number(c) || 1); mark('map'); return; }
   else if (a === 'p' && (b === 'all' || CHI[b])) { practice(b); mark('p'); }
-  else if (a === 'sada') { sada(b === 'all' || CHI[b] ? b : ''); mark('p'); }
+  else if (a === 'sada') { if (window.D4) { V.style.display = 'none'; D4.sada(b === 'all' || CHI[b] ? b : '', { CHI, CH, lessons, lesMark, lesDone, T, cellText, split }); mark('p'); return; } sada(b === 'all' || CHI[b] ? b : ''); mark('p'); }
   else if (a === 'progress') { progressPage(); mark('p'); }
   else if (a === 'tables') { tablesPage(); mark('map'); }
   else if (a === 'notes') { notesPage(b); mark('map'); if (b) return; }
@@ -1328,7 +1328,7 @@ function home() {
     <div class="sec-h"><h2>طريقتان للتمرين</h2><p>لا يحتاج شيء منهما إلى حساب.</p></div>
     <ol class="how">
       <li data-c="tafkhim"><div class="fig"><span class="mini"><small>تُفخّم أم تُرقّق؟</small></span><span class="mini"><small>كم زمنه؟</small>${beads('2', 'md')}</span></div><h3>بطاقات تعود إليك</h3><p>أسئلة قصيرة من الجداول. ما أخطأت فيه يعود أولًا، وما أتقنته يعود بعد أيام.</p><a class="lnk" href="#p/all">ابدأ جلسة${IC.go}</a></li>
-      <li data-c="haraka"><div class="fig"><span class="mini"><small>القارئ</small>${beads('6', 'md')}</span><span class="mini"><small>صوتك</small>${beads('6', 'md')}</span></div><h3>صدى: اسمع وردّد</h3><p>تسمع المثال، ثم تقرؤه ويُسجَّل صوتك، ثم تسمع الصوتين متتاليين. يبقى صوتك على جهازك.</p><a class="lnk" href="#sada">جرّب صدى${IC.go}</a></li>
+      <li data-c="haraka"><div class="fig"><span class="mini"><small>القارئ</small>${beads('6', 'md')}</span><span class="mini"><small>صوتك</small>${beads('6', 'md')}</span></div><h3>صدى: اسمع، اقرأ، ثم الفحص</h3><p>تسمع القارئ يقرأ الآية، ثم تقرؤها أنت، ثم يجد الفاحص الكلمة في تلاوتك فتسمعها مع صوت القارئ.</p><a class="lnk" href="#sada">جرّب صدى${IC.go}</a></li>
     </ol>
   </div></section>
   <section class="sec" style="background:var(--card);border-block:1px solid var(--line)"><div class="wrap bk">
@@ -1560,7 +1560,7 @@ function pracMenu() {
   return `<a href="#p/all">${n ? `مراجعة اليوم<span class="due">${AR(n)}</span>` : 'جلسة تمرين'}<small>${n ? 'بطاقات حان موعدها، من كل الأبواب' : 'بطاقات من كل الأبواب'}</small></a>
     <a href="#w/fatiha/read">اقرأ وافحص<small>تقرأ آية من الفاتحة، ويقيس الفاحص زمن أصواتها</small></a>
     <a href="#w">الوجهات<small>الفاتحة ومقاطع التطبيق: تصفّح، وجِد، ونظرة</small></a>
-    <a href="#sada">صدى<small>اسمع المثال، ثم ردّده وسجّل قراءتك</small></a><hr><a href="#progress">تقدّمي<small>وفيه اختيار باب للتمرين</small></a>`;
+    <a href="#sada">صدى<small>اسمع القارئ، ثم اقرأ، ثم الفحص</small></a><hr><a href="#progress">تقدّمي<small>وفيه اختيار باب للتمرين</small></a>`;
 }
 let dd = null;
 function veil(kind) { const v = $('#veil'); v.hidden = !kind; v.className = 'veil' + (kind === 'dd' ? ' dd' : ''); }
@@ -1593,7 +1593,7 @@ function drawerHTML() {
     ${last ? `<a class="acc" data-c="${last.id}" href="#c/${last.id}">متابعة: ${esc(split(last.title)[0])}${IC.go}</a>` : ''}
     <h3>الأبواب</h3>${CH.map(c => miHTML(c, false)).join('')}
     <h3>الوجهات</h3><a class="acc" href="#w/fatiha">الفاتحة${IC.go}</a><a class="acc" href="#w/fatiha/read">اقرأ وافحص${IC.go}</a><a class="acc" href="#w">كل الوجهات${IC.go}</a>
-    <h3>التمرين</h3><a class="acc" href="#p/all">${n ? 'مراجعة اليوم' : 'جلسة تمرين'}${n ? `<span class="due">${AR(n)}</span>` : ''}${IC.go}</a><a class="acc" href="#sada">صدى: اسمع وردّد${IC.go}</a><a class="acc" href="#progress">تقدّمي${IC.go}</a>
+    <h3>التمرين</h3><a class="acc" href="#p/all">${n ? 'مراجعة اليوم' : 'جلسة تمرين'}${n ? `<span class="due">${AR(n)}</span>` : ''}${IC.go}</a><a class="acc" href="#sada">صدى: اسمع، اقرأ، ثم الفحص${IC.go}</a><a class="acc" href="#progress">تقدّمي${IC.go}</a>
     <h3>الكتاب</h3><div class="bkl">${bookLinks()}</div>
     <h3>المزيد</h3><a class="acc" href="#tables">كل الجداول${IC.go}</a><a class="acc" href="#signs">إشارات المصحف${IC.go}</a><a class="acc" href="#notes">الحواشي${IC.go}</a><a class="acc" href="#about">عن الموقع${IC.go}</a>
     <div class="set"><button type="button" data-size aria-pressed="${document.documentElement.dataset.size === 'lg'}">أ+ حجم الخط</button><button type="button" data-theme>المظهر: ${THEME_L[theme()]}</button></div>`;
@@ -1835,7 +1835,7 @@ function aboutPage() {
       <h2 id="ab-text">النص والخط</h2>
       <p>النص القرآني بخط مجمع الملك فهد لطباعة المصحف الشريف، برواية حفص عن عاصم، كما نقله الكتاب. تسجيلات القارئ: ${AR(Object.keys(RECAT).length)} من ${AR(B.recTotal || 0)} في قائمة التسجيل، وتظهر في مواضعها من الجداول والنص كلما سُجّلت. خطوط الواجهة: Reem Kufi وNoto Kufi Arabic وIBM Plex Sans Arabic.</p>
       <h2 id="ab-yours">تقدّمك وتسجيلاتك</h2>
-      <p>لا حساب ولا إعلانات. تقدّمك في التمرين وتسجيلات صدى تبقى على جهازك في هذا المتصفح، ولا تُرسل إلى أحد. ولتنقل تقدّمك إلى جهاز آخر، احفظ منه نسخة في ملف من صفحة <a href="#progress">تقدّمي</a> ثم استرجعها هناك. وإن أردت أن يسمعك معلّم فاحفظ تسجيلك وأرسله بنفسك.</p>
+      <p>لا حساب ولا إعلانات. تقدّمك في التمرين يبقى على جهازك في هذا المتصفح. وفي «صدى» يُرسَل تسجيلك إلى الفاحص، بإذنك، ليجد فيه موضع الكلمة. ولتنقل تقدّمك إلى جهاز آخر، احفظ منه نسخة في ملف من صفحة <a href="#progress">تقدّمي</a> ثم استرجعها هناك.</p>
       <p id="ab-check">في صفحات «الوجهات» فحصٌ آليّ للآية: إن اخترتَ «افحص الآية» أُرسل تسجيلك إلى الفاحص ليقيس زمن الأصوات فيه.</p>${W_AI}
       <div class="row"><a class="btn pri" href="#map">الفهرس</a><a class="btn" href="#progress">تقدّمي</a></div>
     </article></div>`;
@@ -1876,7 +1876,7 @@ function sada(ch) {
     const nRec = SADA.filter(recOf).length;
     V.innerHTML = `<div class="pr-wrap" data-c="haraka"><div class="intro"><h1>صدى: اسمع وردّد</h1>
       <p>تسمع المثال، ثم تقرؤه بصوت مسموع ويُسجَّل صوتك، ثم تسمع الصوتين متتاليين. هكذا يُتعلَّم الأداء بالتلقي: نموذج، ثم محاكاة فورية.</p>
-      <p class="sd-note">صوت القارئ متاح الآن في ${count(nRec, EX_W)}، ويُضاف كلما سُجّل. وفي بقية الأمثلة تسجّل قراءتك وتسمعها، وتحفظها لمعلّمك إن شئت. يبقى صوتك على جهازك.</p>
+      <p class="sd-note">صوت القارئ متاح الآن في ${count(nRec, EX_W)}، ويُضاف كلما سُجّل. وفي بقية الأمثلة تسجّل قراءتك وتسمعها. يبقى صوتك على جهازك.</p>
       <div class="row"><a class="btn pri lg" href="#sada/all">ابدأ بأمثلة القارئ</a></div></div>${chooser('sada', SADA, EX_W)}</div>`;
     return;
   }
@@ -1900,7 +1900,7 @@ function sdRender() {
   if (Q.phase === 'rec') turn = `<button type="button" class="sd-ring rec" data-sd="stop" aria-label="أنهِ التسجيل">دورك<small id="sdt">٠:٠٠</small><small>اضغط لتنهي</small></button><p class="sd-note">يتوقف التسجيل وحده بعد صمت قصير.</p>`;
   else if (Q.phase === 'cmp') turn = `<div class="sd-cmp" id="sdc">${rec ? '<div class="sd-w" id="sdr"><span>القارئ</span><svg class="r"></svg><span></span></div>' : ''}<div class="sd-w" id="sdy"><span>صوتك</span><svg class="y"></svg><span></span></div></div>
       <div class="tools"><button type="button" class="btn pri" data-sd="both">${rec ? 'اسمعهما متتاليين' : 'اسمع صوتك'}</button><button type="button" class="btn sm" data-sd="again">ردّد مرة أخرى</button><button type="button" class="btn sm" data-sd="next">التالي</button></div>
-      <button type="button" class="lnk" data-sd="keep">احفظ تسجيلك لترسله إلى معلّم${IC.go}</button>`;
+      `;
   else turn = (Q.mic ? `<button type="button" class="sd-ring" data-sd="rec" aria-label="سجّل قراءتك">دورك<small>اضغط وردّد بصوت مسموع</small></button>` : '')
       + `<label class="btn sm sd-up">${Q.mic ? 'أو ارفع تسجيلًا من هاتفك' : 'سجّل قراءتك بهاتفك وارفعها هنا'}<input type="file" accept="audio/*" capture data-sd="up"></label>`
       + (Q.old ? `<button type="button" class="lnk" data-sd="old">لك تسجيل سابق لهذا المثال: قارن به${IC.go}</button>` : '');
@@ -1909,7 +1909,7 @@ function sdRender() {
     <p class="nb-ask">${rec ? 'استمع إلى القارئ، ثم ردّد بصوت مسموع.' : 'اقرأ المثال بصوت مسموع، وسجّل قراءتك.'}</p>
     <p class="ask">${PROMPT[c.ctx]}</p><div class="big q">${exOf(c)}</div>
     ${answerHTML(c)}${turn}
-    <p class="sd-note">يبقى صوتك على جهازك، ولا يُرسل إلى أحد إلا إن حفظته وأرسلته بنفسك.</p>
+    <p class="sd-note">يبقى صوتك على جهازك.</p>
   </section></div>`;
   weigh($('.card .ans'));
   if (Q.phase === 'cmp') sdDraw();
@@ -1990,14 +1990,8 @@ const isHead = b => (b.k === 'h' || b.k === 'box') && !TYPES[b.i];
 const LES4 = {};
 function lessons(id) {
   if (LES4[id]) return LES4[id];
-  const M = window.D4MAP || { t: {} }, have = id4 => !!(window.ZIN && window.ZIN.lessons.some(l => l.id === id4)), out = [];
-  lessons0(id).forEach(l => {
-    const t4 = l.k != null && M.t[l.k] && have(M.t[l.k]) ? M.t[l.k] : null;
-    if (t4 && out.some(x => x.t4 === t4)) return;
-    out.push(Object.assign({}, l, t4 ? { t4, title: window.ZIN.lessons.find(x => x.id === t4).title } : {}));
-  });
-  out.forEach((l, i) => { l.n = i + 1; });
-  return (LES4[id] = out);
+  const M = window.D4MAP || { t: {} }, have = id4 => !!(window.ZIN && window.ZIN.lessons.some(l => l.id === id4));
+  return (LES4[id] = lessons0(id).map(l => { if (l.k != null && M.t[l.k] && have(M.t[l.k])) l.t4 = M.t[l.k]; return l; }));
 }
 function lessons0(id) {
   if (!LES) {
@@ -2719,7 +2713,7 @@ function stepHTML(s) {
     const rest = t ? `<div class="ls-tb">${LS.tbl ? tableHTML(L.k) : ''}</div><button type="button" class="btn" data-ls="tbl" aria-expanded="${!!LS.tbl}">${LS.tbl ? 'أخفِ الجدول' : `الجدول كاملًا: ${count(t.rows.length - 1, EX_W)}`}</button>` : '';
     const neck = `<div class="neck" id="neck" aria-label="قلادة الباب">${ls.map(l => `<i class="${l.n === L.n ? 'new' : lesDone(L.ch, l.n) ? 'on' : ''}"></i>`).join('')}</div><p class="neck-l">خرزة جديدة في قلادة الباب: ${AR(ls.filter(l => lesDone(L.ch, l.n) || l.n === L.n).length)} من ${AR(ls.length)}</p>`;
     return `<h2 class="ls-t" style="color:var(--ink)">أتممت الدرس ${AR(L.n)}: ${qwrap(esc(L.title))}</h2>${neck}${score}${rule ? `<div class="sum">${rule}</div>` : ''}${rest}
-      <div class="ls-acts">${nx ? `<a class="btn pri lg" href="#l/${L.ch}/${nx.n}">الدرس التالي${IC.go}</a>` : nch ? `<a class="btn pri lg" data-c="${nch.id}" href="#c/${nch.id}">الباب التالي: ${esc(split(nch.title)[0])}${IC.go}</a>` : ''}<a class="btn" href="#c/${L.ch}">دروس الباب</a></div>`;
+      <div class="ls-acts">${L.t4 ? `<a class="btn pri lg" href="#l/${L.ch}/${L.n}/p">اسمع القارئ واقرأ بعده${IC.go}</a>` : ''}${nx ? `<a class="btn ${L.t4 ? '' : 'pri '}lg" href="#l/${L.ch}/${nx.n}">الدرس التالي${IC.go}</a>` : nch ? `<a class="btn pri lg" data-c="${nch.id}" href="#c/${nch.id}">الباب التالي: ${esc(split(nch.title)[0])}${IC.go}</a>` : ''}<a class="btn" href="#c/${L.ch}">دروس الباب</a></div>`;
   }
   return '';
 }

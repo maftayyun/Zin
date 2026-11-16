@@ -78,3 +78,18 @@
 #d4 .d4-end p{color:var(--ink-2)}
 #d4 .d4-end .lnk{display:inline-flex;align-items:center;min-height:44px;font-weight:600;color:var(--brand)}
 @media (prefers-reduced-motion:reduce){#d4 .d4-recng i{animation:none}}
+/* the three steps of a reading */
+#d4 .d4-steps{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.875rem;font-weight:600;color:var(--ink-3)}
+#d4 .d4-steps li{display:flex;align-items:center;gap:6px}
+#d4 .d4-steps li+li::before{content:"";width:18px;height:2px;border-radius:1px;background:var(--line-2);margin-inline-end:2px}
+#d4 .d4-steps i{font-style:normal;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;border:1.5px solid var(--line-2);background:var(--card)}
+#d4 .d4-steps .d4-now{color:var(--ink)}
+#d4 .d4-steps .d4-now i{background:var(--brand);border-color:var(--brand);color:#fff}
+#d4 .d4-steps .d4-done{color:var(--ok)}
+#d4 .d4-steps .d4-done i{background:var(--ok-t);border-color:var(--ok);color:var(--ok)}
+/* «صدى»: its chapters */
+#d4 .d4-lead{font-size:1.0625rem;line-height:1.95;color:var(--ink-2);max-width:62ch}
+#d4 .d4-chs{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#d4 .d4-chs a{text-decoration:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;min-height:56px;padding:8px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);color:var(--ink)}
+#d4 .d4-chs b{font-weight:600;color:var(--brand);white-space:nowrap}
+#d4 .d4-chs small{color:var(--ink-2);white-space:nowrap}

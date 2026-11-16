@@ -1,5 +1,5 @@
-/* The fourth trial version's lessons («الجامعة») inside the site (version 5; see build.py). The site calls D4.show for a lesson
-   of its path that is one of these, and D4.hide whenever it draws anything else. Nothing here judges: the checker only finds the
+/* The fourth trial version's practice («الجامعة») inside the site (version 5; see build.py): after a lesson of the site drawn
+   from a table, the site calls D4.show for its practice (…/p), and D4.hide whenever it draws anything else. Nothing here judges: the checker only finds the
    exercise's words in a reading of a whole ayah, and the ear decides. */
 window.D4 = (() => {
   const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, parts } = Z, box = document.getElementById('d4');
@@ -27,10 +27,22 @@ window.D4 = (() => {
   const chip = x => x.ctx ? `<span class="d4-cx d4-${x.ctx}">${CTX[x.ctx]}</span>` : '';
   const litWord = x => lit(x.w, x.f, x.v === '0' ? 'gh' : '');
   // her examples, each in its ayah; the last whole ayah read bare, its word and letter shown after the reading
-  function steps(L) {
-    const all = Z.examples(L).filter(x => x.kind !== 'ayah'), k = all.map(x => !!(x.ay && !x.ay.part)).lastIndexOf(true);
-    if (k < 1) return all;
-    return all.filter((_, i) => i !== k).concat([Object.assign({}, all[k], { test: true })]);
+  /* the examples of the site's lesson: those of the trial lesson that are in the lesson's own table (a trial lesson can hold
+     several tables, each a lesson of the site), a case after a case as the trial versions take them, eight at most */
+  const BARE = t => String(t || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\s*]/g, '');
+  function examplesOf(L, k) {
+    if (k == null || !api.T[k]) return Z.examples(L);
+    const text = BARE(api.T[k].rows.slice(1).map(R => R.map(api.cellText).join(' ')).join(' '));
+    const cs = L.cases.map(c => c.items.filter(x => text.includes(BARE(x.w)))).filter(c => c.length);
+    if (!cs.length) return Z.examples(L);
+    const out = [], n = Math.max(...cs.map(c => c.length));
+    for (let i = 0; i < n; i++) cs.forEach(c => { if (c[i]) out.push(c[i]); });
+    return out.slice(0, 8);
+  }
+  function steps(L, k) {
+    const all = examplesOf(L, k).filter(x => x.kind !== 'ayah'), at = all.map(x => !!(x.ay && !x.ay.part)).lastIndexOf(true);
+    if (at < 1) return all;
+    return all.filter((_, i) => i !== at).concat([Object.assign({}, all[at], { test: true })]);
   }
   const where = () => { const c = api.CHI[cur.ch]; return c && c.n ? 'الباب ' + AR(c.n) : 'المدخل'; };
   const tablesOf = id => Object.entries(window.D4MAP.t).filter(([, v]) => v === id).map(([k]) => Number(k));
@@ -45,7 +57,7 @@ window.D4 = (() => {
       <div class="d4-tbl"><h2><span>${timed ? 'زمن الحرف المضيء' : 'الحرف المضيء'}</span>${timed ? '<span>الخانة = حركة</span>' : ''}</h2>
         ${ex.map(x => `<div class="d4-tr"><span class="d4-w" lang="ar">${litWord(x)}</span>${timeOf(x)}${chip(x) || said(x) ? `<div class="d4-sub">${chip(x)}${said(x)}</div>` : ''}</div>`).join('')}
         ${k != null ? `<a class="lnk d4-all" href="#c/${cur.ch}/tb${k}">الجدول كاملًا، بأمثلته كلها</a>` : ''}</div>
-      <div class="d4-go"><a class="btn pri" href="#l/${cur.ch}/${cur.n}/p">${I.mic}اسمع القارئ واقرأ بعده</a><small>${AR(steps(L).length)} آيات، آخرها بلا علامات</small></div>
+      <div class="d4-go"><a class="btn pri" href="#l/${cur.ch}/${cur.n}/p">${I.mic}اسمع القارئ واقرأ بعده</a><small>${AR(steps(L, cur.k).length)} آيات، آخرها بلا علامات</small></div>
     </div>`;
   }
 
@@ -68,8 +80,13 @@ window.D4 = (() => {
         ${find ? '<p class="d4-small">الفاحص هنا يجد موضع الكلمة في تلاوتك فقط، ولا يحكم عليها.</p>' : ''}</div>`;
   }
   function draw() {
-    if (mode !== 'p' || !T) return;
+    if ((mode !== 'p' && mode !== 'sada') || !T) return;
     const x = T.cur(), n = T.items.length;
+    if (T.end && cur.sada) {
+      box.innerHTML = `<div class="wrap d4-end"><span class="d4-ok">${I.ok(40)}</span><h1>انتهى وِرد صدى</h1><p>قرأتَ ${AR(n)} من الآيات بعد القارئ.</p>
+        <button type="button" class="btn pri" data-d4="more">وِرد آخر</button><a class="lnk" href="#sada">اختر بابًا</a></div>`;
+      T = null; return;
+    }
     if (T.end) {
       api.lesMark(cur.ch, cur.n);
       const ls = api.lessons(cur.ch), nx = ls[cur.n];
@@ -79,8 +96,9 @@ window.D4 = (() => {
     }
     const bare = x.test && !T.rec, text = x.ay ? (bare ? esc(x.ay.text) : Z.ayahLit(x)) : litWord(x), len = (x.ay ? x.ay.text : x.w).length, rd = T.reader();
     box.innerHTML = `<div class="wrap d4-p">
-      <div class="d4-top"><a class="d4-x" href="#l/${cur.ch}/${cur.n}" aria-label="رجوع إلى الدرس">${I.back}</a><b>الدرس ${AR(cur.n)}</b><span>${AR(T.i + 1)} من ${AR(n)}</span>
+      <div class="d4-top">${cur.sada ? `<a class="d4-x" href="#sada" aria-label="رجوع إلى صدى">${I.back}</a><b>صدى</b>` : `<a class="d4-x" href="#c/${cur.ch}" aria-label="رجوع إلى دروس الباب">${I.back}</a><b>الدرس ${AR(cur.n)}</b>`}<span>${AR(T.i + 1)} من ${AR(n)}</span>
         <div class="d4-pr" aria-hidden="true"><i style="width:${Math.round(100 * (T.i + 1) / n)}%"></i></div></div>
+      ${bare ? '' : track3(x)}
       ${x.test ? `<div class="d4-test">${bare ? 'الأخيرة: اقرأ الآية وليس عليها علامة، ثم تظهر الكلمة وحرفها.' : 'هذه الكلمة وحرفها: هل قرأتَها على القاعدة؟'}</div>` : ''}
       <p class="d4-how">${x.ay ? Z.ayahLabel(x) : 'اقرأ'}${bare ? '' : chip(x)}</p>
       <p class="d4-ay${len > 60 ? ' d4-long' : ''}" lang="ar">${text}</p>
@@ -95,22 +113,60 @@ window.D4 = (() => {
     </div>`;
   }
 
+  /* the three steps of every reading: hear the reader, read, then the check (the checker finds the word in the reading, and
+     the ear judges it beside the reader's); with no recording of the reader, the last two */
+  function track3(x) {
+    const rd = !!T.reader(), heardIt = T.heardAt === T.i, rec = !!T.rec;
+    const st = (rd ? [['اسمع القارئ', heardIt || rec]] : []).concat([['اقرأ', rec], ['الفحص', rec && !T.finding && (T.looked || T.err || !Z.canLocate(x))]]);
+    const now = st.findIndex(([, done]) => !done);
+    return `<ol class="d4-steps" aria-label="الخطوات">${st.map(([t, done], i) => `<li class="${done ? 'd4-done' : i === now ? 'd4-now' : ''}"${i === now ? ' aria-current="step"' : ''}><i>${done ? I.ok(11) : AR(i + 1)}</i>${t}</li>`).join('')}</ol>`;
+  }
+
+  /* «صدى»: the same three steps, on the examples of the trial lessons of a chapter (or of all), those with the reader's
+     recitation first, seven at a time */
+  const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  function poolOf(ch) {
+    const ids = Object.entries(window.D4MAP.ch).filter(([, c]) => ch === 'all' || c === ch).map(([id]) => id);
+    return ids.flatMap(id => LES[id] ? LES[id].cases.flatMap(c => c.items) : []).filter(x => x.kind !== 'ayah');
+  }
+  // a count of examples, as Arabic says it
+  const examples = n => n === 1 ? 'مثال واحد' : n === 2 ? 'مثالان' : n <= 10 ? AR(n) + ' أمثلة' : AR(n) + ' مثالًا';
+  function sadaIntro() {
+    const chs = api.CH.map(c => [c, poolOf(c.id).length]).filter(([, n]) => n);
+    box.innerHTML = `<div class="wrap d4-l">
+      <h1 class="d4-h">صدى: اسمع، اقرأ، ثم الفحص</h1>
+      <p class="d4-lead">تسمع القارئ يقرأ الآية، ثم تقرؤها أنت ويُسجَّل صوتك، ثم الفحص: يجد الفاحص الكلمة في تلاوتك، فتسمعها مع صوت القارئ، وتحكم أذنك.</p>
+      <div class="d4-go"><a class="btn pri" href="#sada/all">${I.mic}ابدأ: سبع آيات من الأبواب كلها</a></div>
+      <ol class="d4-chs">${chs.map(([c, n]) => `<li><a href="#sada/${c.id}"><b>${c.n ? 'الباب ' + AR(c.n) : 'المدخل'}</b><span>${esc(api.split(c.title)[0])}</span><small>${examples(n)}</small></a></li>`).join('')}</ol>
+      <p class="d4-small">يُرسَل تسجيلك إلى الفاحص ليجد فيه موضع الكلمة، بعد أن تأذن بذلك أول مرة. والفاحص لا يحكم على تلاوتك.</p>
+    </div>`;
+  }
+  function sada(ch, a) {
+    api = a; mode = 'sada'; box.style.display = ''; cur = { ch, sada: true };
+    if (!ch) { T = null; sadaIntro(); window.scrollTo(0, 0); return; }
+    const all = poolOf(ch), heard = shuffle(all.filter(x => x.au && D.audio[x.au] && x.ay)), rest = shuffle(all.filter(x => !(x.au && D.audio[x.au] && x.ay)));
+    T = Z.sitting({ id: 'sada-' + ch, cases: [] }, heard.concat(rest).slice(0, 7), draw, { ear: true }); T.n = 50; T.load();
+    draw(); window.scrollTo(0, 0);
+  }
+
   function show(l, practice, a) {
     api = a; cur = l; mode = practice ? 'p' : 'l'; box.style.display = '';
-    if (practice) { if (!T || T.L !== LES[l.t4]) { T = Z.sitting(LES[l.t4], steps(LES[l.t4]), draw, { ear: true }); T.n = 50; T.load(); } draw(); }
+    if (practice) { if (!T || T.L !== LES[l.t4] || T.k !== l.k) { T = Z.sitting(LES[l.t4], steps(LES[l.t4], l.k), draw, { ear: true }); T.k = l.k; T.n = 50; T.load(); } draw(); }
     else lesson();
     window.scrollTo(0, 0);
   }
   function hide() { mode = ''; box.style.display = 'none'; Z.stop(); if (T && T.on) T.mic(); T = null; box.innerHTML = ''; }
   box.addEventListener('click', e => {
-    const b = e.target.closest('[data-d4]'); if (!b || !T) return;
+    const b = e.target.closest('[data-d4]'); if (!b) return;
     const k = b.dataset.d4;
-    if (k === 'rd') return Z.play(T.reader());
+    if (k === 'more' && cur && cur.sada) return sada(cur.ch, api);
+    if (!T) return;
+    if (k === 'rd') { T.heardAt = T.i; draw(); return Z.play(T.reader()); }
     if (k === 'mic') return T.mic();
     if (k === 'mine') return T.span ? Z.play(T.rec.url, { from: Math.max(0, T.span[0] - .15), to: T.span[1] + .2 }) : Z.play(T.rec.url);
-    if (k === 'both') return Z.playBoth(T.reader(), T.rec.url);
+    if (k === 'both') { T.heardAt = T.i; return Z.playBoth(T.reader(), T.rec.url); }
     if (k === 'ok' || k === 'next') return T.next();
   });
   window.__t = () => T;
-  return { show, hide };
+  return { show, hide, sada };
 })();
