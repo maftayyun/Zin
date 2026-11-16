@@ -1,0 +1,239 @@
+<!doctype html><html lang="ar" dir="rtl" data-v="1.1"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex">
+<title>زِنِ الحَرْفَ · تلقّي ١٫١ (نسخة تجريبية)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="look.css?v=36f0d51">
+<style>
+/* «تلقّي» 1.1: the first version's way (hear the reader, read after him, hear the two voices), on the third's calm screen: a short
+   bar at the top, the ayah as the text to read, the exercise's word marked in it, and no verdict: the checker only finds the word */
+@font-face{font-family:ZinQ;src:url(../assets/zinq.woff2) format("woff2");font-display:block}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);font-family:Alexandria,system-ui,sans-serif;color:var(--ink);direction:rtl;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.q{font-family:ZinQ;font-weight:400;letter-spacing:0}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+:focus-visible{outline:3px solid var(--ind);outline-offset:2px;border-radius:12px}
+/* the list */
+.lh{padding:22px 20px 6px}
+.lh h1{margin:0;font-size:30px;font-weight:700;line-height:1.3}
+.lh p{margin:2px 0 0;font-size:13px;color:var(--ink2);line-height:1.8}
+.cont{margin:10px 16px 14px;padding:16px;border-radius:22px;background:var(--ind);color:#fff;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;box-shadow:0 14px 26px -16px rgba(58,47,181,.9)}
+.cont small{font-size:12px;color:#E4E1FB}
+.cont b{font-size:16px;font-weight:600;line-height:1.6}
+.cont b .q{font-size:1.15em}
+.cont .go{grid-row:1/3;grid-column:2;width:54px;height:54px;border-radius:50%;background:var(--cor);display:grid;place-items:center}
+.ls{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.lr{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 1px 2px rgba(26,23,64,.05);min-height:68px}
+.lr .gl{width:48px;height:48px;border-radius:50%;background:var(--ind-s);color:var(--ind);font-family:ZinQ;font-size:24px;line-height:1;display:grid;place-items:center;padding-bottom:5px;overflow:hidden}
+.lr b{display:block;font-size:14px;font-weight:600;line-height:1.6}
+.lr b .q{font-size:1.15em}
+.lr .st{font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.lr.done .gl{background:var(--ok-s);color:var(--ok)}.lr.done .st{color:var(--ok)}
+.chh{display:flex;align-items:baseline;gap:10px;margin:22px 20px 8px;font-size:14px;font-weight:600;line-height:1.6;color:var(--ink2)}
+.chh i{font-style:normal;flex:none;font-size:18px;font-weight:700;color:var(--ind)}
+.foot{padding:18px 20px 30px;font-size:12px;line-height:1.9;color:var(--ink2)}
+.foot a{text-decoration:underline;display:inline-flex;align-items:center;min-height:44px;font-weight:600}
+/* the bar at the top: where you are, in a few words, so the text to read stays in view at large text sizes */
+.ab{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 16px}
+.ab .tt b{font-size:15px;line-height:1.4}
+.ab .tt span{font-size:12px}
+.th{flex:1;padding:4px 16px 12px;display:flex;flex-direction:column;gap:12px}
+/* a lesson */
+.lt{margin:0;font-size:22px;font-weight:700;line-height:1.5}
+.lt .q{font-size:1.15em}
+.rule{background:var(--card);border-radius:20px;padding:14px 16px;font-size:15px;line-height:1.95}
+.rule p{margin:0}.rule p+p{margin-top:4px}
+.unit{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;line-height:1.85;color:var(--ink2)}
+.unit b{display:inline-block;font-size:11px;font-weight:600;color:#B23A1C;background:var(--cor-s);padding:0 8px;border-radius:99px;margin-inline-end:6px}
+.rows{background:var(--card);border-radius:20px;padding:4px 16px}
+.rw{display:grid;grid-template-columns:1fr auto;gap:0 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.rw:first-child{border-top:0}
+.rw .w{font-size:clamp(24px,7vw,28px);line-height:1.7}
+.rw .w em{font-style:normal;color:#D9431F}
+.rw .w em.gh{color:var(--ink3)}
+.rw .tm{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;white-space:nowrap}
+.rw .sub{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12.5px;color:var(--ink2)}
+.rw .sub .q{font-size:20px;color:var(--ink);line-height:1.6}
+.ctx{display:inline-block;font-size:12px;font-weight:600;padding:1px 10px;border-radius:99px;background:var(--ind-s);color:var(--ind)}
+.ctx.waqf{background:var(--am-s);color:var(--am)}
+.ctx.ibtida{background:var(--ok-s);color:var(--ok)}
+.dts{display:flex;gap:4px;direction:ltr;align-items:center}
+.dts i{width:9px;height:9px;border-radius:50%;background:var(--cor)}
+.dts i.h{width:4.5px;border-radius:9px 0 0 9px}
+.dts i.z{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink3)}
+.dts b{width:6px}
+/* the text to read: the ayah, the exercise's words marked, its lit letter coloured */
+.how{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0;font-size:13px;color:var(--ink2);line-height:1.8}
+.ay{margin:0;font-size:clamp(26px,8.4vw,34px);line-height:2.15;color:var(--ink)}
+.ay.long{font-size:clamp(24px,6.6vw,28px)}
+.ay .ex{text-decoration:underline;text-decoration-color:var(--cor);text-decoration-thickness:2px;text-underline-offset:12px}
+.ay em{font-style:normal;color:#D9431F}
+.ay em.gh{color:var(--ink3)}
+.an{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 4px;border-radius:99px;border:1.5px solid var(--ink3);font:600 12px/1 Alexandria,sans-serif;color:var(--ink2);vertical-align:middle}
+.spot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;border-radius:16px;background:var(--card);font-size:13px;color:var(--ink2)}
+.spot .q{font-size:24px;color:var(--ink);line-height:1.6}
+.spot .q em{font-style:normal;color:#D9431F}
+.spot b{color:var(--ink);font-weight:600}
+.eq{display:flex;align-items:center;gap:8px;font-family:ZinQ;font-size:22px;line-height:1.5;color:var(--ink)}
+.eq i{font:400 14px Alexandria,sans-serif;color:var(--ink2);font-style:normal}
+.pl{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;border-radius:99px;background:var(--card);direction:ltr;margin:0}
+.pl .pb{flex:none;width:44px;height:44px;border-radius:50%;background:var(--ind);display:grid;place-items:center}
+.pl .who{flex:1;min-width:0;font-size:13px;font-weight:600;direction:rtl;color:var(--ink)}
+.pl .who small{display:block;font-size:12px;font-weight:500;color:var(--ink2)}
+.nor{padding:8px 12px;border-radius:12px;background:#ECE9F7;color:var(--ink2);font-size:13px;line-height:1.7}
+.recng{align-self:center;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#B23A1C}
+.recng i{width:10px;height:10px;border-radius:50%;background:var(--cor);animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.25}}
+/* after a reading: the ear decides */
+.ear{background:var(--card);border-radius:20px;padding:14px 16px;display:grid;gap:10px}
+.ear .hd{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
+.ear .hd span{width:28px;height:28px;border-radius:9px;background:var(--ind-s);color:var(--ind);display:grid;place-items:center}
+.ear p{margin:0;font-size:14px;line-height:1.85}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;border-radius:14px;font-size:14px;font-weight:600;background:#EFEDF7;padding:0 10px}
+.acts button.y{grid-column:1/-1;background:var(--ok-s);color:var(--ok)}
+.small{font-size:12px;color:var(--ink2);line-height:1.7;margin:0}
+/* the dock: read, and go on; nothing else */
+.dock3{position:sticky;bottom:0;margin-top:auto;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--bg) 24%)}
+.dock3 .cta{height:56px}
+.dock3 .cta.on{background:#B23A1C}
+.dock3 .nx{display:flex;align-items:center;gap:6px;min-height:56px;padding:0 16px;border-radius:18px;background:#fff;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(26,23,64,.08)}
+.dock{position:sticky;bottom:0;margin-top:auto;padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--bg) 24%)}
+.cta{width:100%}
+.end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 24px;gap:8px}
+.end .ok{width:86px;height:86px;border-radius:50%;background:var(--ok-s);display:grid;place-items:center}
+.end h1{margin:10px 0 0;font-size:26px}
+.end p{margin:0;color:var(--ink2);font-size:14px;line-height:1.9}
+.end .cta{margin-top:18px}
+.end a.back{margin-top:10px;font-size:14px;font-weight:600;color:var(--ind);min-height:44px;display:flex;align-items:center}
+@media (max-width:330px){.dock3 .nx{padding:0 10px}.dock3 .cta{gap:6px}}
+@media (prefers-reduced-motion:reduce){.recng i{animation:none}}
+</style></head><body>
+<div class="app" id="app"></div>
+<script src="../assets/data.js?v=36f0d51"></script><script src="../assets/zf-forms.js?v=36f0d51"></script><script src="../assets/reciter.js?v=36f0d51"></script><script src="../assets/ayat.js?v=36f0d51"></script><script src="../assets/zf.js?v=36f0d51"></script><script src="../assets/core.js?v=36f0d51"></script>
+<script>
+(() => {
+const { D, $, esc, AR, CTX, LES, vName, lit, qt, glyph, dots, parts } = Z, app = $('#app');
+const IDS = D.lessons.map(l => l.id), no = id => AR(IDS.indexOf(id) + 1);
+const I = {
+  back: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
+  mic: (s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`,
+  stop: '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="#fff"/></svg>',
+  play: c => `<svg width="16" height="16" viewBox="0 0 24 24" fill="${c}" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`,
+  ok: (c, s = 15) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>`,
+  both: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5v14l8-7zM18 5v14"/></svg>',
+  nxt: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1740" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>',
+  ear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a5 5 0 1 1 9 3c-1 1-1.5 2-1.5 3.5a3 3 0 0 1-5.5 1"/></svg>',
+};
+const mark = s => qt(s).replace(/(بزمن\s*=\s*)(\(?\s*\d[^)]*\)\s*حرك\S*|حركة(?: واحدة)?\s*\+\s*بعض حركة|حركة واحدة|حركتان|\d+\s*حركات|حركة)/g, '$1<b>$2</b>');
+const chip = x => x.ctx ? `<span class="ctx ${x.ctx}">${CTX[x.ctx]}</span>` : '';
+// the time of the lit letter, from the example's own value: a doubled letter as its two letters, each with its own time
+function timeOf(x) {
+  if (x.kind === 'verdict' || x.kind === 'form' || x.kind === 'start') return `<b>${esc(x.ans)}</b>`;
+  if (x.kind !== 'time' || x.v == null) return '';
+  return `${dots(x.v)}<b>${esc(vName(x.v))}</b>`;
+}
+function split(x) {
+  if (x.kind !== 'time' || !x.v || !x.v.includes('+')) return '';
+  const p = parts(glyph(x)), v = x.v.split('+');
+  return `<div class="eq" aria-label="الحرف المشدّد حرفان: ${esc(vName(x.v))}"><span>${esc(glyph(x))}</span><i>=</i><span>${esc(p[0])}</span>${dots(v[0])}<i>+</i><span>${esc(p[1])}</span>${dots(v[1])}</div>`;
+}
+const said = x => { const s = Z.saidOf(x); return s && x.kind !== 'form' && x.kind !== 'start' ? `<span>${Z.saidLabel(x)}</span><span class="q">${esc(s)}</span>` : ''; };
+const litWord = x => lit(x.w, x.f, x.v === '0' ? 'gh' : '');
+// the lesson's own ayah (its last exercise where the checker once measured it): the ayah's letters, the rule's places lit
+const ayahMarks = x => { const at = new Set((x.marks || []).map(m => m.wi + ':' + m.ci));
+  return x.ayah.w.map((w, wi) => w.map((u, ci) => at.has(wi + ':' + ci) ? `<em>${esc(u.c)}</em>` : esc(u.c)).join('')).join(' '); };
+
+/* ---------- the lessons ---------- */
+function list() {
+  const S = Z.S(), nx = IDS.find(id => !S.done[id]) || IDS[0], L = LES[nx];
+  app.innerHTML = `<header class="lh"><h1>الدروس</h1><p>اتجاه «تلقّي» ١٫١: تسمع القارئ، تقرأ الآية بعده، وتسمع صوتك مع صوته.</p></header>
+    <a class="cont" href="#l/${nx}"><small>${Object.keys(S.done).length ? 'تابع' : 'ابدأ'} · الدرس ${no(nx)}</small><b>${qt(L.title)}</b><span class="go">${I.mic(24)}</span></a>
+    ${Z.chapters(IDS).map(c => `<h2 class="chh"><i>${AR(c.no)}</i>${esc(c.title)}</h2><div class="ls">${c.ids.map(id => { const L = LES[id], d = S.done[id];
+      return `<a class="lr${d ? ' done' : ''}" href="#l/${id}"><span class="gl" aria-hidden="true">${esc(glyph(L.cases[0].items[0]))}</span><div><b>${qt(L.title)}</b></div><span class="st">${d ? 'أتممته' : ''}</span></a>`; }).join('')}</div>`).join('')}
+    <p class="foot">نسخة تجريبية: «تلقّي» بما استحسنّاه من «من الآية»، وهو شاشة هادئة، والآية هي النص المقروء، والفاحص يجد موضع الكلمة ولا يحكم. ${AR(IDS.length)} درسًا. نصوص القواعد والأمثلة من كتاب «${esc(D.title.join(' '))}».<br><a href="../">النسخ التجريبية</a></p>`;
+}
+function lesson(id) {
+  const L = LES[id]; if (!L) return location.hash = '';
+  app.innerHTML = `<div class="ab"><a class="bk" href="#" aria-label="رجوع إلى الدروس">${I.back}</a><div class="tt"><b>الدرس ${no(id)}</b><span>الباب ${AR(L.no)} من ٩</span></div></div>
+    <div class="th"><h1 class="lt">${qt(L.title)}</h1>
+      <div class="rule">${Z.ruleLines(L).map(t => `<p>${mark(t)}</p>`).join('')}${id === 'L0' ? `<div class="unit"><b>الحركة</b>${esc(D.unit)}</div>` : ''}</div>
+      <div class="rows">${L.cases.map(c => { const x = c.items[0];
+        return `<div class="rw"><span class="w q" lang="ar">${litWord(x)}</span><span class="tm">${timeOf(x)}</span>
+          ${chip(x) || said(x) || split(x) ? `<div class="sub">${chip(x)}${said(x)}${split(x)}</div>` : ''}</div>`; }).join('')}</div>
+    </div>
+    <div class="dock"><a class="cta" href="#p/${id}">${I.mic()}اقرأ بعد القارئ</a></div>`;
+}
+
+/* ---------- reading after the reader ---------- */
+let T = null;
+function heard(x) {
+  if (!T.rec) return '';
+  const rd = T.reader(), find = Z.canLocate(x);
+  return `<div class="ear"><div class="hd"><span>${I.ear}</span>قارن بأذنك</div>
+    <p>${rd ? 'اسمع القارئ ثم صوتك: هل قرأتَ مثله؟' : 'اسمع صوتك، وقابله بالقاعدة: هل أصبتَ؟'}</p>
+    <div class="acts">${rd ? `<button type="button" data-both>${I.both}اسمع الصوتين</button>` : ''}
+      <button type="button" data-mine${rd ? '' : ' style="grid-column:1/-1"'}>${I.play('#1A1740')}${T.span ? 'الكلمة من تلاوتك' : 'تلاوتك'}</button>
+      <button type="button" class="y" data-ok>${I.ok('#0C9A6B')}أصبتُ</button></div>
+    ${T.finding ? '<p class="small" role="status">يبحث الفاحص عن الكلمة في تلاوتك…</p>' : T.err ? `<p class="small">${esc(Z.errText(T.err))} فاسمع تلاوتك كاملة.</p>`
+      : T.looked && !T.span ? '<p class="small">لم يجد الفاحص الكلمة في تلاوتك، فاسمعها كاملة.</p>' : ''}
+    ${find ? '<p class="small">الفاحص هنا يجد موضع الكلمة في تلاوتك فقط، ولا يحكم عليها.</p>' : ''}</div>`;
+}
+function practice(id) {
+  const L = LES[id]; if (!L) return location.hash = '';
+  if (!T || T.L !== L) { T = Z.sitting(L, Z.examples(L), () => { if (route === 'p') draw(); }, { ear: true }); }
+  draw();
+}
+function draw() {
+  const L = T.L, x = T.cur(), n = T.items.length;
+  if (T.end) {
+    const nx = IDS[IDS.indexOf(L.id) + 1];
+    app.innerHTML = `<div class="end"><span class="ok">${I.ok('#0C9A6B', 40)}</span><h1>أتممتَ الدرس</h1><p>${qt(L.title)}</p>
+      ${nx ? `<a class="cta" href="#l/${nx}">الدرس التالي</a>` : ''}<a class="back" href="#">إلى الدروس</a></div>`;
+    T = null; return;
+  }
+  const text = x.ay ? Z.ayahLit(x) : x.kind === 'ayah' ? ayahMarks(x) : litWord(x), len = (x.ay ? x.ay.text : x.w).length;
+  const how = x.ay ? Z.ayahLabel(x) : x.kind === 'ayah' ? `اقرأ الآية كاملة: ${esc(x.ayah.sura)} ${AR(x.ayah.a)}` : 'اقرأ';
+  const rd = T.reader();
+  app.innerHTML = `<div class="ab"><a class="bk" href="#l/${L.id}" aria-label="رجوع إلى الشرح">${I.back}</a><div class="tt"><b>الدرس ${no(L.id)}</b><span>${AR(T.i + 1)} من ${AR(n)}</span></div></div>
+    <div class="th">
+      <p class="how">${how}${chip(x)}</p>
+      <p class="ay q${len > 60 ? ' long' : ''}" lang="ar">${text}</p>
+      ${x.kind !== 'ayah' && (timeOf(x) || said(x)) ? `<div class="spot"><span class="q" lang="ar"><em>${esc(glyph(x))}</em></span>${split(x) || timeOf(x)}${said(x)}</div>` : ''}
+      ${rd ? `<div class="pl"><button type="button" class="pb" data-play="${x.au}" aria-label="اسمع القارئ">${I.play('#fff')}</button><span class="who">اسمع القارئ<small>${x.recited ? Z.TMP : 'القارئ'}</small></span></div>`
+        : '<div class="nor">لم يُسجَّل صوت القارئ لهذا المثال بعد. اقرأه أنت، وقابله بالقاعدة.</div>'}
+      ${T.on ? '<div class="recng" role="status"><i></i>يُسجَّل الآن. اقرأ ثم أوقف.</div>' : ''}
+      ${T.msg ? `<div class="nor" role="alert">${esc(T.msg)}</div>` : ''}
+      ${!Z.canRec ? '<div class="nor">هذا المتصفح لا يسجّل الصوت. افتح الصفحة في Safari أو Chrome.</div>' : ''}
+      ${heard(x)}
+    </div>
+    <div class="dock3"><button type="button" class="cta${T.on ? ' on' : ''}" data-mic>${T.on ? I.stop + 'أوقف' : I.mic() + (T.rec ? 'اقرأ مرة أخرى' : 'اقرأ')}</button>
+      <button type="button" class="nx" data-next>${T.i + 1 < n ? 'التالية' : 'أنهِ الدرس'}${I.nxt}</button></div>`;
+}
+
+/* ---------- routing and taps ---------- */
+let route = '';
+function render() {
+  const [a, b] = (location.hash || '#').slice(1).split('/');
+  Z.stop(); route = a || 'list';
+  if (a !== 'p' && T) { if (T.on) T.mic(); T = null; }
+  if (a === 'l') lesson(b); else if (a === 'p') practice(b); else list();
+  if (a !== 'p' || !T || !T.rec) window.scrollTo(0, 0);
+}
+document.addEventListener('click', e => {
+  const t = e.target, p = t.closest('[data-play]');
+  if (p) return Z.play(D.audio[p.dataset.play]);
+  if (!T) return;
+  if (t.closest('[data-mic]')) return T.mic();
+  if (t.closest('[data-mine]')) return T.span ? Z.play(T.rec.url, { from: Math.max(0, T.span[0] - .15), to: T.span[1] + .2 }) : Z.play(T.rec.url);
+  if (t.closest('[data-both]')) return Z.playBoth(T.reader(), T.rec.url);
+  if (t.closest('[data-ok]') || t.closest('[data-next]')) return T.next();
+});
+addEventListener('hashchange', render);
+render();
+window.__t = () => T;
+})();
+</script></body></html>

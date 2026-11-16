@@ -34,12 +34,42 @@ window.Z = (() => {
   })));
   const ayahLabel = x => {
     const a = x.ay, from = a.from_mark ? 'علامة الوقف قبلها' : 'أول الآية', to = a.to_mark ? 'علامة الوقف بعدها' : 'آخر الآية';
-    const how = !a.part || a.whole ? 'اقرأ الآية كاملة' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى ' + to
+    // a reading that runs over the end of an ayah into the next: both numbers
+    const how = a.a2 ? (x.ctx === 'waqf' ? 'اقرأ من أول الآية، وقف على آخر ما تقرؤه' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى آخر الآية التي تليها' : 'اقرأ الآيتين كاملتين')
+      : !a.part || a.whole ? 'اقرأ الآية كاملة' : x.ctx === 'ibtida' ? 'ابدأ بها واقرأ إلى ' + to
       : x.ctx === 'waqf' ? `اقرأ من ${from}، وقف على آخرها` : x.ctx === 'wasl' ? `اقرأ من ${from} إلى ${to}` : 'اقرأ من ' + from;
-    return how + ': ' + esc(a.sura) + ' ' + AR(a.a);
+    return how + ': ' + esc(a.sura) + ' ' + AR(a.a) + (a.a2 ? '–' + AR(a.a2) : '');
   };
-  // the ayah of an exercise, its words of the exercise marked
-  const ayahLine = x => x.ay.text.split(' ').map((w, i) => i + 1 >= x.ay.w1 && i + 1 <= x.ay.w2 ? `<mark>${esc(w)}</mark>` : esc(w)).join(' ');
+  // the ayah of an exercise, its words of the exercise marked; in a reading of two ayat, the first one's number between them
+  const ayahSep = a => `<span class="an" aria-label="آخر الآية ${AR(a.a)}">${AR(a.a)}</span>`;
+  const ayahLine = x => x.ay.text.split(' ').map((w, i) => (x.ay.split && i === x.ay.split ? ayahSep(x.ay) + ' ' : '') + (i + 1 >= x.ay.w1 && i + 1 <= x.ay.w2 ? `<mark>${esc(w)}</mark>` : esc(w))).join(' ');
+  /* the same, for the versions that read the ayah as their main text: the exercise's words in <span class="ex">, and its lit letter
+     in <em>. The book's word and the mushaf's can differ in a tatweel or a sukun the mushaf does not write, so the lit letter is
+     found by its place among the letters of its word (the n-th letter), with the marks that follow it */
+  const LET = /[ء-غف-يٱ-ۓ]/;
+  function ayahLit(x) {
+    const a = x.ay, ws = a.text.split(' '), bw = x.w.split(' ');
+    let k = -1, n = -1, len = 0;
+    if (x.f) {
+      const before = x.w.slice(0, x.f[0]); k = before.split(' ').length - 1;
+      const start = before.lastIndexOf(' ') + 1, lit = x.w.slice(x.f[0], x.f[1]);
+      n = [...x.w.slice(start, x.f[0])].filter(c => LET.test(c)).length; len = Math.max(1, [...lit].filter(c => LET.test(c)).length);
+    }
+    const litWord = w => {
+      const cs = [...w]; let seen = -1, a0 = -1, b0 = -1;
+      cs.forEach((c, i) => { if (LET.test(c)) { seen++; if (seen === n && a0 < 0) a0 = i; if (seen === n + len) b0 = b0 < 0 ? i : b0; } });
+      if (a0 < 0) return esc(w);
+      if (b0 < 0) b0 = cs.length;
+      return esc(cs.slice(0, a0).join('')) + '<em>' + esc(cs.slice(a0, b0).join('')) + '</em>' + esc(cs.slice(b0).join(''));
+    };
+    return ws.map((w, i) => {
+      const sep = a.split && i === a.split ? ayahSep(a) + ' ' : '', inEx = i + 1 >= a.w1 && i + 1 <= a.w2;
+      if (!inEx) return sep + esc(w);
+      const j = i + 1 - a.w1, open = j === 0 ? '<span class="ex">' : '', close = i + 1 === a.w2 ? '</span>' : '';
+      // the words of the exercise are the book's, one for one: the lit letter is in the k-th of them (bw[k])
+      return sep + open + (j === k && bw.length === a.w2 - a.w1 + 1 ? litWord(w) : esc(w)) + close;
+    }).join(' ');
+  }
   const ayahAudio = a => { const h = HUS['ayah|' + a.s + ':' + a.a]; return h ? h.src : ''; };
   const vName = v => AR(D.name[v] || v);
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
@@ -177,10 +207,12 @@ window.Z = (() => {
   const CHK = 'https://yamanamr-zin-checker.hf.space';
   const NOTE = 'الفاحص نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.';
   const NOTE_EN = 'This Quranic Teacher is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).';
-  function aiOK(here) {
+  function aiOK(here, why) {
     if (here ? S.zf : S.ai) return true;
     const what = here ? 'يُفحص تسجيلك على جهازك ولا يُرسَل إلى أحد. ويُنزَّل نموذج التعرّف (73 ميغابايت) أول مرة فقط، ثم يعمل بلا إنترنت.'
-                      : 'يُرسَل تسجيلك إلى الفاحص ليقيسه، ولا يُحفظ.';
+                      // what is true today: the Space keeps an upload until it restarts (its fix, which deletes each one after its
+                      // check, is on branch checker-quran-lab and not yet in the Space)
+                      : 'يُرسَل تسجيلك إلى الفاحص ' + (why || 'ليقيسه') + '. ولا نحفظه نحن، لكنه يبقى على خادم الفاحص إلى أن يُعاد تشغيله.';
     if (!confirm(what + '\n\n' + NOTE + '\n\n' + NOTE_EN)) return false;
     if (here) S.zf = 1; else S.ai = 1;
     save(); return true;
@@ -340,7 +372,7 @@ window.Z = (() => {
     }
     return lines.length ? lines : null;
   }
-  const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
+  const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.timeout ? 'لم يُجب الفاحص في عشر ثوانٍ.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
   function heard(x, res) {
     const h = res.heard_as, t = res.timing;
@@ -370,10 +402,24 @@ window.Z = (() => {
   const stWord = { good: 'في زمنه', short: 'أقصر', long: 'أطول', none: 'لم يُقَس' };
   // where a word of the learner's ayah begins and ends in the recording
   function wordSpan(symbols, w) { const s = symbols.filter(x => x.word === w); return s.length ? [s[0].start_s, s[s.length - 1].end_s] : null; }
+  /* where the exercise's words are in the learner's reading of a whole ayah: the checker places the ayah's words on the recording
+     (its aligner, /align) and nothing is judged. A reading of part of an ayah is not placed (the aligner takes whole ayat). The
+     checker is waited for ten seconds at most; then the learner goes on by ear */
+  const WAIT = 10000;
+  const canLocate = x => !!(x && x.ay && !x.ay.part && x.ay.s);
+  async function locate(x, blob) {
+    const a = x.ay, res = await Promise.race([check(['align', a.s, a.a], blob, null), new Promise((_, no) => setTimeout(() => no({ timeout: true }), WAIT))]);
+    if (!res || res.similarity < .5) return null;
+    const sp = [];
+    for (let w = a.w1; w <= a.w2; w++) { const s = wordSpan(res.symbols || [], w); if (s) sp.push(s); }
+    return sp.length ? [sp[0][0], sp[sp.length - 1][1]] : null;
+  }
 
   /* ---------- one practice sitting: the same steps in the three versions ---------- */
-  function sitting(L, items, redraw) {
-    const T = { L, items, i: 0, rec: null, res: null, err: null, busy: false, on: false, ear: null, msg: '', rpk: {} };
+  /* `o.ear`: the versions that judge nothing (1.1, 2.1, as the third does): no model on the device, and after a reading of a
+     whole ayah the checker only finds the exercise's words in it (T.span), for the learner to hear them by ear */
+  function sitting(L, items, redraw, o = {}) {
+    const T = { L, items, i: 0, rec: null, res: null, err: null, busy: false, on: false, ear: null, msg: '', rpk: {}, span: null, finding: false };
     const cur = () => T.items[T.i], same = (i, r) => T.i === i && T.rec === r;
     const loadReader = () => { const x = cur(); if (x.au && D.audio[x.au] && !(x.au in T.rpk)) { T.rpk[x.au] = null; peaks(D.audio[x.au], T.n || 44).then(p => { T.rpk[x.au] = p; redraw(); }); } };
     T.cur = cur;
@@ -384,14 +430,14 @@ window.Z = (() => {
       if (T.on) {
         const r = await recStop(); T.on = false; if (!r) return redraw();
         r.zs = T.zs; T.zs = null;
-        T.rec = r; T.res = T.err = null; T.ear = null; redraw();
+        T.rec = r; T.res = T.err = null; T.ear = null; T.span = null; T.looked = false; redraw();
         const i = T.i; r.pk = await peaks(r.blob, T.n || 44); if (!same(i, r)) return; redraw();
-        if (cur().chk) T.check();
+        if (o.ear) T.find(); else if (cur().chk) T.check();
       } else {
         T.msg = '';
         // an exercise checked on the device: ask once, then get the model ready and listen while the learner reads
         let sink = null; T.zs = null;
-        if (cur().zf && !window.__mock && (S.zf || aiOK(true))) {
+        if (cur().zf && !o.ear && !window.__mock && (S.zf || aiOK(true))) {
           const z = T.zs = { parts: [], s: null, got: 0 };
           const tick = () => { if (T.zs === z || (T.rec && T.rec.zs === z)) { T.msg = zwait(); redraw(); } };
           recogniser(tick).then(R => { if (z.parts) { z.s = R.stream(); z.parts.forEach(p => z.s.push(p)); z.parts = null; } }, () => {});
@@ -420,14 +466,24 @@ window.Z = (() => {
         res.second = sec; redraw();
       }
     };
-    T.go = n => { stop(); T.i = n; T.rec = T.res = T.err = null; T.ear = null; T.busy = false; T.on = false; T.msg = ''; loadReader(); redraw(); };
+    T.find = async () => {
+      const i = T.i, r = T.rec, x = cur();
+      if (!r || !canLocate(x)) return;
+      if (!aiOK(false, 'ليجد فيه موضع الكلمات')) { T.err = { declined: true }; return redraw(); }
+      T.finding = true; T.err = null; redraw();
+      let sp = null, err = null;
+      try { sp = await locate(x, r.blob); } catch (e) { err = e || {}; }
+      if (!same(i, r)) return;
+      T.finding = false; T.looked = !err; T.span = sp; T.err = err; redraw();
+    };
+    T.go = n => { stop(); T.i = n; T.rec = T.res = T.err = null; T.ear = null; T.busy = false; T.finding = false; T.looked = false; T.span = null; T.on = false; T.msg = ''; loadReader(); redraw(); };
     T.next = () => { if (T.i + 1 < T.items.length) T.go(T.i + 1); else { S.done[L.id] = 1; save(); T.end = true; stop(); redraw(); } };
     T.judge = ok => { T.ear = ok ? 'ok' : 'redo'; if (!ok) { T.rec = null; T.res = T.err = null; } redraw(); };
     loadReader();
     // a learner who has allowed the check before: get the model ready as the page opens, not when they finish reading
-    if (S.zf && !window.__mock && items.some(x => x.zf)) setTimeout(() => recogniser().catch(() => {}), 400);
+    if (S.zf && !o.ear && !window.__mock && items.some(x => x.zf)) setTimeout(() => recogniser().catch(() => {}), 400);
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, ayahLabel, ayahLine, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, ayahLabel, ayahLine, ayahLit, canLocate, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
 })();
