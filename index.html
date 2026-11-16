@@ -1,4 +1,4 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><title>زِنِ الحَرْفَ</title></head><body><title>زِنِ الحَرْفَ</title>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"></head><body><title>زِنِ الحَرْفَ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -537,6 +537,8 @@ q{quotes:"«" "»"}
 .cv-say .bd i{transform-origin:right center}
 .cv-say .ln{justify-content:center;text-align:center}
 .cv-lab{font:500 .9375rem/1.8 var(--f-ui);color:var(--ink-2)}
+.cv-say .cv-lab .ln.cv-v{gap:0 .35em}
+.cv-say .cv-lab .ln.cv-v span{font:700 clamp(1.5rem,5.4vw,1.85rem)/1.5 var(--f-h);color:var(--c)}
 .cv-acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding-top:6px}
 .cv-acts .btn.pri{min-width:min(100%,260px)}
 @media (prefers-reduced-motion:reduce){.cv *{animation:none!important;transition:none!important}}
@@ -2294,6 +2296,8 @@ function cardStep() {
       const r = sp.querySelector('.rd'); if (r) { const q = X.rel(r); cvPlace(sr, { cx: q.x + q.w / 2, cy: X.n.cy }, true); } else sr.classList.remove('on');
       const lab = p.lab && cellText(p.lab).trim() ? cellHTML(p.lab, true) : '';
       CV.el.querySelector('.cv-say').innerHTML = `<div><div class="cv-lab">${lab}${lab && /class="bd/.test(lab) ? '' : p.d ? beads(p.d, 'md') : ''}</div>${p.cond ? `<p>${qwrap(esc(p.cond))}</p>` : ''}</div>`;
+      // a short ruling (تُفخّم (ر)، تُرقّق، لا تُلفظ) is the step's answer: large, in the part's colour, one phrase with its letter
+      CV.el.querySelectorAll('.cv-say .cv-lab .ln').forEach(ln => { const t = ln.textContent.replace(/\s+/g, ' ').trim(); if (t && t.length <= 16 && !/بزمن|[0-9٠-٩=]/.test(t) && !ln.querySelector('.bd')) ln.classList.add('cv-v'); });
       let k = 0; el.querySelectorAll('.cv-say .bd i').forEach((bd, j) => { if (bd.classList.contains('g')) return; const kk = k++;
         if (still) return; bd.style.transform = 'scale(0)'; setTimeout(() => { bd.style.transform = ''; bd.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 220, easing: CV_POP }); if (sndOn()) { try { const c = ac(); tone(c.currentTime, .32, [587.33, 659.25, 739.99, 783.99, 880, 987.77][kk] || 988, .05); } catch (e) {} } }, 120 + 280 * j); });
       after();
@@ -2797,7 +2801,7 @@ document.addEventListener('click', e => {
   const uf = t.closest('[data-unfold]'); if (uf) { unfold(uf.dataset.unfold); return; }
   const pc = t.closest('[data-print-ch]'); if (pc) { location.hash = `#c/${pc.dataset.printCh}/read`; setTimeout(() => window.print(), 400); return; }
   const p = t.closest('[data-p]'); if (p && P) { onPractice(p); return; }
-  const th = t.closest('[data-theme]'); if (th) { const n = THEMES[(THEMES.indexOf(theme()) + 1) % THEMES.length]; if (n) document.documentElement.dataset.theme = n; else delete document.documentElement.dataset.theme; try { localStorage.setItem('zin.theme', n); } catch (er) {} th.textContent = 'المظهر: ' + THEME_L[n]; return; }
+  const th = t.closest('button[data-theme]'); if (th) { const n = THEMES[(THEMES.indexOf(theme()) + 1) % THEMES.length]; if (n) document.documentElement.dataset.theme = n; else delete document.documentElement.dataset.theme; try { localStorage.setItem('zin.theme', n); } catch (er) {} th.textContent = 'المظهر: ' + THEME_L[n]; return; }
   const sz = t.closest('#sizeBtn,[data-size]'); if (sz) { const on = document.documentElement.dataset.size !== 'lg'; document.documentElement.dataset.size = on ? 'lg' : ''; $$('#sizeBtn,[data-size]').forEach(x => x.setAttribute('aria-pressed', on)); try { localStorage.setItem('zin.size', on ? 'lg' : ''); } catch (er) {} }
 });
 document.addEventListener('mouseover', e => { const m = e.target.closest('#ddCh [data-mi]'); if (m) megaFocus(m.dataset.mi); });
