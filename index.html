@@ -635,6 +635,49 @@ q{quotes:"«" "»"}
 
 /* ---------- practice ---------- */
 .pr-wrap{min-height:calc(100svh - var(--hh));display:flex;flex-direction:column;align-items:center;padding:18px 16px 40px}
+/* the lesson as one page (the lesson-flow model): the stages done folded, the current one a card, one button fixed at the foot */
+.pr-wrap.lsf{align-items:stretch;max-width:760px;margin-inline:auto;padding-bottom:150px}
+.lsf .lsf-top{max-width:none;width:auto;position:sticky;top:var(--hh);z-index:15;margin:-18px -16px 14px;padding:10px 16px;background:color-mix(in srgb,var(--paper) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.lsf-prog{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;list-style:none;margin:0;padding:0;overflow:hidden}
+.lsf-prog li{display:flex;align-items:center;gap:6px;color:var(--ink-3);font:600 .8125rem/1 var(--f-ui);white-space:nowrap}
+.lsf-prog .d{width:10px;height:10px;border-radius:999px;box-shadow:inset 0 0 0 2px var(--line-2);flex:none}
+.lsf-prog li.done .d{background:var(--c);box-shadow:none}
+.lsf-prog li.cur .d{background:var(--c);box-shadow:0 0 0 4px var(--ct)}
+.lsf-prog li.cur .t{color:var(--ink)}
+.lsf-band{background:var(--c);color:#fff;border-radius:22px;padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+:root[data-theme="dark"] .lsf-band{color:#14151E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lsf-band{color:#14151E}}
+.lsf-band .n{font:800 1.375rem/1 var(--f-h);min-width:46px;height:46px;padding:0 8px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,.18);flex:none}
+.lsf-band small{display:block;font:500 .8125rem/1.6 var(--f-ui);opacity:.88}
+.lsf-band h1{margin:0;font:700 clamp(1.0625rem,3.6vw,1.3rem)/1.6 var(--f-h)}
+.lsf-st{margin-bottom:12px}
+.lsf-st.cur .card.ls{max-width:none;border-color:color-mix(in srgb,var(--c) 40%,var(--line))}
+.lsf .ls-k .num{width:20px;height:20px;border-radius:999px;background:var(--card);display:grid;place-items:center;font:700 .6875rem/1 var(--f-ui)}
+.lsf-st.done .ls-k .num{background:var(--c);color:var(--card)}
+.lsf-mini{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.lsf-mini .lbl{color:var(--ink-3);font-size:.875rem;line-height:1.7}
+.lsf-mini .q{font-size:1.4rem;line-height:1.8}
+.lsf-mini .q .q{font-size:1em}
+.lsf-mini .pill{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line-2);font:500 .8125rem/1.6 var(--f-ui);color:var(--ink-2)}
+.lsf-mini .pill .q{font-size:1.2rem}
+.lsf-mini .pill .ic{width:14px;height:14px}
+.lsf-mini .pill.ok{border-color:var(--ok);color:var(--ok)}
+.lsf-mini .pill.no{border-color:var(--no);color:var(--no)}
+.lsf-aside{margin-top:10px;background:var(--well);border:1px solid var(--line);border-radius:18px;padding:12px 16px;font-size:.9375rem;line-height:1.8;color:var(--ink-2)}
+.lsf-aside h3{margin:0 0 4px;font:700 .9375rem/1.6 var(--f-h);color:var(--ink)}
+.lsf-aside .mz{padding:4px 0}
+.lsf-aside .mz+.mz{border-top:1px dashed var(--line-2)}
+.lsf-next{margin-top:14px;border:1.5px dashed var(--line-2);border-radius:18px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;color:var(--ink-3);font-size:.875rem}
+.lsf-next b{color:var(--ink)}
+.lsf-next span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:999px;box-shadow:inset 0 0 0 2px var(--line-2);margin-inline-end:6px;vertical-align:middle}
+.lsf-act{position:fixed;inset-inline:0;bottom:0;z-index:30;background:color-mix(in srgb,var(--paper) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lsf-act-in{max-width:760px;margin:auto;display:flex;align-items:center;gap:14px}
+.lsf-act .btn{flex:1;margin:0;min-height:56px}
+.lsf-act .btn:disabled{background:var(--well-2)!important;border-color:var(--well-2)!important;color:var(--ink-2)!important;box-shadow:none;cursor:not-allowed;transform:none;opacity:1}
+.lsf-hint{color:var(--ink-3);font-size:.8125rem;white-space:nowrap}
+.lsf-hint kbd{font:600 .75rem var(--f-ui);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:var(--card)}
+@media (max-width:600px){.lsf-hint{display:none}}
+.lsf .lsf-px{display:none!important}
 .pr-top{width:100%;max-width:720px;display:flex;align-items:center;gap:14px;margin-bottom:18px}
 .pr-x{width:44px;height:44px;border-radius:50%;border:0;background:var(--well);display:grid;place-items:center;cursor:pointer;flex:none;text-decoration:none;color:var(--ink)}
 .pr-dots{flex:1;display:flex;gap:5px}
@@ -2644,15 +2687,80 @@ function lesson(ch, n) {
 }
 function lsRender(focus) {
   const { L, steps, i } = LS, s = steps[i], ls = lessons(L.ch);
-  const bar = steps.map((_, j) => `<i class="${j < i ? 'done' : j === i ? 'now' : ''}"></i>`).join('');
-  const top = `<div class="pr-top"><a class="pr-x" href="#c/${L.ch}" aria-label="أغلق الدرس، إلى دروس الباب">${IC.x}</a><div class="ls-bar" aria-hidden="true">${bar}</div><span class="pr-n">الدرس ${AR(L.n)}</span><button type="button" class="ls-snd" data-ls="snd" aria-pressed="${sndOn()}" aria-label="أصوات التمرين">${IC.snd}</button></div>`;
-  V.innerHTML = `<div class="pr-wrap" data-c="${L.ch}">${top}<section class="card ls" aria-live="polite"><span class="ls-k">${STEPI[s.rev ? 'review' : s.t]}${STEPW[s.rev ? 'review' : s.t]}</span>${stepHTML(s)}</section></div>`;
+  /* the lesson as one page (the lesson-flow model the owner sent, 18 November 2026): the stages done fold into a line above,
+     the current one is a card with a note under it, those to come are named below, and one button stays at the foot */
+  const moved = LS.drawn !== i; LS.drawn = i;
+  const c = CHI[L.ch], name = j => STEPW[steps[j].rev ? 'review' : steps[j].t];
+  const prog = `<ol class="lsf-prog" aria-label="مراحل الدرس">${steps.map((_, j) => `<li class="${j < i ? 'done' : j === i ? 'cur' : ''}"${j === i ? ' aria-current="step"' : ''}><span class="d"></span>${j === i ? `<span class="t">${name(j)}</span>` : ''}</li>`).join('')}</ol>`;
+  const top = `<div class="pr-top lsf-top"><a class="pr-x" href="#c/${L.ch}" aria-label="أغلق الدرس، إلى دروس الباب">${IC.x}</a>${prog}<span class="pr-n">${AR(i + 1)} من ${AR(steps.length)}</span><button type="button" class="ls-snd" data-ls="snd" aria-pressed="${sndOn()}" aria-label="أصوات التمرين">${IC.snd}</button></div>`;
+  const kick = j => `<span class="ls-k"><b class="num">${AR(j + 1)}</b>${name(j)}</span>`;
+  const band = `<div class="lsf-band"><span class="n">${NUM(c)}</span><div><small>${c.n ? 'الباب ' + AR(c.n) : 'المدخل'}، الدرس ${AR(L.n)}</small><h1>${esc(split(c.title)[0])}</h1></div></div>`;
+  const minis = steps.slice(0, i).map((_, j) => `<section class="lsf-st done" id="st${j}" aria-label="${name(j)}"><div class="lsf-mini">${kick(j)}${(LS.minis || [])[j] || ''}</div></section>`).join('');
+  const rest = []; steps.slice(i + 1).forEach((_, j) => { const n = name(i + 1 + j); if (rest[rest.length - 1] !== n) rest.push(n); });
+  const next = rest.length ? `<div class="lsf-next"><b>بعد ذلك</b>${rest.map(n => `<span>${n}</span>`).join('')}</div>` : '';
+  V.innerHTML = `<div class="pr-wrap lsf" data-c="${L.ch}">${top}${band}${minis}<section class="lsf-st cur" id="st${i}" aria-label="${name(i)}"><div class="card ls" aria-live="polite">${kick(i)}${stepHTML(s)}</div>${lsAside(s)}</section>${next}</div>
+    <div class="lsf-act" data-c="${L.ch}"><div class="lsf-act-in"><span class="lsf-hint">أو اضغط <kbd>Enter</kbd></span><button type="button" class="btn pri lg" id="lsAct"></button></div></div>`;
   weigh($('.card.ls'));
-  window.scrollTo(0, 0);
-  const f = $('.card.ls [data-ls="next"], .card.ls [data-ls="more"], .card.ls .opt:not(:disabled)'); if (f && focus) f.focus({ preventScroll: true });
+  lsAct(); lsWatch();
+  if (moved) { const el = $('#st' + i); if (!i || !el) window.scrollTo(0, 0); else window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 150, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+  const f = $('.card.ls .opt:not(:disabled)') || $('#lsAct:not(:disabled)'); if (f && focus) f.focus({ preventScroll: true });
   if (s.t === 'sum') { const was = lesDone(L.ch, L.n); lesMark(L.ch, L.n); if (!was) { chime(true); setTimeout(() => burst($('#neck .new'), 16, 90), 250); } }
   if (LS.boom) { const sel = LS.boom; LS.boom = null; requestAnimationFrame(() => burst($(sel))); }
   if (s.t === 'worked' && s.cm) cardInit(s.cm); else CV = null;
+}
+/* the one button at the foot: the card's own forward button is hidden and this one stands for it; where an answer is wanted
+   first it says what to do and waits. A press carries the drawing it was made for, and a second within a quarter second is
+   ignored, so two quick presses never skip a step */
+const LSWAIT = { pre: 'اختر تخمينك أولًا', q: 'اختر جوابك', look: 'اختر جوابك', review: 'اختر جوابك', contrast: 'اختر إحدى الصورتين', free: 'اختر جوابك', find: 'المس الحرف في الكلمة', sort: 'صنّف الكلمة', pairs: 'اقلب بطاقتين', beads: 'ضع الخرز أولًا' };
+let lsLast = 0, lsObs = null;
+function lsAct() {
+  const b = $('#lsAct'), card = $('.card.ls'); if (!b || !card || !LS) return;
+  card.querySelectorAll('.lsf-px').forEach(x => x.classList.remove('lsf-px'));
+  const p = card.querySelector('.btn.pri.lg[data-ls], a.btn.pri.lg'), s = LS.steps[LS.i];
+  LS.armN = (LS.armN || 0) + 1; b.dataset.armed = LS.armN;
+  if (p && !p.disabled) { p.classList.add('lsf-px'); b.disabled = false; b.innerHTML = p.innerHTML; return; }
+  const self = s.t === 'self' || (s.t === 'look' && s.self) || (s.t === 'free' && LS.fq && LS.fq.self);
+  b.disabled = true; b.textContent = self ? 'قيّم قراءتك' : LSWAIT[s.t] || 'تابع';
+}
+// a card that changes by itself (the worked example's steps) has its button drawn again
+function lsWatch() { if (lsObs) lsObs.disconnect(); const card = $('.card.ls'); if (!card || !window.MutationObserver) return; lsObs = new MutationObserver(() => lsAct()); lsObs.observe(card, { childList: true, subtree: true }); }
+function lsPress() {
+  const b = $('#lsAct'), now = performance.now();
+  if (!LS || !b || b.disabled || b.dataset.armed !== String(LS.armN) || now - lsLast < 250) return;
+  lsLast = now; const p = $('.card.ls .lsf-px'); if (p) p.click();
+}
+/* a stage done, folded into one line: what was asked, the word, and how it went (the card as it was left, its controls taken out) */
+function lsSnap() {
+  const card = $('.card.ls'), s = LS.steps[LS.i]; if (!card) return;
+  const txt = el => el ? (el.innerText || el.textContent).replace(/\s+/g, ' ').trim() : '';
+  const clip = (t, n) => t.length > n ? t.slice(0, n).replace(/\s\S*$/, '') + '…' : t;
+  const clean = h => h.replace(/<button[\s\S]*?<\/button>/g, '').replace(/ (data-ls|data-v|data-sw|id|role|tabindex|aria-[a-z]+)="[^"]*"/g, '');
+  const q = el => el ? `<span class="q">${clean(el.innerHTML)}</span>` : '';
+  let h = '';
+  if (s.t === 'read') h = `<span class="lbl">${esc(clip(txt(card.querySelector('.flow, .sum')), 96))}</span>`;
+  else if (s.t === 'worked') { const w = card.querySelector('.cv-l.base, .big'); h = `${w ? `<span class="q">${esc(txt(w))}</span>` : ''}<span class="pill ok">${IC.ok}رأيت المثال</span>`; }
+  else if (s.t !== 'sum') {
+    const ask = clip(txt(card.querySelector('.ask')), 64), big = card.querySelector('.big'), fb = card.querySelector('.fb, .guess'), pick = card.querySelector('.opt.sel');
+    const st = fb ? (fb.classList.contains('ok') ? 'ok' : fb.classList.contains('no') ? 'no' : '') : '';
+    const res = s.t === 'pre' && pick ? `<span class="pill">تخمينك: ${q(pick.querySelector('.q')) || esc(txt(pick))}</span>`
+      : LS.lastGrade != null ? `<span class="pill ${LS.lastGrade ? 'ok' : 'no'}">${LS.lastGrade ? 'نعم، قرأتها' : 'ليس بعد'}</span>`
+      : fb ? `<span class="pill ${st}">${esc(clip(txt(fb), 48))}</span>` : '';
+    h = `${ask ? `<span class="lbl">${esc(ask)}</span>` : ''}${big ? q(big) : ''}${res}`;
+  }
+  (LS.minis = LS.minis || [])[LS.i] = h;
+  LS.lastGrade = null;
+}
+/* a note under the current stage: why guess, the lesson's scale, the book's footnote, the rule in a line, the help fading */
+function lsAside(s) {
+  const L = LS.L, t = L.k != null ? T[L.k] : null;
+  let h = '';
+  if (s.t === 'pre') h = '<h3>لماذا نخمّن؟</h3><p>التخمين يهيّئ العين للقاعدة، ولا يُحسب عليك الخطأ؛ وتعرف الجواب في المثال المحلول.</p>';
+  else if (s.t === 'read' && t) { const tc = t.rows[0].filter(cl => cl.lines.flat().some(x => x.k === 'time')); if (tc.length) h = `<h3>ميزان هذا الدرس</h3>${tc.map(cl => `<div class="mz">${cellHTML(cl, true)}</div>`).join('')}`; }
+  else if (s.t === 'worked') { const nt = L.blocks.concat(L.after || []).find(b => b.k === 'note' && b.t && b.t.length < 180); if (nt) h = `<h3>حاشية</h3><p>${nt.h || esc(nt.t)}</p>`; }
+  else if (s.t === 'contrast' && t) { const hc = t.rows[0].filter(cl => cellText(cl).trim()); if (hc.length) h = `<h3>القاعدة في سطر</h3>${hc.map(cl => `<p>${cellHTML(cl, true)}</p>`).join('')}`; }
+  else if (s.t === 'look') h = '<h3>العون يخفّ</h3><p>الحرف ملوّن هنا ليدلّك على موضع النظر. وفي المرحلة التالية يزول اللون.</p>';
+  else if (s.t === 'free') h = '<h3>وحدك</h3><p>بلا لون، كما في المصحف. وإن أخطأت عاد الضوء إلى موضع النظر.</p>';
+  return h ? `<aside class="lsf-aside">${h}</aside>` : '';
 }
 const nextBtn = (label = 'التالي') => `<button type="button" class="btn pri lg" data-ls="next">${label}${IC.go}</button>`;
 function qHTML(q, guess, foot) {
@@ -2762,7 +2870,7 @@ function stepHTML(s) {
 }
 function onLesson(b, byKey) {
   const s = LS.steps[LS.i], a = b.dataset.ls;
-  const step = () => { Object.assign(LS, { phase: '', sel: null, shown: 0, hint: false, cmp: null, tries: 0, miss: [], got: false, si: 0, sres: [], tiles: null, up: [], done: [], moves: 0, bn: 0, bh: 0, fq: null, fi: 0, fmode: 'plain', fnext: 'plain', streak: 0 }); LS.i++; lsRender(byKey); };
+  const step = () => { lsSnap(); Object.assign(LS, { phase: '', sel: null, shown: 0, hint: false, cmp: null, tries: 0, miss: [], got: false, si: 0, sres: [], tiles: null, up: [], done: [], moves: 0, bn: 0, bh: 0, fq: null, fi: 0, fmode: 'plain', fnext: 'plain', streak: 0 }); LS.i++; lsRender(byKey); };
   if (a === 'snd') { try { localStorage.setItem(SNDK, sndOn() ? '0' : '1'); } catch (e) {} b.setAttribute('aria-pressed', sndOn()); return; }
   if (a === 'fx') {
     if (LS.phase === 'fb') return;
@@ -2808,7 +2916,7 @@ function onLesson(b, byKey) {
   if (a === 'hint') { LS.hint = true; lsRender(byKey); return; }
   if (a === 'tbl') { LS.tbl = !LS.tbl; lsRender(byKey); return; }
   if (a === 'show') { LS.phase = 'shown'; lsRender(byKey); return; }
-  if (a === 'g0' || a === 'g1') { grade(s.c.id, a === 'g1'); LS.asked++; if (a === 'g1') LS.ok++; step(); return; }
+  if (a === 'g0' || a === 'g1') { LS.lastGrade = a === 'g1' ? 1 : 0; grade(s.c.id, a === 'g1'); LS.asked++; if (a === 'g1') LS.ok++; step(); return; }
   if (a === 'o') {
     const j = Number(b.dataset.v);
     if (s.t === 'contrast') {
@@ -2851,6 +2959,7 @@ document.addEventListener('click', e => {
   if (t.closest('[data-restore-ok]')) { restoreApply(); return; }
   const sd = t.closest('button[data-sd]'); if (sd && Q) { onSada(sd); return; }
   const wp = t.closest('[data-wipe]'); if (wp) { wipe(wp); return; }
+  if (t.closest('#lsAct')) { lsPress(); return; }
   const lb = t.closest('[data-ls]'); if (lb && LS) { onLesson(lb, e.detail === 0); return; }
   const uf = t.closest('[data-unfold]'); if (uf) { unfold(uf.dataset.unfold); return; }
   const pc = t.closest('[data-print-ch]'); if (pc) { location.hash = `#c/${pc.dataset.printCh}/read`; setTimeout(() => window.print(), 400); return; }
@@ -2886,7 +2995,8 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'Enter') { const o = $('#qr a[aria-selected="true"]'); if (o) { e.preventDefault(); if (o.getAttribute('href') === location.hash) { closeAll(); render(); } else location.hash = o.getAttribute('href'); } }
     return;
   }
-  if ((e.key === ' ' || e.key === 'Enter') && e.target.classList && e.target.classList.contains('fx') && LS) { e.preventDefault(); onLesson(e.target, true); }
+  if ((e.key === ' ' || e.key === 'Enter') && e.target.classList && e.target.classList.contains('fx') && LS) { e.preventDefault(); onLesson(e.target, true); return; }
+  if (e.key === 'Enter' && LS && $('#lsAct') && !e.target.closest('button,a,input,textarea,select,[role="button"]')) { e.preventDefault(); lsPress(); }
 });
 /* ---------------- الوجهات: الفاتحة and the author's passages; every letter tagged by what is drawn on it (pages.py) ----------------
    Four ways through a page: browse (light a kind, weigh a letter), find, the glance in three grades (what is on the letter, what follows it,
