@@ -1,5 +1,16 @@
 /* What the three trial versions share: the lessons (data.js), the reader's recordings, the learner's microphone, the drawing of a
    real recording, and the checker. Each version draws these in its own way. */
+(() => {
+  const st = document.createElement('style');
+  st.textContent = `.zc{position:fixed;inset:0;z-index:90;background:rgba(10,8,6,.55);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.zc-in{width:min(460px,100%);max-height:100%;overflow:auto;background:var(--card,#fff);color:var(--ink,#1e1b18);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:12px;font:400 1rem/1.8 var(--f-ui,var(--f-b,system-ui,sans-serif));text-align:start}
+.zc-in h2{margin:0;font:700 1.25rem/1.5 var(--f-h,inherit)}.zc-in p{margin:0}.zc-n{font-size:.875rem;color:var(--ink-2,#4f4a43)}
+.zc-in details{font-size:.8125rem;color:var(--ink-3,#69625a)}.zc-in summary{cursor:pointer;min-height:24px}
+.zc-b{display:grid;gap:8px;margin-top:4px}.zc-b button{min-height:48px;border-radius:999px;border:0;font:700 1rem var(--f-h,inherit);cursor:pointer}
+.zc-y{background:var(--brand,#9b2c24);color:var(--on-c,#fff)}.zc-no{background:transparent;color:var(--ink,#1e1b18);box-shadow:inset 0 0 0 1.5px var(--line-2,#d5cbb8)}
+.zc-b button:focus-visible{outline:3px solid var(--brand,#9b2c24);outline-offset:3px}.zc-s{font-size:.8125rem;color:var(--ink-3,#69625a)}`;
+  document.head.appendChild(st);
+})();
 window.Z = (() => {
   const D = window.ZIN;
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -20,11 +31,13 @@ window.Z = (() => {
   function inAyah(x) {
     const a = AY[x.ctx + '|' + x.w];
     if (a && a.part) {
+      if (x.au && D.audio[x.au] && !x.wau) x.wau = x.au;
       x.ay = a; x.au = ''; x.recited = false;
       if (a.forms && a.at) { x.zf = a.forms; x.chk = ['zf', x.ctx]; }
       return true;
     }
     if (!a || !a.src || !a.forms || !a.at) return false;
+    if (x.au && D.audio[x.au] && !x.wau) x.wau = x.au;              // the site's reader saying the word alone (its own recording)
     x.ay = a; x.zf = a.forms; x.chk = ['zf', x.ctx]; x.au = 'a:' + a.s + ':' + a.a; D.audio[x.au] = a.src; x.recited = true;
     return true;
   }
@@ -150,6 +163,29 @@ window.Z = (() => {
     src.connect(node); node.connect(mute); mute.connect(ctx.destination);
     return { ctx, src, node, done, end: async () => { node.port.postMessage('end'); await Promise.race([done, new Promise(ok => setTimeout(ok, 600))]); sink(rs.flush()); src.disconnect(); node.disconnect(); ctx.close(); } };
   }
+  // how loud the microphone is now (0 to 1) and how long the reading has run, drawn into [data-zlv] and [data-zsec]
+  let lv = null;
+  function level(st) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(), an = ctx.createAnalyser(), src = ctx.createMediaStreamSource(st), buf = new Uint8Array(512), t0 = Date.now();
+      an.fftSize = 1024; src.connect(an);
+      const me = { ctx, raf: 0 };
+      const tick = () => {
+        an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
+        document.querySelectorAll('[data-zlv]').forEach(e => e.style.setProperty('--lv', Math.min(1, m / 64).toFixed(2)));
+        document.querySelectorAll('[data-zsec]').forEach(e => { e.textContent = AR(Math.floor((Date.now() - t0) / 1000)) + ' ث'; });
+        me.raf = requestAnimationFrame(tick);
+      };
+      tick(); return me;
+    } catch (e) { return null; }
+  }
+  const micErr = e => {
+    const n = e && e.name;
+    if (n === 'NotAllowedError' || n === 'SecurityError') return 'لم يُسمح بالميكروفون. اسمح به من إعدادات المتصفح (رمز القفل بجانب عنوان الصفحة)، ثم أعد المحاولة.';
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'لم يُعثر على ميكروفون في هذا الجهاز.';
+    if (n === 'NotReadableError' || n === 'AbortError') return 'الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.';
+    return 'تعذّر الوصول إلى الميكروفون. اسمح به من إعدادات المتصفح ثم أعد المحاولة.';
+  };
   async function recStart(sink) {
     stop();
     // the voice as it is: the browser's gain control and noise suppression reshape a held sound (tried: the same madd came out
@@ -160,9 +196,11 @@ window.Z = (() => {
     tap = null;
     if (sink && window.ZF && window.AudioWorkletNode) try { tap = await tapStart(sink); } catch (e) { tap = null; }
     mr.start();
+    lv = level(stream);
     return !!tap;
   }
   async function recStop() {
+    if (lv) { cancelAnimationFrame(lv.raf); try { lv.ctx.close(); } catch (e) {} lv = null; }
     if (tap) { const t = tap; tap = null; try { await t.end(); } catch (e) {} }
     return new Promise(res => {
       if (!mr) return res(null);
@@ -207,16 +245,31 @@ window.Z = (() => {
   const CHK = 'https://yamanamr-zin-checker.hf.space';
   const NOTE = 'الفاحص نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.';
   const NOTE_EN = 'This Quranic Teacher is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).';
-  function aiOK(here, why) {
-    if (here ? S.zf : S.ai) return true;
-    const what = here ? 'يُفحص تسجيلك على جهازك ولا يُرسَل إلى أحد. ويُنزَّل نموذج التعرّف (73 ميغابايت) أول مرة فقط، ثم يعمل بلا إنترنت.'
-                      // what is true today: the Space keeps an upload until it restarts (its fix, which deletes each one after its
-                      // check, is on branch checker-quran-lab and not yet in the Space)
-                      : 'يُرسَل تسجيلك إلى الفاحص ' + (why || 'ليقيسه') + '. ولا نحفظه نحن، لكنه يبقى على خادم الفاحص إلى أن يُعاد تشغيله.';
-    if (!confirm(what + '\n\n' + NOTE + '\n\n' + NOTE_EN)) return false;
-    if (here) S.zf = 1; else S.ai = 1;
-    save(); return true;
+  /* nothing is sent to any server: the owner decided so (17 November 2026). The checker is Quran Lab's model on the learner's
+     device; Quran Muaalem in the Space and its aligner are not called. SEND stays false unless that decision changes. */
+  const SEND = false;
+  // the learner's choice, asked once in the page: 1 the check on this device, -1 by ear only
+  const consentHTML = () => `<div class="zc-in" role="document"><h2 id="zc-h">الفحص على جهازك</h2>
+    <p>يسمع الفاحص تلاوتك على جهازك، ولا يُرسَل تسجيلك إلى أحد.</p>
+    <p>يُنزَّل نموذج التعرّف (٧٣ ميغابايت) مرة واحدة، والأفضل على شبكة Wi-Fi، ثم يعمل بلا إنترنت.</p>
+    <p class="zc-n">${esc(NOTE)}</p>
+    <details><summary>English</summary><p dir="ltr" lang="en">${esc(NOTE_EN)}</p></details>
+    <div class="zc-b"><button type="button" class="zc-y" data-zc="1">نزّل الفاحص وابدأ</button><button type="button" class="zc-no" data-zc="-1">بأذني فقط</button></div>
+    <p class="zc-s">تستطيع أن تغيّر اختيارك من «الفاحص» تحت كل قراءة.</p></div>`;
+  function consent() {
+    if (S.zf === 1 || S.zf === -1) return Promise.resolve(S.zf === 1);
+    return new Promise(done => {
+      const back = document.activeElement, d = document.createElement('div');
+      d.className = 'zc'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'zc-h');
+      d.innerHTML = consentHTML(); document.body.appendChild(d);
+      const end = v => { S.zf = v; save(); d.remove(); try { back && back.focus(); } catch (e) {} done(v === 1); };
+      d.addEventListener('click', e => { const b = e.target.closest('[data-zc]'); if (b) end(Number(b.dataset.zc)); });
+      d.addEventListener('keydown', e => { if (e.key === 'Escape') end(-1); });
+      d.querySelector('[data-zc="1"]').focus();
+    });
   }
+  const setCheck = on => { S.zf = on ? 1 : -1; save(); if (on) recogniser().catch(() => {}); };
+  const aiOK = here => here ? S.zf === 1 : SEND && !!S.ai;
   /* Quran Lab's phoneme recogniser (zipformer_p-arabic-v3.1, NPL-1.2) run in the browser by assets/zf.js with onnxruntime-web;
      the model is kept in the browser's cache after the first time */
   const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
@@ -263,6 +316,7 @@ window.Z = (() => {
   async function check(args, blob, x, zs) {
     if (window.__mock) { const r = await window.__mock(args, x); if (r && x) r.madd = r.madd && maddOf(x) ? judged(x, r.madd) : null; return r; }
     if (x && x.zf) return checkHere(x, blob, zs);
+    if (!SEND) throw { local: true };
     const [fn, ...rest] = args;
     let txt;
     try {
@@ -372,7 +426,7 @@ window.Z = (() => {
     }
     return lines.length ? lines : null;
   }
-  const errText = e => e.declined ? 'لم يُرسَل التسجيل إلى الفاحص.' : e.timeout ? 'لم يُجب الفاحص في عشر ثوانٍ.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
+  const errText = e => e.declined ? 'اخترتَ أن تحكم بأذنك، فلم يُفحص التسجيل.' : e.local ? 'لا يفحص الفاحص هذا المثال على جهازك بعد.' : e.timeout ? 'لم يُجب الفاحص في عشر ثوانٍ.' : e.model ? 'تعذّر تنزيل نموذج التعرّف الآن. تحقّق من الاتصال ثم أعد المحاولة.' : e.quota ? 'بلغ الفاحص حدّ استعماله الآن. حاول بعد قليل.' : e.blocked ? 'تعذّر الوصول إلى الفاحص الآن.' : e.text ? 'لم يُتمّ الفاحص القياس: ' + e.text : 'لم يُتمّ الفاحص القياس.';
   // a word or two read after the reader: was it heard joined or stopped, and how long was its last letter
   function heard(x, res) {
     const h = res.heard_as, t = res.timing;
@@ -406,7 +460,7 @@ window.Z = (() => {
      (its aligner, /align) and nothing is judged. A reading of part of an ayah is not placed (the aligner takes whole ayat). The
      checker is waited for ten seconds at most; then the learner goes on by ear */
   const WAIT = 10000;
-  const canLocate = x => !!(x && x.ay && !x.ay.part && x.ay.s);
+  const canLocate = x => SEND && !!(x && x.ay && !x.ay.part && x.ay.s);
   async function locate(x, blob) {
     const a = x.ay, res = await Promise.race([check(['align', a.s, a.a], blob, null), new Promise((_, no) => setTimeout(() => no({ timeout: true }), WAIT))]);
     if (!res || res.similarity < .5) return null;
@@ -432,24 +486,24 @@ window.Z = (() => {
         r.zs = T.zs; T.zs = null;
         T.rec = r; T.res = T.err = null; T.ear = null; T.span = null; T.looked = false; redraw();
         const i = T.i; r.pk = await peaks(r.blob, T.n || 44); if (!same(i, r)) return; redraw();
-        if (o.ear) T.find(); else if (cur().chk) T.check();
+        if (o.ear) T.find(); else if (cur().chk && (cur().zf || SEND)) T.check(); else if (cur().chk) { T.err = { local: true }; redraw(); }
       } else {
         T.msg = '';
         // an exercise checked on the device: ask once, then get the model ready and listen while the learner reads
         let sink = null; T.zs = null;
-        if (cur().zf && !o.ear && !window.__mock && (S.zf || aiOK(true))) {
+        if (cur().zf && !o.ear && !window.__mock && await consent()) {
           const z = T.zs = { parts: [], s: null, got: 0 };
           const tick = () => { if (T.zs === z || (T.rec && T.rec.zs === z)) { T.msg = zwait(); redraw(); } };
           recogniser(tick).then(R => { if (z.parts) { z.s = R.stream(); z.parts.forEach(p => z.s.push(p)); z.parts = null; } }, () => {});
           sink = a => { z.got += a.length; if (z.s) z.s.push(a); else if (z.parts) z.parts.push(a); };
         }
-        try { await recStart(sink); T.on = true; T.rec = null; T.res = T.err = null; T.ear = null; } catch (e) { T.msg = 'تعذّر الوصول إلى الميكروفون. اسمح به من إعدادات المتصفح ثم أعد المحاولة.'; T.zs = null; }
+        try { await recStart(sink); T.on = true; T.rec = null; T.res = T.err = null; T.ear = null; } catch (e) { T.msg = micErr(e); T.zs = null; }
         redraw();
       }
     };
     T.check = async () => {
       const i = T.i, r = T.rec; if (!r || T.busy) return;
-      if (!aiOK(!!cur().zf)) { T.err = { declined: true }; return redraw(); }
+      if (!window.__mock && !aiOK(!!cur().zf)) { T.err = { declined: true }; return redraw(); }
       T.busy = true; T.err = null; redraw();
       let res = null, err = null;
       try { res = await check(cur().chk, r.blob, cur(), r.zs); } catch (e) { err = e || {}; }
@@ -457,7 +511,7 @@ window.Z = (() => {
       if (!same(i, r)) return;
       T.busy = false; T.res = res; T.err = err; redraw();
       // the second model: Quran Muaalem in the Space hears the same recording; the page sets the two side by side
-      if (res && !err && cur().zf && !res.second) {
+      if (SEND && res && !err && cur().zf && !res.second) {
         if (!aiOK(false)) return;
         res.second = { busy: true }; redraw();
         let sec;
@@ -469,7 +523,7 @@ window.Z = (() => {
     T.find = async () => {
       const i = T.i, r = T.rec, x = cur();
       if (!r || !canLocate(x)) return;
-      if (!aiOK(false, 'ليجد فيه موضع الكلمات')) { T.err = { declined: true }; return redraw(); }
+      if (!aiOK(false)) { T.err = { declined: true }; return redraw(); }
       T.finding = true; T.err = null; redraw();
       let sp = null, err = null;
       try { sp = await locate(x, r.blob); } catch (e) { err = e || {}; }
@@ -481,9 +535,9 @@ window.Z = (() => {
     T.judge = ok => { T.ear = ok ? 'ok' : 'redo'; if (!ok) { T.rec = null; T.res = T.err = null; } redraw(); };
     loadReader();
     // a learner who has allowed the check before: get the model ready as the page opens, not when they finish reading
-    if (S.zf && !o.ear && !window.__mock && items.some(x => x.zf)) setTimeout(() => recogniser().catch(() => {}), 400);
+    if (S.zf === 1 && !o.ear && !window.__mock && items.some(x => x.zf)) setTimeout(() => recogniser().catch(() => {}), 400);
     return T;
   }
   return { D, $, $$, esc, AR, CTX, LES, vName, lit, qt, ruleLines, saidOf, saidLabel, chapters, glyph, dots, parts, examples, ayahText, ayahItem, S: () => S, save, play, playBoth, stop, canRec, peaks, wave, pct,
-    TMP, ayahAudio, ayahLabel, ayahLine, ayahLit, canLocate, maddLine, maddOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting };
+    TMP, ayahAudio, ayahLabel, ayahLine, ayahLit, canLocate, maddLine, maddOf, qalqOf, NOTE, NOTE_EN, errText, heard, measured, num, stWord, wordSpan, sitting, consent, setCheck, SEND };
 })();

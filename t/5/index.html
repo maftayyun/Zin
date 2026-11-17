@@ -75,7 +75,7 @@ button{font:inherit;color:inherit}
 a{color:inherit}
 [hidden]{display:none!important}
 ::selection{background:var(--brand-t)}
-:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 55%,transparent);outline-offset:2px;border-radius:10px}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:10px}
 .wrap{max-width:var(--max);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 @media (min-width:900px){.wrap{padding-left:max(40px,env(safe-area-inset-left,0px));padding-right:max(40px,env(safe-area-inset-right,0px))}}
 .q{font-family:var(--f-q);font-weight:400;line-height:2.1;font-feature-settings:normal;letter-spacing:0}
@@ -164,24 +164,45 @@ q{quotes:"«" "»"}
 .sec-h h2{font:800 clamp(1.75rem,3.4vw,2.6rem)/1.4 var(--f-h)}
 .sec-h p{color:var(--ink-2);font-size:1.0625rem}
 
-/* the contents, one coloured card for each part */
-.map{list-style:none;padding:0;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
-@media (min-width:620px){.map{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1020px){.map{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.map li{display:flex}
-.mc{flex:1;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto 1fr auto;gap:2px 14px;padding:20px 20px 18px;border-radius:var(--r-l);background:var(--ct);color:inherit;text-decoration:none;position:relative;overflow:hidden;transition:transform .3s cubic-bezier(.3,1.4,.5,1),box-shadow .3s}
-.mc:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
-.mc .n{grid-row:span 4;width:54px;height:54px;border-radius:18px;background:var(--c);color:#fff;display:grid;place-items:center;font:700 1.75rem/1 var(--f-r);padding-bottom:6px}
-.mc .n.w{font:700 .8125rem/1 var(--f-h);padding-bottom:0}
-.mc b{font:700 1.1875rem/1.6 var(--f-h)}
-.mc small{font-size:.875rem;color:var(--ink-2);line-height:1.6}
-.mc .sig{display:flex;flex-wrap:wrap;gap:4px 2px;align-items:center;margin-top:10px}
-.mc .sig .bd{margin-inline:0 8px;--bw:12px;--bh:7px}
-.mc .ft{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.8125rem;color:var(--ink-2)}
+/* the contents: a tile for each part; a tile opens its lessons in a panel under its row */
+.map{list-style:none;padding:0;display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:620px){.map{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
+@media (min-width:1020px){.map{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.map>li{display:flex;min-width:0}
+.mc{flex:1;display:flex;flex-direction:column;align-items:stretch;gap:6px;min-height:150px;padding:14px 14px 12px;border:0;border-radius:22px;background:var(--ct);color:inherit;font:inherit;text-align:start;cursor:pointer;position:relative;transition:transform .3s cubic-bezier(.3,1.4,.5,1),box-shadow .3s}
+.mc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.mc .n{font:800 2rem/1.1 var(--f-h);color:var(--c)}
+.mc .n.w{font-size:1.25rem;line-height:1.75}
+.mc b{font:700 .9375rem/1.55 var(--f-h)}
+.mc .ft{margin-top:auto;display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--ink-2);padding-top:6px}
+.mc .ft .pbar{height:5px}
+.mc .ft .ic{width:18px;height:18px;flex:none;color:var(--c);transform:rotate(90deg);transition:transform .25s}
+.mc[aria-expanded="true"]{box-shadow:inset 0 0 0 2.5px var(--c)}
+.mc[aria-expanded="true"] .ft .ic{transform:rotate(-90deg)}
+.mc .here{position:absolute;inset-block-start:12px;inset-inline-end:12px;font:700 .6875rem var(--f-h);background:var(--c);color:var(--on-c);border-radius:999px;padding:2px 9px}
+.map>li.cur .mc{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c) 70%,transparent)}
+.map>li.cur .mc[aria-expanded="true"]{box-shadow:inset 0 0 0 2.5px var(--c)}
+.map>li.mp{grid-column:1/-1;display:block;position:relative}
+.mp .in{background:var(--card);border:2px solid var(--c);border-radius:22px;padding:16px 16px 14px;position:relative}
+.mp .in::before{content:"";position:absolute;top:-9px;right:var(--px,40px);width:16px;height:16px;background:var(--card);border-left:2px solid var(--c);border-top:2px solid var(--c);transform:rotate(45deg)}
+.mp .hd{display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;margin-bottom:6px}
+.mp .hd b{font:700 1.0625rem/1.5 var(--f-h)}
+.mp .hd small{font-size:.8125rem;color:var(--ink-3)}
+.mp ol{list-style:none;margin:0;padding:0}
+.mp ol a{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);color:inherit;text-decoration:none;font-size:.9375rem;line-height:1.5}
+.mp ol a:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.mp ol .m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 .75rem/1 var(--f-h);box-shadow:inset 0 0 0 1.5px var(--c);color:var(--c)}
+.mp ol .m .ic{width:14px;height:14px}
+.mp ol .ok .m{background:var(--c);color:var(--on-c);box-shadow:none}
+.mp ol .ok .t{color:var(--ink-2)}
+.mp ol .nx{font-weight:700}
+.mp ol .nx em{font:700 .75rem var(--f-h);font-style:normal;color:var(--c);white-space:nowrap}
+.mp .row{margin-top:12px;gap:8px 16px}
+@media (prefers-reduced-motion:no-preference){.mp .in{animation:mpin .22s ease-out both}@keyframes mpin{from{opacity:0;transform:translateY(-6px)}}}
 .pbar{flex:1;height:8px;border-radius:4px;background:color-mix(in srgb,var(--c) 18%,var(--card));overflow:hidden}
 .pbar i{display:block;height:100%;width:calc(var(--v,0)*100%);background:var(--c);border-radius:4px;transition:width .6s}
-:root[data-theme="dark"] .mc .n,:root[data-theme="dark"] .ch-n{color:#14151E}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mc .n,:root:not([data-theme="light"]) .ch-n{color:#14151E}}
+:root[data-theme="dark"] .ch-n{color:#14151E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ch-n{color:#14151E}}
 
 /* how it works */
 .how{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
@@ -492,11 +513,13 @@ q{quotes:"«" "»"}
 @keyframes flip{0%{transform:rotateY(90deg)}100%{transform:none}}
 /* beads: build the length with your fingers */
 .bb{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;direction:rtl;padding:10px 0}
-.bb button{width:46px;height:26px;border-radius:999px;border:2.5px solid var(--c);background:transparent;cursor:pointer;padding:0;transition:background-color .15s,transform .12s}
+.bb button{width:46px;height:44px;border:0;border-radius:999px;background:transparent;cursor:pointer;padding:0;position:relative;transition:transform .12s}
+.bb button::before{content:"";position:absolute;inset:9px 0;border-radius:999px;border:2.5px solid var(--c);transition:background-color .15s}
 .bb button:active{transform:scale(.9)}
-.bb button.on{background:var(--c)}
-.bb .hf{width:30px;border-style:dashed}
-.bb .hf.on{background:linear-gradient(to left,var(--c) 50%,transparent 50%);border-style:solid}
+.bb button.on::before{background:var(--c)}
+.bb .hf{width:30px}
+.bb .hf::before{border-style:dashed}
+.bb .hf.on::before{background:linear-gradient(to left,var(--c) 50%,transparent 50%);border-style:solid}
 .bb-v{font:700 1.0625rem var(--f-h);color:var(--c);min-height:1.6em}
 /* the part's necklace: one bead for each lesson */
 .neck{display:flex;flex-wrap:wrap;gap:6px;align-items:center;direction:rtl}
@@ -506,7 +529,7 @@ q{quotes:"«" "»"}
 .neck-l{font:600 .875rem var(--f-ui);color:var(--ink-2)}
 
 /* ---------- the worked example as the eye reads it: the letter, what follows, how it is said ---------- */
-.cv{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.cv{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:6px;overflow-x:clip}
 .cv-stage{position:relative;height:clamp(150px,42vw,180px);display:grid;place-items:center}
 .cv-word{position:relative;display:grid;font-size:clamp(2.6rem,11.5vw,3.5rem);line-height:2;color:var(--ink);z-index:1}
 .cv-l{grid-area:1/1;justify-self:start;white-space:nowrap;will-change:transform,opacity}
@@ -925,9 +948,9 @@ html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webk
   <section id="d4" style="display:none"></section>
 </div>
 
-<link rel="stylesheet" href="d4.css?v=13d8d6f">
+<link rel="stylesheet" href="d4.css?v=3688f6b">
 <script>window.D4MAP={"t": {"0": "L0", "1": "L1", "2": "L2", "3": "L3", "4": "L4", "5": "L4", "6": "L6", "7": "L6", "8": "L6", "9": "L6", "10": "L6", "11": "L6", "12": "L6", "13": "L6", "14": "L14", "15": "L14", "16": "L16", "17": "L17", "18": "L18", "19": "L19", "20": "L20", "21": "L21", "22": "L22", "23": "L23", "24": "L24", "25": "L25", "26": "L25", "27": "L25", "28": "L28", "29": "L29", "30": "L29", "31": "L31", "32": "L32", "39": "L32", "33": "L33", "34": "L33", "35": "L35", "36": "L36", "37": "L37", "38": "L38", "40": "L38", "42": "L42", "48": "L48", "49": "L48", "43": "L48", "44": "L44", "50": "L50", "45": "L45", "46": "L46", "47": "L46", "52": "L52", "51": "L52"}, "ch": {"L0": "haraka", "L1": "sukun", "L2": "sukun", "L3": "tafkhim", "L4": "tafkhim", "L6": "tafkhim", "L14": "tafkhim", "L16": "tafkhim", "L17": "tafkhim", "L18": "shadda", "L19": "shadda", "L20": "muarra", "L21": "muarra", "L22": "muarra", "L23": "muarra", "L24": "muarra", "L25": "tanween", "L28": "tanween", "L29": "tanween", "L31": "madd", "L32": "madd", "L33": "madd", "L35": "madd", "L36": "madd", "L37": "madd", "L38": "madd", "L42": "waqf", "L48": "ibtida", "L44": "ibtida", "L50": "ibtida", "L45": "ibtida", "L46": "ibtida", "L52": "ibtida"}};</script>
-<script src="../assets/data.js?v=13d8d6f"></script><script src="../assets/zf-forms.js?v=13d8d6f"></script><script src="../assets/reciter.js?v=13d8d6f"></script><script src="../assets/ayat.js?v=13d8d6f"></script><script src="../assets/zf.js?v=13d8d6f"></script><script src="../assets/core.js?v=13d8d6f"></script><script src="d4.js?v=13d8d6f"></script>
+<script src="../assets/data.js?v=3688f6b"></script><script src="../assets/zf-forms.js?v=3688f6b"></script><script src="../assets/reciter.js?v=3688f6b"></script><script src="../assets/ayat.js?v=3688f6b"></script><script src="../assets/zf.js?v=3688f6b"></script><script src="../assets/core.js?v=3688f6b"></script><script src="d4.js?v=3688f6b"></script>
 <script>
 (() => {
 'use strict';
@@ -977,7 +1000,8 @@ function qwrap(h) {
 }
 const CH = B.chapters, CHI = Object.fromEntries(CH.map(c => [c.id, c])), T = B.tables, CARDS = B.cards;
 /* what the author has not yet confirmed: marked where the learner meets it, to be corrected later if wrong (the owner, 2026-11-08) */
-const pendHTML = x => x && x.pending ? `<span class="pend" title="${esc(x.pending)}">قيد المراجعة</span>` : '';
+const REVIEW = (() => { try { return /[?&]review\b/.test(location.search) || localStorage.getItem('zin.review') === '1'; } catch (e) { return false; } })();
+const pendHTML = x => REVIEW && x && x.pending ? `<span class="pend" title="${esc(x.pending)}">قيد المراجعة</span>` : '';
 /* the rule an answer follows, in full: the book's sentence, or the author's words from the review; a line each */
 const ruleOf = c => (c && (c.rule || c.head)) || '';
 const ruleHTML = t => String(t).split('\n').map(x => `<span class="rl">${qwrap(esc(x))}</span>`).join('');
@@ -1066,8 +1090,10 @@ const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); return d
 const IV = [0, 1, 3, 7, 14, 30];
 const seen = id => !!S.c[id], isDue = id => seen(id) && S.c[id][1] <= today(), box = id => (S.c[id] || [0])[0];
 function grade(id, ok) {
+  const was = S.c[id], early = ok && was && (was[1] > today() || was[2] === today());
+  if (early) { if (!S.days.includes(today())) S.days.push(today()); save(); return; }
   const b = ok ? Math.min(5, box(id) + 1) : 1;
-  S.c[id] = [b, addDays(today(), ok ? IV[b] : 0)];
+  S.c[id] = [b, addDays(today(), ok ? IV[b] : 0), today()];
   if (!S.days.includes(today())) S.days.push(today());
   save();
 }
@@ -1276,6 +1302,7 @@ function render() {
     lesson(b, Number(c) || 1); mark('map'); return; }
   else if (a === 'p' && (b === 'all' || CHI[b])) { practice(b); mark('p'); }
   else if (a === 'sada') { if (window.D4) { V.style.display = 'none'; D4.sada(b === 'all' || CHI[b] ? b : '', { CHI, CH, lessons, lesMark, lesDone, T, cellText, split }); mark('p'); return; } sada(b === 'all' || CHI[b] ? b : ''); mark('p'); }
+  else if (a === 'halqa' && window.D4) { V.style.display = 'none'; D4.halqa({ CHI, CH, lessons, lesMark, lesDone, T, cellText, split }); mark('p'); return; }
   else if (a === 'progress') { progressPage(); mark('p'); }
   else if (a === 'tables') { tablesPage(); mark('map'); }
   else if (a === 'notes') { notesPage(b); mark('map'); if (b) return; }
@@ -1288,6 +1315,32 @@ function render() {
 }
 const mark = n => { const x = $(`.nav [data-nav="${n}"]`); if (x) x.setAttribute('aria-current', 'page'); };
 function syncDue() { const n = dueAll(); $$('.dueN').forEach(el => { el.hidden = !n; el.textContent = AR(n); }); }
+
+/* the contents: a tile for each part, and the panel of its lessons */
+let MAPO = '';
+function mapTile(c) {
+  const ls = lessons(c.id), d = ls.filter(l => lesDone(c.id, l.n)).length, all = ls.length && d === ls.length, here = c.id === S.last;
+  return `<li data-c="${c.id}" class="${here ? 'cur' : ''}"><button type="button" class="mc" data-mapc="${c.id}" aria-expanded="false"><span class="n ${c.n ? '' : 'w'}">${NUM(c)}</span><b>${esc(split(c.title)[0])}</b>${here ? '<span class="here">أنت هنا</span>' : ''}<span class="ft"><span class="pbar" aria-hidden="true"><i style="--v:${ls.length ? d / ls.length : 0}"></i></span><span>${all ? 'تمّ' : `${AR(d)} من ${AR(ls.length)}`}</span>${IC.back}</span></button></li>`;
+}
+function mapPanel(id) {
+  const c = CHI[id], [t1, t2] = split(c.title), ls = lessons(id), nx = lesNext(id), st = stats(id);
+  return `<li class="mp" id="mp" data-c="${id}"><div class="in" role="region" aria-label="دروس ${esc(t1)}"><div class="hd"><b>${esc(t1)}</b><small>${t2 ? esc(t2) + '، ' : ''}${count(ls.length, LES_W)}</small></div><ol>${ls.map(l => { const ok = lesDone(id, l.n), x = nx === l; return `<li><a class="${ok ? 'ok' : x ? 'nx' : ''}" href="#l/${id}/${l.n}"><span class="m">${ok ? IC.ok : AR(l.n)}</span><span class="t">${qwrap(esc(l.title))}</span>${x ? '<em>التالي</em>' : ''}</a></li>`; }).join('')}</ol><div class="row"><a class="btn sm" href="#c/${id}">صفحة الباب</a><a class="lnk" href="#c/${id}/read">نص الباب كاملًا${IC.go}</a>${st.total ? `<a class="lnk" href="#p/${id}">بطاقات المراجعة${IC.go}</a>` : ''}</div></div></li>`;
+}
+function mapPlace() {
+  const ol = $('#map .map'); if (!ol) return;
+  const old = $('#mp'); if (old) ol.removeChild(old);
+  $$('.mc', ol).forEach(b => { b.setAttribute('aria-expanded', String(b.dataset.mapc === MAPO)); if (b.dataset.mapc === MAPO) b.setAttribute('aria-controls', 'mp'); else b.removeAttribute('aria-controls'); });
+  if (!MAPO) return;
+  const tiles = $$(':scope>li', ol), i = tiles.findIndex(li => li.dataset.c === MAPO); if (i < 0) { MAPO = ''; return; }
+  const cols = getComputedStyle(ol).gridTemplateColumns.split(' ').length, end = Math.min(tiles.length - 1, Math.floor(i / cols) * cols + cols - 1);
+  tiles[end].insertAdjacentHTML('afterend', mapPanel(MAPO));
+  const p = $('#mp'), tb = tiles[i].getBoundingClientRect(), pb = p.getBoundingClientRect();
+  p.style.setProperty('--px', `${Math.round(pb.right - (tb.left + tb.width / 2)) - 8}px`);
+}
+function mapToggle(id) {
+  MAPO = MAPO === id ? '' : id; mapPlace();
+  const p = $('#mp'); if (p && p.getBoundingClientRect().bottom > innerHeight) p.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
 
 /* home */
 function home() {
@@ -1311,8 +1364,8 @@ function home() {
   </div></section>
   ${wHome()}
   <section class="sec" id="map" style="padding-top:clamp(24px,4vw,48px)"><div class="wrap">
-    <div class="sec-h"><h2>الفهرس</h2><p>أبواب الكتاب بترتيبه. في كل باب قواعده بلفظه، وجداوله كاملة، وتمرين يعود إليك على أيام.</p></div>
-    <ol class="map">${CH.map(c => { const [t1, t2] = split(c.title), st = stats(c.id); return `<li data-c="${c.id}"><a class="mc" href="#c/${c.id}"><span class="n ${c.n ? '' : 'w'}">${NUM(c)}</span><b>${esc(t1)}</b><small>${t2 ? esc(t2) : bookT(c).length ? count(bookT(c).length, TABLE_W) : 'الحرف، والصوت المدّيّ، وهمزة الوصل، والحركة'}</small><span class="sig">${c.durs.map(d => beads(d)).join('')}</span><span class="ft"><span class="pbar" aria-hidden="true"><i style="--v:${progVal(st)}"></i></span><span>${st.seen ? `${AR(st.seen)} من ${AR(st.total)}` : count(st.total, CARD_W)}</span></span></a></li>`; }).join('')}</ol>
+    <div class="sec-h"><h2>الفهرس</h2><p>أبواب الكتاب بترتيبه. اضغط على باب لترى دروسه.</p></div>
+    <ol class="map">${CH.map(mapTile).join('')}</ol>
   </div></section>
   <section class="sec" id="signs-home" style="padding-top:0"><div class="wrap">
     <div class="sec-h"><h2>إشارات المصحف</h2><p>اختر إشارة لترى معناها، وأين ترد في الأمثلة.</p></div>
@@ -1340,6 +1393,7 @@ function home() {
       <div class="row"><a class="btn" href="#book">المقدمة والتمهيد</a><a class="lnk" href="#book/src">المصادر والمراجع${IC.go}</a></div></div>
   </div></section>
   <footer class="foot"><div class="wrap"><nav aria-label="روابط الموقع"><a href="#map">الأبواب</a><a href="#w">الوجهات</a><a href="#tables">كل الجداول</a><a href="#signs">إشارات المصحف</a><a href="#notes">الحواشي</a><a href="#book">الكتاب</a><a href="#p/all">تمرّن</a><a href="#sada">صدى</a><a href="#progress">تقدّمي</a><a href="#about">عن الموقع</a></nav><span class="fb1">${SYMBOL}<span>الاسم من بيت الخاقاني: <q>زن الحرف لا تخرجه عن حد وزنه</q><br>مجاني، بلا حساب ولا إعلانات. تقدّمك يبقى على جهازك، ولك أن تحفظ منه نسخة.</span></span><span>النص القرآني بخط مجمع الملك فهد لطباعة المصحف الشريف، برواية حفص عن عاصم.</span></div></footer>`;
+  if (MAPO) mapPlace();
 }
 
 /* a chapter */
@@ -1837,7 +1891,7 @@ function aboutPage() {
       <h2 id="ab-text">النص والخط</h2>
       <p>النص القرآني بخط مجمع الملك فهد لطباعة المصحف الشريف، برواية حفص عن عاصم، كما نقله الكتاب. تسجيلات القارئ: ${AR(Object.keys(RECAT).length)} من ${AR(B.recTotal || 0)} في قائمة التسجيل، وتظهر في مواضعها من الجداول والنص كلما سُجّلت. خطوط الواجهة: Reem Kufi وNoto Kufi Arabic وIBM Plex Sans Arabic.</p>
       <h2 id="ab-yours">تقدّمك وتسجيلاتك</h2>
-      <p>لا حساب ولا إعلانات. تقدّمك في التمرين يبقى على جهازك في هذا المتصفح. وفي «صدى» وتمرين الدروس يُفحص تسجيلك على جهازك، ويُرسَل بإذنك إلى «المعلّم القرآني» ليسمعه. ولتنقل تقدّمك إلى جهاز آخر، احفظ منه نسخة في ملف من صفحة <a href="#progress">تقدّمي</a> ثم استرجعها هناك.</p>
+      <p>لا حساب ولا إعلانات. تقدّمك في التمرين يبقى على جهازك في هذا المتصفح. وفي «صدى» وتمرين الدروس يُفحص تسجيلك على جهازك، ولا يُرسَل إلى أحد. ولتنقل تقدّمك إلى جهاز آخر، احفظ منه نسخة في ملف من صفحة <a href="#progress">تقدّمي</a> ثم استرجعها هناك.</p>
       <p id="ab-check">في صفحات «الوجهات» فحصٌ آليّ للآية: إن اخترتَ «افحص الآية» أُرسل تسجيلك إلى الفاحص ليقيس زمن الأصوات فيه.</p>${W_AI}
       <div class="row"><a class="btn pri" href="#map">الفهرس</a><a class="btn" href="#progress">تقدّمي</a></div>
     </article></div>`;
@@ -2705,7 +2759,7 @@ function stepHTML(s) {
     const c = s.c, [n, h] = [LS.bn || 0, LS.bh || 0], fb = LS.phase === 'fb', [an, ah] = BEADV[c.ans], ok = n === an && h === ah;
     const full = n ? DLAB[String(n)] || `${AR(n)} حركات` : '';
     const val = h && n === 1 ? DLAB['1.5'] : h ? `${full}${full ? ' + ' : ''}بعض حركة` : full;
-    const bb = `<div class="bb" role="group" aria-label="الخرز">${[1, 2, 3, 4, 5, 6].map(j => `<button type="button" class="${j <= n ? 'on' : ''}" data-ls="bd" data-v="${j}" aria-label="${AR(j)}" ${fb ? 'disabled' : ''}></button>`).join('')}<button type="button" class="hf${h ? ' on' : ''}" data-ls="half" aria-label="بعض حركة" ${fb ? 'disabled' : ''}></button></div>`;
+    const bb = `<div class="bb" role="group" aria-label="الخرز">${[1, 2, 3, 4, 5, 6].map(j => `<button type="button" class="${j <= n ? 'on' : ''}" data-ls="bd" data-v="${j}" aria-label="خرزة ${AR(j)}" aria-pressed="${j <= n}" ${fb ? 'disabled' : ''}></button>`).join('')}<button type="button" class="hf${h ? ' on' : ''}" data-ls="half" aria-label="نصف خرزة: بعض حركة" aria-pressed="${!!h}" ${fb ? 'disabled' : ''}></button></div>`;
     return `<p class="ask">اجمع زمن القاعدة خرزًا</p><p class="cloze">${esc(c.blank)}<span class="blank" aria-label="فراغ"></span></p>${bb}<p class="bb-v">${esc(val)}</p>
       ${fb ? `<p class="fb ${ok ? 'ok' : 'no'}">${ok ? IC.ok + ' أحسنت' : 'الصواب: ' + DLAB[c.ans] + beads(c.ans)}</p><div class="ans"><p class="src">${ruleHTML(ruleOf(c))}</p></div>${nextBtn()}` : `<button type="button" class="btn pri lg" data-ls="check" ${n || h ? '' : 'disabled'}>تحقّق</button>`}`;
   }
@@ -2795,6 +2849,7 @@ document.addEventListener('click', e => {
   const fn = t.closest('[data-fn]'); if (fn) { e.preventDefault(); openNote(fn); return; }
   if (pop && !t.closest('.fnpop')) closeNote();
   const ddb = t.closest('[data-dd]'); if (ddb) { ddOpen(ddb); return; }
+  const mcb = t.closest('[data-mapc]'); if (mcb) { mapToggle(mcb.dataset.mapc); return; }
   if (t.closest('[data-search]')) { searchOpen(); return; }
   if (t.closest('#menuBtn')) { drawer(drawerHTML()); return; }
   const sh = t.closest('[data-sheet]'); if (sh) { drawer(sheetHTML(CHI[sh.dataset.sheet])); return; }
@@ -2954,13 +3009,13 @@ function wSheet(ai, wi, ui) {
   if (r) {
     const wl = g === 'mad' && lastInWord && r.w2 ? r.w2 : g === 'zro' ? (r['w' + u.c[0]] || r.w) : r.w;
     const stop = r.q && lastInWord ? `<li${u.e ? ' class="stop"' : ''}><b>${u.e ? 'آخر الآية: تقف هنا' : 'عند الوقف'}</b><span>${esc(r.q)}</span></li>` : '';
-    const join = `<li><b>في الكتاب</b><span>${esc(wl)}</span></li>`;
+    const join = `<li><b>القاعدة</b><span>${esc(wl)}</span></li>`;
     rows.push(u.e ? stop + join : join + stop);
-  } else rows.push(`<li><b>في الكتاب</b><span>${g === 'wsl' ? 'حكمها في باب الابتداء.' : g === 'mad' ? 'حكمه في باب الأصوات المدية.' : 'لم يُربط هذا الموضع بقاعدته بعد.'}</span></li>`);
+  } else rows.push(`<li><b>القاعدة</b><span>${g === 'wsl' ? 'حكمها في باب الابتداء.' : g === 'mad' ? 'حكمه في باب الأصوات المدية.' : 'لم يُربط هذا الموضع بقاعدته بعد.'}</span></li>`);
   const ch = r ? r.ch : K ? K[1] : '';
   const sh = document.createElement('div'); sh.className = 'w-sheet'; if (ch) sh.dataset.c = ch; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'ميزان الحرف');
   sh.innerHTML = `<button type="button" class="x" data-wx aria-label="أغلق">×</button><h2>${K ? K[0] : 'حرف'}</h2><p class="q">${word}</p><ol class="w-steps">${rows.join('')}</ol>
-    <div class="foot">${ch && CHI[ch] ? `<a class="lnk" href="#c/${ch}">بابه في الكتاب${IC.go}</a>` : '<span></span>'}<span class="pend" title="ربط الموضع بقاعدته آليّ من الرسم">قيد المراجعة</span></div>
+    <div class="foot">${ch && CHI[ch] ? `<a class="lnk" href="#c/${ch}">بابه${IC.go}</a>` : '<span></span>'}${REVIEW ? '<span class="pend" title="ربط الموضع بقاعدته آليّ من الرسم">قيد المراجعة</span>' : ''}</div>
     ${u.p === 'al' ? '<p class="w-note">اللام في «ٱل» قبل المشدّد: سُئلت المؤلفة هل تُعدّ من المعرّاة.</p>' : ''}`;
   document.body.appendChild(sh); weigh(sh);
 }
@@ -3025,7 +3080,7 @@ function wGlance() {
   return lvs + `<div class="w-bar"><b style="width:${Math.round(100 * g.i / g.items.length)}%"></b></div>
     <div class="w-card">${g.ans ? '' : '<div class="w-timer" aria-hidden="true"><b></b></div>'}
       <p class="q">${wJ(w).map((t, i) => `<i class="u${i === x.ui ? ' sel' : ''}">${t}</i>`).join('')}${nx ? ` <span class="nx">${esc(nx.map(u => u.c).join(''))}</span>` : ''}</p>
-      <h2>${q.title}${x.u.p === 'al' && q.kind === 'on' ? ' <span class="pend" title="هل تُعدّ لام «ٱل» قبل المشدّد من المعرّاة؟ سُئلت المؤلفة">قيد المراجعة</span>' : ''}</h2>
+      <h2>${q.title}${REVIEW && x.u.p === 'al' && q.kind === 'on' ? ' <span class="pend" title="هل تُعدّ لام «ٱل» قبل المشدّد من المعرّاة؟ سُئلت المؤلفة">قيد المراجعة</span>' : ''}</h2>
       <div class="w-opts">${q.opts.map(k => `<button type="button" data-wa="${k}" data-c="${q.c(k)}"${g.ans ? ' disabled' : ''} class="${g.ans ? (k === q.right ? 'ok' : k === g.ans ? 'no' : '') : ''}">${q.lab(k)}</button>`).join('')}</div>
       ${g.ans && g.ans !== q.right ? `<p class="w-why">${q.why}</p><div class="row" style="justify-content:center;margin-top:12px"><button type="button" class="btn pri" data-wa-next>التالي</button></div>` : ''}</div>`;
 }
@@ -3145,7 +3200,7 @@ document.addEventListener('change', e => { const f = e.target.closest && e.targe
 window.__w = () => W; window.__wq = () => wQ(); window.__wr = () => wRender();
 
 addEventListener('hashchange', () => { render(); syncDue(); });
-addEventListener('resize', closeNote);
+addEventListener('resize', () => { closeNote(); if (MAPO && $('#mp')) mapPlace(); });
 try { if (localStorage.getItem('zin5.size') === 'lg') { document.documentElement.dataset.size = 'lg'; $('#sizeBtn').setAttribute('aria-pressed', 'true'); } const th = localStorage.getItem('zin5.theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 render(); syncDue();
 window.__zin = { timeHTML, colPos, lookHTML, plainHTML, renderCard, partOf, ruleOf, ruleHTML, eqHTML, signOpts, cardOf, CV: () => CV, BLK, NORM, findOf, sortOf, pairsOf, rtext, lensOf, exOf, diffSpans, lessons, lessonSteps, LS: () => LS, formOf, quiz, classify, SIGNS, sgExamples, tableCodes, LQ: () => LQ, B, stats, CARDS, go, P: () => P, S: () => S, SADA, find, beads, cellHTML, spokenHTML, units, weigh, DLAB, split, CHI, T, PROMPT, TYPES, durOf, NUM, DUR_RE, cellText };
