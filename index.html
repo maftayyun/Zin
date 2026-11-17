@@ -188,6 +188,9 @@ q{quotes:"«" "»"}
 .mp .hd b{font:700 1.0625rem/1.5 var(--f-h)}
 .mp .hd small{font-size:.8125rem;color:var(--ink-3)}
 .mp ol{list-style:none;margin:0;padding:0}
+.mp ol li.lu{padding:12px 4px 4px;font:700 .8125rem/1.6 var(--f-h);color:var(--c)}
+.mp ol li.lu.d1{padding-inline-start:16px;color:var(--ink-2);font-weight:600}
+.mp ol li.lu.d2{padding-inline-start:28px;color:var(--ink-3);font-weight:600}
 .mp ol a{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);color:inherit;text-decoration:none;font-size:.9375rem;line-height:1.5}
 .mp ol a:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
 .mp ol .m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 .75rem/1 var(--f-h);box-shadow:inset 0 0 0 1.5px var(--c);color:var(--c)}
@@ -387,6 +390,9 @@ q{quotes:"«" "»"}
 .lp-h{font:700 1.25rem/1.5 var(--f-h);margin-bottom:12px;display:flex;align-items:baseline;gap:10px}
 .lp-h small{font:500 .875rem var(--f-ui);color:var(--ink-3)}
 .lpath{list-style:none;margin:0;padding:0;display:grid;gap:10px;position:relative}
+.lpath li.lu{position:relative;z-index:1;justify-self:start;max-width:100%;margin-top:6px;padding:2px 10px;border-radius:10px;background:var(--paper);font:700 .875rem/1.7 var(--f-h);color:var(--c)}
+.lpath li.lu.d1{margin-inline-start:18px;color:var(--ink-2);font-weight:600}
+.lpath li.lu.d2{margin-inline-start:34px;color:var(--ink-3);font-weight:600;font-size:.8125rem}
 .lpath::before{content:"";position:absolute;inset-block:24px;inset-inline-start:27px;width:2px;background:var(--line-2)}
 .lpath a{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px 12px 14px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}
 .lpath a:hover{border-color:var(--c);transform:translateX(-3px)}
@@ -1358,7 +1364,7 @@ function mapTile(c) {
 }
 function mapPanel(id) {
   const c = CHI[id], [t1, t2] = split(c.title), ls = lessons(id), nx = lesNext(id), st = stats(id);
-  return `<li class="mp" id="mp" data-c="${id}"><div class="in" role="region" aria-label="دروس ${esc(t1)}"><div class="hd"><b>${esc(t1)}</b><small>${t2 ? esc(t2) + '، ' : ''}${count(ls.length, LES_W)}</small></div><ol>${ls.map(l => { const ok = lesDone(id, l.n), x = nx === l; return `<li><a class="${ok ? 'ok' : x ? 'nx' : ''}" href="#l/${id}/${l.n}"><span class="m">${ok ? IC.ok : AR(l.n)}</span><span class="t">${qwrap(esc(l.title))}</span>${x ? '<em>التالي</em>' : ''}</a></li>`; }).join('')}</ol><div class="row"><a class="btn sm" href="#c/${id}">صفحة الباب</a><a class="lnk" href="#c/${id}/read">نص الباب كاملًا${IC.go}</a>${st.total ? `<a class="lnk" href="#p/${id}">بطاقات المراجعة${IC.go}</a>` : ''}</div></div></li>`;
+  return `<li class="mp" id="mp" data-c="${id}"><div class="in" role="region" aria-label="دروس ${esc(t1)}"><div class="hd"><b>${esc(t1)}</b><small>${t2 ? esc(t2) + '، ' : ''}${count(ls.length, LES_W)}</small></div><ol>${ls.map((l, j) => { const ok = lesDone(id, l.n), x = nx === l; return lsHeads(ls[j - 1], l) + `<li><a class="${ok ? 'ok' : x ? 'nx' : ''}" href="#l/${id}/${l.n}"><span class="m">${ok ? IC.ok : AR(l.n)}</span><span class="t">${qwrap(esc(l.title))}</span>${x ? '<em>التالي</em>' : ''}</a></li>`; }).join('')}</ol><div class="row"><a class="btn sm" href="#c/${id}">صفحة الباب</a><a class="lnk" href="#c/${id}/read">نص الباب كاملًا${IC.go}</a>${st.total ? `<a class="lnk" href="#p/${id}">بطاقات المراجعة${IC.go}</a>` : ''}</div></div></li>`;
 }
 function mapPlace() {
   const ol = $('#map .map'); if (!ol) return;
@@ -2077,6 +2083,16 @@ function onSada(b) {
 const LES_W = ['درس واحد', 'درسان', 'دروس', 'درسًا'];
 let LES = null;
 const isHead = b => (b.k === 'h' || b.k === 'box') && !TYPES[b.i];
+/* the lessons' names in the book's own words, under the book's own headings (its order: أولًا، ثانيًا؛ ا- ب- ج-؛ 1- 2-, and its
+   tree diagrams), from the index the owner asked for (18 November 2026). Provisional, until the author approves or changes them;
+   the book's heading inside each lesson is unchanged */
+const LNAME = {"terms":{"1":{"t":"الحرف، والصّوت المدّيّ","u":[]},"2":{"t":"الحركة الواحدة، والحروف","u":[]}},"haraka":{"1":{"t":"المتحرك بحركة إعرابية: (فتحة، أو ضمة، أو كسرة)","u":[]}},"sukun":{"1":{"t":"السّاكنة المهتزّة (القلقلة)","u":[]},"2":{"t":"السّاكنة الثّابتة","u":[]}},"tafkhim":{"1":{"t":"حروف تُلفظ بالتفخيم بشكل دائم","u":[]},"2":{"t":"تفخم الحروف (ق، غ، خ)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","أولًا- الحروف(ق، غ، خ)"]},"3":{"t":"تفخيم نسبي (ق، غ، خ)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","أولًا- الحروف(ق، غ، خ)"]},"4":{"t":"تُفخّم (ر)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"5":{"t":"(رۡ) فوقها سكون واتصل بها أحد حروف التفخيم (ص، ط، ق)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"6":{"t":"تُفخّم (ر) وقفا","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"7":{"t":"ترقق (ر)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"8":{"t":"تُفخّم (ر) وسبقها حرف فوقه سكون","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","التفخيم أو الترقيق عند الوقف على(ر) بالتّسكين نهاية بعض الكلمات وسبقها حرف فوقه سكون أيضا"]},"9":{"t":"تُرقّق (ر) وسبقها حرف فوقه سكون","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","التفخيم أو الترقيق عند الوقف على(ر) بالتّسكين نهاية بعض الكلمات وسبقها حرف فوقه سكون أيضا"]},"10":{"t":"تُفخّم (ر): حالات متّصلة برواية حفص عن عاصم","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","حالات متّصلة برواية حفص عن عاصم في تفخيم أو ترقيق(ر)"]},"11":{"t":"تُرقّق (ر): حالات متّصلة برواية حفص عن عاصم","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","حالات متّصلة برواية حفص عن عاصم في تفخيم أو ترقيق(ر)"]},"12":{"t":"يفخّم حرف(ل) في لفظ الجلالة (الله)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثالثًا (ل)لفظ الجلالة (الله)"]},"13":{"t":"يرقق حرف(ل) في لفظ الجلالة (الله)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثالثًا (ل)لفظ الجلالة (الله)"]},"14":{"t":"الحروف التي تُلفظ بالترقيق دائما","u":["الحروف التي تُلفظ بالترقيق دائما (وصلًا) أو (وقفًا)"]},"15":{"t":"اللفظ للرسم الذي في الأعلى تمامًا","u":["الحروف التي تُلفظ بالترقيق دائما (وصلًا) أو (وقفًا)"]}},"shadda":{"1":{"t":"الحرف المشدد","u":[]},"2":{"t":"(نّ - مّ المشددة)","u":[]}},"muarra":{"1":{"t":"للحروف (المعرّاة) ثلاث حالات وصلًا","u":[]},"2":{"t":"جميع الحروف المعراة وصلًا بحرف مشدد - لا تُلفظ","u":[]},"3":{"t":"ن المعراة وصلا بواو أو يا المتحركتين دون تشديد – لا تُلفظ","u":[]},"4":{"t":"ن المعراة وصلًا بحرف متحرك دون تشديد عدا واو أو يا -تُلفظ بزمن= حركتان","u":[]},"5":{"t":"م المعراة وصلا بحرف با متحرك دون تشديد تُلفظ بزمن= حركتان","u":[]},"6":{"t":"طا المعراة وصلًا - تُلفظ بزمن= حركة + بعض حركة","u":[]}},"tanween":{"1":{"t":"الحروف المنونة بأشكالها الثلاث","u":[]},"2":{"t":"الوقف على الحروف المنونة","u":[]},"3":{"t":"ن التنوين (المتتابع) وصلا بحرف مشدد","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )","حالات الوصل التي لا تُلفظ فيها ن التنوين(المتتابع)"]},"4":{"t":"ن التنوين (المتتابع) وصلًا بحرف الواو أو حرف اليا المتحركين","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )","حالات الوصل التي لا تُلفظ فيها ن التنوين(المتتابع)"]},"5":{"t":"ن التنوين (المتتابع) وصلا بحرف متحرك عدا الواو أو اليا","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )"]},"6":{"t":"التنوين (م المنقلبة عن ن) ( َۢ ُۢ ِۭ)","u":[]},"7":{"t":"المتراكب: الحالة الأولى وصلا مع حرف","u":["ثالثا- التنوين (المتراكب) ( ً ٌ ٍ )(إظهار)"]},"8":{"t":"المتراكب: الحالة الثانية وصلا بهمزة وصل","u":["ثالثا- التنوين (المتراكب) ( ً ٌ ٍ )(إظهار)"]}},"madd":{"1":{"t":"الأصوات المدية: الألف، والواو، واليا","u":[]},"2":{"t":"مدّ طبيعي","u":["أولا - الأصوات المدّيّة الخالية من الإشارات"]},"3":{"t":"الصِّلة الصغرى","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ب- (الصِّلة الصغرى)، و(صلة كبرى)"]},"4":{"t":"صلة كبرى","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ب- (الصِّلة الصغرى)، و(صلة كبرى)"]},"5":{"t":"مدّ العارض للسكون","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ج- وقفًا"]},"6":{"t":"الواو أو اليا الساكنين الرسم قبل الأخير","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ج- وقفًا"]},"7":{"t":"إذا اتصلت بهمزة الوصل (ٱ)","u":["أولا - الأصوات المدّيّة الخالية من الإشارات"]},"8":{"t":"إشارة الصفر المستدير (ْ )","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)"]},"9":{"t":"إشارة الصفر المستطيل (ا۠)","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)"]},"10":{"t":"مدّ واجب متصل، ومدّ جائز منفصل","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]},"11":{"t":"مدّ لازم كلمي","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]},"12":{"t":"الحروف في بدايات السور","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]}},"waqf":{"1":{"t":"مواضع الوقف (إشارات)","u":[]},"2":{"t":"السّكت (س)","u":[]}},"ibtida":{"1":{"t":"بحرفٍ متحركٍ بحركة إعرابية","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"2":{"t":"بحرف فوقه سكون","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"3":{"t":"بحرفٍ مشدّدٍ","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"4":{"t":"همزة الوصل في أل التعريف: ٱل","u":["بهمزة الوصل(ٱ)"]},"5":{"t":"همزة الوصل(ٱ)في الأسماء السبعة","u":["بهمزة الوصل(ٱ)"]},"6":{"t":"همزة الوصل(ٱ)في الأفعال الأربعة","u":["بهمزة الوصل(ٱ)"]},"7":{"t":"الأفعال: الحرف الذي يلي الساكن بفتحة أو كسرة","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ)، والحرف الساكن الذي يليها، أي حرف عداحرف الهمزة (ءۡ)"]},"8":{"t":"الأفعال: الحرف الذي يلي الساكن بضمة","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ)، والحرف الساكن الذي يليها، أي حرف عداحرف الهمزة (ءۡ)"]},"9":{"t":"الأفعال: الساكن بعدها حرف الهمزة (ءۡ)، وصلًا","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ) والحرف الساكن الذي يليها هو حرف الهمزة(ءۡ)"]},"10":{"t":"الأفعال: الساكن بعدها حرف الهمزة (ءۡ)، الابتداء","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ) والحرف الساكن الذي يليها هو حرف الهمزة(ءۡ)"]}}};
+// the book's headings over a list of lessons, where they change from the lesson before
+function lsHeads(prev, l) {
+  const a = (prev && prev.unit) || [], b = l.unit || []; let d = 0;
+  while (d < b.length && a[d] === b[d]) d++;
+  return b.slice(d).map((u, j) => `<li class="lu d${d + j}">${qwrap(esc(u))}</li>`).join('');
+}
 function lessons(id) {
   if (!LES) {
     LES = {};
@@ -2101,6 +2117,7 @@ function lessons(id) {
       }
       const seenT = {};
       out.forEach((l, i) => { l.n = i + 1; seenT[l.title] = (seenT[l.title] || 0) + 1; if (seenT[l.title] > 1) l.title += ` (${AR(seenT[l.title])})`; });
+      const nm = LNAME[c.id]; if (nm) out.forEach(l => { const x = nm[l.n]; if (x) { l.book = l.title; l.title = x.t; l.unit = x.u; } });
       LES[c.id] = out;
     });
   }
@@ -2131,7 +2148,7 @@ function overview(id) {
     <div class="ch-go">${cta}</div>
   </div></header>
   <div class="wrap lp-body">
-    <section><h2 class="lp-h">دروس الباب<small>${count(ls.length, LES_W)}</small></h2><div class="neck" style="margin-bottom:14px" aria-label="قلادة الباب: ${AR(nDone)} من ${AR(ls.length)}">${ls.map(l => `<i class="${lesDone(id, l.n) ? 'on' : ''}"></i>`).join('')}</div><ol class="lpath">${ls.map(row).join('')}</ol></section>
+    <section><h2 class="lp-h">دروس الباب<small>${count(ls.length, LES_W)}</small></h2><div class="neck" style="margin-bottom:14px" aria-label="قلادة الباب: ${AR(nDone)} من ${AR(ls.length)}">${ls.map(l => `<i class="${lesDone(id, l.n) ? 'on' : ''}"></i>`).join('')}</div><ol class="lpath">${ls.map((l, j) => lsHeads(ls[j - 1], l) + row(l)).join('')}</ol></section>
     <aside class="lp-side">
       <div class="lp-card"><b>نص الباب كاملًا</b><p>القواعد والجداول كلها كما في الكتاب، للقراءة والرجوع.</p><div class="row"><a class="btn sm" href="#c/${id}/read">اقرأ نص الباب</a><button type="button" class="lnk" data-print-ch="${id}">${IC.print}اطبع</button></div></div>
       ${st.total ? `<div class="lp-card"><b>المراجعة</b><p>${st.seen ? progText(st) : count(st.total, CARD_W) + ' في الباب'}.</p><div class="row"><a class="btn sm" href="#p/${id}">بطاقات</a>${SADA.some(x => x.ch === id) ? `<a class="btn sm" href="#sada/${id}">صدى</a>` : ''}</div></div>` : ''}
@@ -2694,7 +2711,7 @@ function lsRender(focus) {
   const prog = `<ol class="lsf-prog" aria-label="مراحل الدرس">${steps.map((_, j) => `<li class="${j < i ? 'done' : j === i ? 'cur' : ''}"${j === i ? ' aria-current="step"' : ''}><span class="d"></span>${j === i ? `<span class="t">${name(j)}</span>` : ''}</li>`).join('')}</ol>`;
   const top = `<div class="pr-top lsf-top"><a class="pr-x" href="#c/${L.ch}" aria-label="أغلق الدرس، إلى دروس الباب">${IC.x}</a>${prog}<span class="pr-n">${AR(i + 1)} من ${AR(steps.length)}</span><button type="button" class="ls-snd" data-ls="snd" aria-pressed="${sndOn()}" aria-label="أصوات التمرين">${IC.snd}</button></div>`;
   const kick = j => `<span class="ls-k"><b class="num">${AR(j + 1)}</b>${name(j)}</span>`;
-  const band = `<div class="lsf-band"><span class="n">${NUM(c)}</span><div><small>${c.n ? 'الباب ' + AR(c.n) : 'المدخل'}، الدرس ${AR(L.n)}</small><h1>${esc(split(c.title)[0])}</h1></div></div>`;
+  const band = `<div class="lsf-band"><span class="n">${NUM(c)}</span><div><small>${c.n ? 'الباب ' + AR(c.n) : 'المدخل'}: ${esc(split(c.title)[0])}، الدرس ${AR(L.n)}</small><h1>${qwrap(esc(L.title))}</h1></div></div>`;
   const minis = steps.slice(0, i).map((_, j) => `<section class="lsf-st done" id="st${j}" aria-label="${name(j)}"><div class="lsf-mini">${kick(j)}${(LS.minis || [])[j] || ''}</div></section>`).join('');
   const rest = []; steps.slice(i + 1).forEach((_, j) => { const n = name(i + 1 + j); if (rest[rest.length - 1] !== n) rest.push(n); });
   const next = rest.length ? `<div class="lsf-next"><b>بعد ذلك</b>${rest.map(n => `<span>${n}</span>`).join('')}</div>` : '';
