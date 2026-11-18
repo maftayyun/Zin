@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap">
 <style>
 /* «زِنِ الحَرْفَ», v14: the whole book, shown as what it is, a system of marks and the time each one weighs.
    Every rule, table, example and definition is the book's own text, read from its Word file. */
@@ -981,6 +981,109 @@ html:not(.is-webkit) .w-page .q,html:not(.is-webkit) .w-ayah.q,html:not(.is-webk
 .w-res .w-st{color:var(--ink-3)}
 .w-unit{line-height:1.9;color:var(--ink-2)}
 
+/* ⟪theme-ab⟫ */
+/* ── the look of Art Bridges (owner's choice, 18 Nov 2026): white, ink, one red; bold sans headings, naskh for prose;
+   square images and cards, round buttons; a page of an old mushaf on every part. Content, lessons and their flow untouched.
+   Images: Qur'an folios, Cleveland Museum of Art, Open Access (CC0). ── */
+:root{
+  --paper:#FFFFFF;--card:#FFFFFF;--well:#F6F5F8;--well-2:#ECEAF0;
+  --ink:#1D1B24;--ink-2:#4A4752;--ink-3:#6B6775;
+  --line:#E6E3EA;--line-2:#D5D1DB;
+  --brand:#A3271F;--brand-d:#7A1C16;--brand-t:#F7E9E7;--dot:#B8322A;
+  --shadow:0 18px 40px -26px rgba(29,27,36,.35);--shadow-s:none;
+  --f-h:"IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-r:"Amiri","Noto Naskh Arabic",serif;
+  --f-p:"Noto Naskh Arabic","Amiri",serif;
+  --r:6px;--r-l:8px
+}
+[data-c]{--c:#1D1B24;--ct:#F6F5F8;--cd:#000000}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#15131A;--card:#1D1B24;--well:#24212D;--well-2:#2E2A38;
+  --ink:#F2F0F5;--ink-2:#CFCBD8;--ink-3:#A9A4B5;--line:#2E2A38;--line-2:#433E50;
+  --brand:#F08A78;--brand-d:#C8604E;--brand-t:#3A1E1B;--dot:#F07A66;--on-c:#15131A}
+ :root:not([data-theme="light"]) [data-c]{--c:#E9E6EF;--ct:#24212D;--cd:#BDB8C9}}
+:root[data-theme="dark"]{
+  --paper:#15131A;--card:#1D1B24;--well:#24212D;--well-2:#2E2A38;
+  --ink:#F2F0F5;--ink-2:#CFCBD8;--ink-3:#A9A4B5;--line:#2E2A38;--line-2:#433E50;
+  --brand:#F08A78;--brand-d:#C8604E;--brand-t:#3A1E1B;--dot:#F07A66;--on-c:#15131A}
+:root[data-theme="dark"] [data-c]{--c:#E9E6EF;--ct:#24212D;--cd:#BDB8C9}
+
+/* type: bold sans for headings, naskh for the prose around them */
+.hero h1,.sec-h h2,.ch-t h1,.lp-h,.lsf-band h1,.how h3,.mp .hd b,.sgc-h h3{font-family:var(--f-h);font-weight:700;letter-spacing:0}
+.hero h1{font-size:clamp(2.3rem,5.4vw,4.1rem);line-height:1.3}
+.sec-h h2{font-size:clamp(1.8rem,3.6vw,2.7rem);line-height:1.35}
+.hero-p,.sec-h p,.how p,.lp-card p,.ch-t p{font-family:var(--f-p);font-size:1.125rem;line-height:1.85}
+
+/* header and buttons */
+.top{background:var(--paper);-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:1px solid var(--line)}
+.btn{border-width:1px;box-shadow:none;font-weight:500}
+.btn:active{transform:none;box-shadow:none}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:var(--paper);box-shadow:none}
+.btn.pri:hover{background:#000}
+.btn.pri:active{box-shadow:none}
+:root[data-theme="dark"] .btn.pri:hover{background:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.pri:hover{background:#fff}}
+.hero::before,.ch-head::after{display:none}
+
+/* the beads keep the red of the dots in the old mushafs, as the logo does */
+.bd,.bb{--c:var(--brand)}
+
+/* the parts: a collection of pages from old mushafs */
+.map{gap:18px}
+.mc{border-radius:0;background:var(--card);border:1px solid var(--line);padding:0 14px 12px;overflow:hidden}
+.mc::before{content:"";display:block;height:118px;margin:0 -14px 10px;background:var(--well) var(--ms) center/cover no-repeat}
+.mc:hover{transform:none;box-shadow:var(--shadow)}
+.mc .n{color:var(--ink);font:700 1.5rem/1.2 var(--f-h)}
+.mc b{font-family:var(--f-h)}
+.mc .here{background:var(--brand);color:#fff;inset-block-start:10px;inset-inline-end:10px}
+.mc[aria-expanded="true"],.map>li.cur .mc,.map>li.cur .mc[aria-expanded="true"]{box-shadow:inset 0 0 0 2px var(--ink)}
+.pbar{border-radius:0;height:3px;background:var(--well-2)}.pbar i{border-radius:0;background:var(--brand)}
+.mp .in{border:1px solid var(--line);border-radius:0;box-shadow:var(--shadow)}
+.mp .in::before{border-color:var(--line)}
+.mp ol .m{box-shadow:inset 0 0 0 1.5px var(--ink);color:var(--ink)}
+.mp ol .ok .m{background:var(--ink);color:var(--paper)}
+.mp ol .nx em{color:var(--brand)}
+[data-c="terms"]{--ms:url(img/ms-terms.jpg)}[data-c="haraka"]{--ms:url(img/ms-haraka.jpg)}[data-c="sukun"]{--ms:url(img/ms-sukun.jpg)}
+[data-c="tafkhim"]{--ms:url(img/ms-tafkhim.jpg)}[data-c="shadda"]{--ms:url(img/ms-shadda.jpg)}[data-c="muarra"]{--ms:url(img/ms-muarra.jpg)}
+[data-c="tanween"]{--ms:url(img/ms-tanween.jpg)}[data-c="madd"]{--ms:url(img/ms-madd.jpg)}[data-c="waqf"]{--ms:url(img/ms-waqf.jpg)}
+[data-c="ibtida"]{--ms:url(img/ms-ibtida.jpg)}
+
+/* a part's page: its heading beside a page of an old mushaf */
+.ch-head{background:var(--paper);border-bottom:1px solid var(--line)}
+.ch-head::before{content:"";position:absolute;inset-block:0;inset-inline-end:0;width:min(38%,460px);background:var(--ms) center/cover no-repeat}
+.ch-head .wrap{padding-inline-end:min(40%,480px)}
+.ch-n{border-radius:50%;background:var(--ink);color:var(--paper);box-shadow:none;font:700 2rem/1 var(--f-h);padding-bottom:0;width:68px;height:68px}
+.crumb a{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+@media (max-width:760px){.ch-head::before{position:relative;display:block;width:auto;height:170px;inset:auto}.ch-head .wrap{padding-inline-end:max(16px,env(safe-area-inset-right,0px))}}
+
+/* a part's lessons: a numbered list with hairlines */
+.lpath{gap:0}
+.lpath::before{display:none}
+.lpath a{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:16px 4px}
+.lpath a:hover{transform:none;background:var(--well)}
+.lpath .lnum{background:var(--paper);border-color:var(--ink);color:var(--ink)}
+.lpath .done .lnum{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.lpath .cur a{border-color:var(--line);box-shadow:inset 0 0 0 2px var(--ink)}
+.lpath .cur .lnum{background:var(--brand);border-color:var(--brand);color:#fff}
+.lpath li.lu{background:transparent;color:var(--ink);padding-inline:4px}
+.lp-card{border-radius:0}
+
+/* the lesson: a dark band, square cards */
+.lsf-band{border-radius:0}
+.lsf-band .n{border-radius:50%}
+.card{border-radius:var(--r-l)}
+.ls-bar i.done{background:var(--ink)}
+.neck i.on{background:var(--ink)}
+.sgc,.how li{border-radius:0}
+.sgc-h .q{border-radius:0}
+.how .fig{border-radius:0}
+
+/* the foot: dark, as in the reference, with the images' credit */
+.foot{background:#1D1B24;color:#C9C4D6;border-top:0}
+.foot a{color:#F2F0F5}
+.foot .zl{fill:#F2F0F5}
+.foot .wrap::after{content:"صور المصاحف القديمة: أوراق من متحف كليفلاند للفنون، ملكية عامة (CC0)";flex-basis:100%;font-size:.8125rem;color:#9C97AA}
+/* ⟪/theme-ab⟫ */
 </style>
 
 <div id="app" dir="rtl" lang="ar">
@@ -2086,7 +2189,7 @@ const isHead = b => (b.k === 'h' || b.k === 'box') && !TYPES[b.i];
 /* the lessons' names in the book's own words, under the book's own headings (its order: أولًا، ثانيًا؛ ا- ب- ج-؛ 1- 2-, and its
    tree diagrams), from the index the owner asked for (18 November 2026). Provisional, until the author approves or changes them;
    the book's heading inside each lesson is unchanged */
-const LNAME = {"terms":{"1":{"t":"الحرف، والصّوت المدّيّ","u":[]},"2":{"t":"الحركة الواحدة، والحروف","u":[]}},"haraka":{"1":{"t":"المتحرك بحركة إعرابية: (فتحة، أو ضمة، أو كسرة)","u":[]}},"sukun":{"1":{"t":"السّاكنة المهتزّة (القلقلة)","u":[]},"2":{"t":"السّاكنة الثّابتة","u":[]}},"tafkhim":{"1":{"t":"حروف تُلفظ بالتفخيم بشكل دائم","u":[]},"2":{"t":"تفخم الحروف (ق، غ، خ)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","أولًا- الحروف(ق، غ، خ)"]},"3":{"t":"تفخيم نسبي (ق، غ، خ)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","أولًا- الحروف(ق، غ، خ)"]},"4":{"t":"تُفخّم (ر)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"5":{"t":"(رۡ) فوقها سكون واتصل بها أحد حروف التفخيم (ص، ط، ق)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"6":{"t":"تُفخّم (ر) وقفا","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"7":{"t":"ترقق (ر)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)"]},"8":{"t":"تُفخّم (ر) وسبقها حرف فوقه سكون","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","التفخيم أو الترقيق عند الوقف على(ر) بالتّسكين نهاية بعض الكلمات وسبقها حرف فوقه سكون أيضا"]},"9":{"t":"تُرقّق (ر) وسبقها حرف فوقه سكون","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","التفخيم أو الترقيق عند الوقف على(ر) بالتّسكين نهاية بعض الكلمات وسبقها حرف فوقه سكون أيضا"]},"10":{"t":"تُفخّم (ر): حالات متّصلة برواية حفص عن عاصم","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","حالات متّصلة برواية حفص عن عاصم في تفخيم أو ترقيق(ر)"]},"11":{"t":"تُرقّق (ر): حالات متّصلة برواية حفص عن عاصم","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثانيا الحرف (ر)","حالات متّصلة برواية حفص عن عاصم في تفخيم أو ترقيق(ر)"]},"12":{"t":"يفخّم حرف(ل) في لفظ الجلالة (الله)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثالثًا (ل)لفظ الجلالة (الله)"]},"13":{"t":"يرقق حرف(ل) في لفظ الجلالة (الله)","u":["حروفٌ تتغير صفتها ما بين تفخيم أوترقيق","ثالثًا (ل)لفظ الجلالة (الله)"]},"14":{"t":"الحروف التي تُلفظ بالترقيق دائما","u":["الحروف التي تُلفظ بالترقيق دائما (وصلًا) أو (وقفًا)"]},"15":{"t":"اللفظ للرسم الذي في الأعلى تمامًا","u":["الحروف التي تُلفظ بالترقيق دائما (وصلًا) أو (وقفًا)"]}},"shadda":{"1":{"t":"الحرف المشدد","u":[]},"2":{"t":"(نّ - مّ المشددة)","u":[]}},"muarra":{"1":{"t":"للحروف (المعرّاة) ثلاث حالات وصلًا","u":[]},"2":{"t":"جميع الحروف المعراة وصلًا بحرف مشدد - لا تُلفظ","u":[]},"3":{"t":"ن المعراة وصلا بواو أو يا المتحركتين دون تشديد – لا تُلفظ","u":[]},"4":{"t":"ن المعراة وصلًا بحرف متحرك دون تشديد عدا واو أو يا -تُلفظ بزمن= حركتان","u":[]},"5":{"t":"م المعراة وصلا بحرف با متحرك دون تشديد تُلفظ بزمن= حركتان","u":[]},"6":{"t":"طا المعراة وصلًا - تُلفظ بزمن= حركة + بعض حركة","u":[]}},"tanween":{"1":{"t":"الحروف المنونة بأشكالها الثلاث","u":[]},"2":{"t":"الوقف على الحروف المنونة","u":[]},"3":{"t":"ن التنوين (المتتابع) وصلا بحرف مشدد","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )","حالات الوصل التي لا تُلفظ فيها ن التنوين(المتتابع)"]},"4":{"t":"ن التنوين (المتتابع) وصلًا بحرف الواو أو حرف اليا المتحركين","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )","حالات الوصل التي لا تُلفظ فيها ن التنوين(المتتابع)"]},"5":{"t":"ن التنوين (المتتابع) وصلا بحرف متحرك عدا الواو أو اليا","u":["أولا- التنوين(المتتابع): ( ٗ ٞ ٖ )"]},"6":{"t":"التنوين (م المنقلبة عن ن) ( َۢ ُۢ ِۭ)","u":[]},"7":{"t":"المتراكب: الحالة الأولى وصلا مع حرف","u":["ثالثا- التنوين (المتراكب) ( ً ٌ ٍ )(إظهار)"]},"8":{"t":"المتراكب: الحالة الثانية وصلا بهمزة وصل","u":["ثالثا- التنوين (المتراكب) ( ً ٌ ٍ )(إظهار)"]}},"madd":{"1":{"t":"الأصوات المدية: الألف، والواو، واليا","u":[]},"2":{"t":"مدّ طبيعي","u":["أولا - الأصوات المدّيّة الخالية من الإشارات"]},"3":{"t":"الصِّلة الصغرى","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ب- (الصِّلة الصغرى)، و(صلة كبرى)"]},"4":{"t":"صلة كبرى","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ب- (الصِّلة الصغرى)، و(صلة كبرى)"]},"5":{"t":"مدّ العارض للسكون","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ج- وقفًا"]},"6":{"t":"الواو أو اليا الساكنين الرسم قبل الأخير","u":["أولا - الأصوات المدّيّة الخالية من الإشارات","ج- وقفًا"]},"7":{"t":"إذا اتصلت بهمزة الوصل (ٱ)","u":["أولا - الأصوات المدّيّة الخالية من الإشارات"]},"8":{"t":"إشارة الصفر المستدير (ْ )","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)"]},"9":{"t":"إشارة الصفر المستطيل (ا۠)","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)"]},"10":{"t":"مدّ واجب متصل، ومدّ جائز منفصل","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]},"11":{"t":"مدّ لازم كلمي","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]},"12":{"t":"الحروف في بدايات السور","u":["ثانيا- الأصوات المدّيّة فوقها إحدى الإشارات: ( ْ)( ۠)( ۬)( ٓ)","د- إشارة المدّ (ٓ ) للألف- الواو- اليا"]}},"waqf":{"1":{"t":"مواضع الوقف (إشارات)","u":[]},"2":{"t":"السّكت (س)","u":[]}},"ibtida":{"1":{"t":"بحرفٍ متحركٍ بحركة إعرابية","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"2":{"t":"بحرف فوقه سكون","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"3":{"t":"بحرفٍ مشدّدٍ","u":["وفقًا لرسم القرءان الكريم يكون الابتداء بـ"]},"4":{"t":"همزة الوصل في أل التعريف: ٱل","u":["بهمزة الوصل(ٱ)"]},"5":{"t":"همزة الوصل(ٱ)في الأسماء السبعة","u":["بهمزة الوصل(ٱ)"]},"6":{"t":"همزة الوصل(ٱ)في الأفعال الأربعة","u":["بهمزة الوصل(ٱ)"]},"7":{"t":"الأفعال: الحرف الذي يلي الساكن بفتحة أو كسرة","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ)، والحرف الساكن الذي يليها، أي حرف عداحرف الهمزة (ءۡ)"]},"8":{"t":"الأفعال: الحرف الذي يلي الساكن بضمة","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ)، والحرف الساكن الذي يليها، أي حرف عداحرف الهمزة (ءۡ)"]},"9":{"t":"الأفعال: الساكن بعدها حرف الهمزة (ءۡ)، وصلًا","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ) والحرف الساكن الذي يليها هو حرف الهمزة(ءۡ)"]},"10":{"t":"الأفعال: الساكن بعدها حرف الهمزة (ءۡ)، الابتداء","u":["بهمزة الوصل(ٱ)","في الأفعال همزة الوصل(ٱ) والحرف الساكن الذي يليها هو حرف الهمزة(ءۡ)"]}}};
+const LNAME = {"terms":{"1":{"t":"الحرف، والصّوت المدّيّ","u":[]},"2":{"t":"الحركة الواحدة، والحروف","u":[]}},"haraka":{"1":{"t":"الحرف المتحرّك","u":[]}},"sukun":{"1":{"t":"ق، ط، ب، ج، د ساكنة","u":[]},"2":{"t":"باقي الحروف ساكنة","u":[]}},"tafkhim":{"1":{"t":"حروف مفخّمة دائمًا","u":[]},"2":{"t":"ق، غ، خ مع الفتح أو الضم","u":[]},"3":{"t":"ق، غ، خ مع الكسر","u":[]},"4":{"t":"ر مع الفتح أو الضم","u":[]},"5":{"t":"ر ساكنة قبل ص، ط، ق","u":[]},"6":{"t":"ر وقفًا بعد فتح أو ضم","u":[]},"7":{"t":"ر مع الكسر","u":[]},"8":{"t":"ر بعد ساكن، قبله فتح أو ضم","u":[]},"9":{"t":"ر بعد ساكن، قبله كسر","u":[]},"10":{"t":"مستثنى: ر تُفخّم رغم الكسر","u":[]},"11":{"t":"مستثنى: ر تُرقّق رغم الفتح أو الضم","u":[]},"12":{"t":"ل الجلالة بعد فتح أو ضم","u":[]},"13":{"t":"ل الجلالة بعد كسر","u":[]},"14":{"t":"حروف مرقّقة دائمًا","u":[]},"15":{"t":"حرف صغير فوق الحرف","u":[]}},"shadda":{"1":{"t":"الحرف المشدّد","u":[]},"2":{"t":"نّ، مّ","u":[]}},"muarra":{"1":{"t":"الحروف المعرّاة","u":[]},"2":{"t":"معرّاة بعدها مشدّد","u":[]},"3":{"t":"ن معرّاة بعدها و، ي","u":[]},"4":{"t":"ن معرّاة بعدها متحرّك (عدا و، ي)","u":[]},"5":{"t":"م معرّاة بعدها ب","u":[]},"6":{"t":"ط معرّاة","u":[]}},"tanween":{"1":{"t":"أشكال التنوين الثلاثة","u":[]},"2":{"t":"المنوّن وقفًا","u":[]},"3":{"t":"المتتابع بعده مشدّد","u":[]},"4":{"t":"المتتابع بعده و، ي","u":[]},"5":{"t":"المتتابع بعده متحرّك (عدا و، ي)","u":[]},"6":{"t":"التنوين ( َۢ ُۢ ِۭ) بعده ب","u":[]},"7":{"t":"المتراكب بعده حرف","u":[]},"8":{"t":"المتراكب بعده همزة وصل","u":[]}},"madd":{"1":{"t":"الأصوات المدّيّة الثلاثة","u":[]},"2":{"t":"صوت مدّيّ بلا إشارة","u":["خالية من الإشارات"]},"3":{"t":"و، ي صغيرتان بعد هـ","u":["خالية من الإشارات"]},"4":{"t":"و، ي صغيرتان بعد هـ، قبل همزة","u":["خالية من الإشارات"]},"5":{"t":"صوت مدّيّ قبل الأخير وقفًا","u":["خالية من الإشارات"]},"6":{"t":"و، ي ساكنتان قبل الأخير وقفًا","u":["خالية من الإشارات"]},"7":{"t":"صوت مدّيّ بعده ٱ","u":["خالية من الإشارات"]},"8":{"t":"الصفر المستدير (ْ )","u":["فوقها إشارة"]},"9":{"t":"الصفر المستطيل (ا۠)","u":["فوقها إشارة"]},"10":{"t":"إشارة المدّ (ٓ ) قبل همزة","u":["فوقها إشارة"]},"11":{"t":"إشارة المدّ (ٓ ) قبل مشدّد أو ساكن","u":["فوقها إشارة"]},"12":{"t":"حروف بدايات السور","u":["فوقها إشارة"]}},"waqf":{"1":{"t":"إشارات الوقف","u":[]},"2":{"t":"إشارة السّكت (س)","u":[]}},"ibtida":{"1":{"t":"الابتداء بمتحرّك","u":[]},"2":{"t":"الابتداء بساكن","u":[]},"3":{"t":"الابتداء بمشدّد","u":[]},"4":{"t":"ٱ في ٱل التعريف","u":[]},"5":{"t":"ٱ في الأسماء السبعة","u":[]},"6":{"t":"ٱ في الأفعال الأربعة","u":[]},"7":{"t":"ٱ في فعل، بعد الساكن فتح أو كسر","u":[]},"8":{"t":"ٱ في فعل، بعد الساكن ضم","u":[]},"9":{"t":"ٱ بعدها همزة ساكنة، وصلًا","u":[]},"10":{"t":"ٱ بعدها همزة ساكنة، ابتداءً","u":[]}}};
 // the book's headings over a list of lessons, where they change from the lesson before
 function lsHeads(prev, l) {
   const a = (prev && prev.unit) || [], b = l.unit || []; let d = 0;
