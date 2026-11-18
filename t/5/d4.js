@@ -73,12 +73,12 @@ window.D4 = (() => {
   const rkey = x => (x.ctx || '') + '|' + x.w;
   /* «ok»: read like the reader, by the learner's own ear; «again»: not yet; «skip»: passed over. The box rises only on its day and
      once a day (the council's rule for spaced review); not yet comes back the next day, a skip the same day */
-  function keepRead(x, how) {
+  function keepRead(x, how, ch = cur && cur.ch) {
     const k = rkey(x), o = R.r[k] || { b: 0, n: 0 }, now = today();
     if (how === 'ok') { if ((!o.due || o.due <= now) && o.t !== now) o.b = Math.min(5, (o.b || 0) + 1); o.due = addDays(now, IV[o.b] || 1); }
     else if (how === 'again') { o.b = 0; o.due = addDays(now, 1); }
     else { o.due = now; }
-    Object.assign(o, { last: how, n: (o.n || 0) + 1, t: now, ch: cur.ch, w: x.w, ctx: x.ctx || '', ay: x.ay ? [x.ay.sura, x.ay.a] : null });
+    Object.assign(o, { last: how, n: (o.n || 0) + 1, t: now, ch, w: x.w, ctx: x.ctx || '', ay: x.ay ? [x.ay.sura, x.ay.a] : null });
     if (how === 'again') delete o.taught;
     R.r[k] = o;
     if (how !== 'skip' && !R.days.includes(now)) R.days.push(now);
@@ -93,7 +93,8 @@ window.D4 = (() => {
   }
   // the reader's word: the site's reader saying it alone where recorded, else the ayah
   const wordUrl = x => x.wau && D.audio[x.wau] ? D.audio[x.wau] : '';
-  const refUrl = x => wordUrl(x) || T.reader();
+  const curT = () => T;   // ear() and verdict() draw for another reading too (D5, the reading inside an exercise)
+  const refUrl = (x, t = T) => wordUrl(x) || t.reader();
   /* the madd: the device's timing separates a short madd from a long one and no more (by this method al-Minshawi's natural madd
      came out 1.3 to 2.0 harakat and his joined and separated ones 4.3 to 9.4, over 605 of his madds), so it says short or long;
      four or six is left to the ear until it is measured on readers with known mistakes */
@@ -106,7 +107,7 @@ window.D4 = (() => {
   }
   /* the checker's word, after the learner's own: one line for each thing asked, none of them green, for none is measured yet on
      readings with known mistakes (the council: a verdict shows only where its accuracy is known); unsure is said */
-  function verdict(x) {
+  function verdict(x, T = curT()) {
     const head = '<b>الفاحص</b>', note = `<p class="d4-ai">${esc(Z.NOTE)}</p>`;
     if (!x.zf) return `<div class="d4-chk">${head}<p>${esc(Z.errText({ local: true }))} فالحكم هنا لأذنك.</p></div>`;
     if (Z.S().zf === -1) return `<div class="d4-chk">${head}<p>اخترتَ أن تحكم بأذنك.</p><button type="button" class="lnk d4-zon" data-d4="zon">افحص على جهازي</button></div>`;
@@ -134,9 +135,9 @@ window.D4 = (() => {
       <details class="d4-det"><summary>تفصيل</summary>${det.map(t => `<p>${t}</p>`).join('')}</details>${note}</div>`;
   }
   // after a reading: the two voices, the learner's own answer first, then the checker
-  function ear(x) {
+  function ear(x, T = curT()) {
     if (!T.rec) return '';
-    const rd = !!refUrl(x), rpk = rd && !wordUrl(x) ? T.readerPk() : null, mpk = T.rec.pk;
+    const rd = !!refUrl(x, T), rpk = rd && !wordUrl(x) ? T.readerPk() : null, mpk = T.rec.pk;
     const max = Math.max(rpk ? rpk.to - rpk.from : 0, mpk ? mpk.to - mpk.from : 0);
     const md = rd && Z.maddOf(x);
     const ask = !rd ? 'اسمع صوتك، وقابله بالقاعدة: هل قرأتَها عليها؟' : md ? 'اسمع القارئ ثم صوتك: مدّك أقصر من مدّه، أم مثله، أم أطول؟' : 'اسمع القارئ ثم صوتك: هل قرأتَها مثله؟';
@@ -147,7 +148,7 @@ window.D4 = (() => {
           <button type="button" class="btn" data-d4="mine"${rd ? '' : ' style="grid-column:1/-1"'}>${I.play()}تلاوتك</button></div>
         <p class="d4-ask">${ask}</p>
         <div class="d4-ans${ans.length === 3 ? ' d4-3' : ''}" role="group" aria-label="جوابك">${ans.map(([k, t]) => `<button type="button" class="btn${T.ans === k ? ' d4-sel' : ''}" data-d4="a-${k}" aria-pressed="${T.ans === k}">${t}</button>`).join('')}</div>
-        ${T.self ? verdict(x) : ''}</div>`;
+        ${T.self ? verdict(x, T) : ''}</div>`;
   }
   // focus stays where it was when the screen is drawn again (keyboard and screen readers)
   const focused = () => { const a = document.activeElement; return a && box.contains(a) && a.dataset && a.dataset.d4 ? a.dataset.d4 : ''; };
@@ -300,5 +301,5 @@ window.D4 = (() => {
     if (k === 'next') { if (T.rec && !T.self) keepRead(x, 'skip'); T.self = null; T.ans = null; return T.next(); }
   });
   window.__t = () => T;
-  return { show, hide, sada, halqa };
+  return { show, hide, sada, halqa, ear, verdict, keepRead };
 })();

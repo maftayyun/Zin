@@ -88,7 +88,8 @@ window.Z = (() => {
   const lit = (w, f, cls) => esc(w.slice(0, f[0])) + `<em${cls ? ` class="${cls}"` : ''}>` + esc(w.slice(f[0], f[1])) + '</em>' + esc(w.slice(f[1]));
   // marks of the mushaf inside a line of the book are drawn in the mushaf's own font
   const qt = t => esc(t).replace(/[^\s،,:؛()=+*]*[ٓۖ-ۭٱٰ][^\s،,:؛()=+*]*/g, m => `<span class="q">${/^[\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]+$/.test(m) ? 'ـ' + m : m}</span>`);
-  const glyph = x => x.w.slice(x.f[0], x.f[1]).replace(/[ۖ-ۛ]/g, '');
+  // an exercise with no lit letters (some of the site's own words): the word itself
+  const glyph = x => (x.f ? x.w.slice(x.f[0], x.f[1]) : x.w).replace(/[ۖ-ۛ]/g, '');
   // a time as small dots: one for each حركة, half a dot for «بعض حركة», an empty crossed one for a letter not said
   function dots(v) {
     if (v == null) return '';
