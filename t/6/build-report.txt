@@ -1,0 +1,4 @@
+recordings in the folder 307 | placed in the tables 306 | recorded but not in any table ['WS-A-05-W']
+days 64 | with the reader 21 | by chapter {'muarra': 12, 'tanween': 14, 'madd': 33, 'waqf': 5}
+lesson examples with the reader 99 of 145
+files the site names 522 | missing []
